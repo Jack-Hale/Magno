@@ -1,12 +1,14 @@
-[gd_scene load_steps=3 format=3 uid="uid://dfdg8yipq3ya0"]
+[gd_scene load_steps=4 format=3 uid="uid://dfdg8yipq3ya0"]
 
 [ext_resource type="Texture2D" uid="uid://dmiecbveok1ib" path="res://Assets/Sprites/Magnoman.png" id="1_a4gl4"]
+[ext_resource type="Script" path="res://Source/Player.cs" id="1_fhg01"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_cwh6n"]
 radius = 16.0
 height = 32.0
 
 [node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_fhg01")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_cwh6n")
