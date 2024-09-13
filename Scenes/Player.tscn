@@ -15,3 +15,6 @@ shape = SubResource("CapsuleShape2D_cwh6n")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("1_a4gl4")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true

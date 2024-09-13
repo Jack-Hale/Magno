@@ -3,13 +3,19 @@ using System;
 
 public partial class Player : CharacterBody2D
 {
-	public const float MAX_SPEED = 300.0f;
-	public const float JUMP_VELOCITY = -400.0f;
-	public const float FRICTION = 400.0f;
+	public const float MAX_SPEED = 1500.0f;
+	public const float JUMP_VELOCITY = -100.0f;
+	public const float JUMP_HOLD_TIME = 0.3f;	
+
+	public const float FRICTION = 1200.0f;
 	public const float AIR_FRICTION = 1.0f;
 
-	public const float ACCELERATION = 400.0f;
-	public const float AIR_ACCELERATION = 1.0f;
+	public const float ACCELERATION = 1200.0f;
+	public const float AIR_ACCELERATION = 600.0f;
+
+	public float CurrentJumpVelocity = 0.0f;
+	public bool Jumping = false;
+	public float CurrentJumpTimer = 0.0f;
 	Vector2 Input = Vector2.Zero;
 
 
@@ -23,9 +29,8 @@ public partial class Player : CharacterBody2D
 		if (!IsOnFloor())
 			NewVelocity.Y += gravity * (float)delta;
 
-		// Handle Jump.
-		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor())
-			NewVelocity.Y = JUMP_VELOCITY;
+		GD.Print(HandleJump(delta));
+		NewVelocity.Y += HandleJump(delta);
 
 		NewVelocity.X = MovePlayer(delta);
 
@@ -38,6 +43,26 @@ public partial class Player : CharacterBody2D
 		Vector2 InputX = Input;
 		InputX.X = Godot.Input.GetVector("MoveLeft", "MoveRight", "MoveUp", "MoveDown").X;
 		return InputX.Normalized();
+	}
+
+	public float HandleJump(double delta) {
+
+		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor()) {
+			CurrentJumpVelocity = JUMP_VELOCITY;
+			CurrentJumpTimer = JUMP_HOLD_TIME;
+			Jumping = true;
+		}
+
+		if (Godot.Input.IsActionPressed("Jump") && Jumping) {
+			CurrentJumpTimer -= 1.0f * (float)delta;
+		} 
+
+		if (!Godot.Input.IsActionPressed("Jump") || CurrentJumpTimer <= 0.0f) {
+			Jumping = false;
+			CurrentJumpVelocity = 0;
+		}
+
+		return CurrentJumpVelocity;
 	}
 
 	public float MovePlayer(double delta) {
