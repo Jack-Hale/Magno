@@ -18,9 +18,19 @@ public partial class Player : CharacterBody2D
 	public float CurrentJumpTimer = 0.0f;
 	Vector2 Input = Vector2.Zero;
 
+	private Node2D _magnet;
+	private RayCast2D _magnetBeam;
+	private Sprite2D _magnetBeamSprite;
+
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
+
+	public override void _Ready() {
+		_magnet = GetNode<Node2D>("Magnet");
+		_magnetBeam = _magnet.GetNode<RayCast2D>("MagnetBeam");
+		_magnetBeamSprite = _magnetBeam.GetNode<Sprite2D>("Sprite2D");
+	}
 
 	public override void _PhysicsProcess(double delta) {
 		Vector2 NewVelocity = Velocity;
@@ -29,7 +39,17 @@ public partial class Player : CharacterBody2D
 		if (!IsOnFloor())
 			NewVelocity.Y += gravity * (float)delta;
 
-		GD.Print(HandleJump(delta));
+		// GD.Print(GetViewport().GetMousePosition());
+
+		_magnet.LookAt(GetGlobalMousePosition());
+
+		if (Godot.Input.IsActionPressed("ActivateMagnet")) {
+			GD.Print(_magnetBeam.IsColliding());
+			_magnetBeamSprite.Visible = true;
+		} else {
+			_magnetBeamSprite.Visible = false;
+		}
+
 		NewVelocity.Y += HandleJump(delta);
 
 		NewVelocity.X = MovePlayer(delta);
@@ -57,7 +77,7 @@ public partial class Player : CharacterBody2D
 		// Jump is held down, decrease the timer
 		if (Godot.Input.IsActionPressed("Jump") && Jumping) {
 			CurrentJumpTimer -= 1.0f * (float)delta;
-			CurrentJumpVelocity += 100.0f * (float)delta;
+			CurrentJumpVelocity += 200.0f * (float)delta;
 		} 
 
 		// Jump was released or timer ran out, stop jump sequence
