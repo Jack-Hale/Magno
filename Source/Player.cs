@@ -3,15 +3,15 @@ using System;
 
 public partial class Player : CharacterBody2D
 {
-	public const float MAX_SPEED = 1500.0f;
-	public const float JUMP_VELOCITY = -100.0f;
-	public const float JUMP_HOLD_TIME = 0.3f;	
+	public const float MAX_SPEED = 400.0f;
+	public const float JUMP_VELOCITY = -140.0f;
+	public const float JUMP_HOLD_TIME = 0.2f;	
 
-	public const float FRICTION = 1200.0f;
+	public const float FRICTION = 2200.0f;
 	public const float AIR_FRICTION = 1.0f;
 
-	public const float ACCELERATION = 1200.0f;
-	public const float AIR_ACCELERATION = 600.0f;
+	public const float ACCELERATION = 2200.0f;
+	public const float AIR_ACCELERATION = 1800.0f;
 
 	public float CurrentJumpVelocity = 0.0f;
 	public bool Jumping = false;
@@ -47,16 +47,20 @@ public partial class Player : CharacterBody2D
 
 	public float HandleJump(double delta) {
 
+		// Jump pressed while on the floor, set jump velocity to max
 		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor()) {
 			CurrentJumpVelocity = JUMP_VELOCITY;
 			CurrentJumpTimer = JUMP_HOLD_TIME;
 			Jumping = true;
 		}
 
+		// Jump is held down, decrease the timer
 		if (Godot.Input.IsActionPressed("Jump") && Jumping) {
 			CurrentJumpTimer -= 1.0f * (float)delta;
+			CurrentJumpVelocity += 100.0f * (float)delta;
 		} 
 
+		// Jump was released or timer ran out, stop jump sequence
 		if (!Godot.Input.IsActionPressed("Jump") || CurrentJumpTimer <= 0.0f) {
 			Jumping = false;
 			CurrentJumpVelocity = 0;
