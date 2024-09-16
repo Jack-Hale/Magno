@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3 uid="uid://yki3nqruelln"]
+
+[ext_resource type="Texture2D" uid="uid://qca1diyg3tg1" path="res://Assets/Sprites/magnet.png" id="1_intaa"]
+[ext_resource type="Texture2D" uid="uid://bytruga3qtq5u" path="res://Assets/Sprites/MagnetBeam.png" id="2_k2fj3"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fxy4w"]
+size = Vector2(4, 16)
+
+[node name="Magnet" type="Area2D"]
+collision_layer = 2
+collision_mask = 7
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+rotation = 1.5708
+texture = ExtResource("1_intaa")
+offset = Vector2(0, -24)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(30, 0)
+shape = SubResource("RectangleShape2D_fxy4w")
+
+[node name="MagnetBeam" type="RayCast2D" parent="."]
+position = Vector2(30, 0)
+target_position = Vector2(130, 0)
+collision_mask = 6
+
+[node name="Sprite2D" type="Sprite2D" parent="MagnetBeam"]
+position = Vector2(2, 0)
+texture = ExtResource("2_k2fj3")
+offset = Vector2(64, 0)

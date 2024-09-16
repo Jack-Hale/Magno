@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://m30ped810gwe"]
+
+[ext_resource type="Script" path="res://Source/MagneticComponent.cs" id="1_vwq7i"]
+
+[node name="MagneticComponent" type="Node2D" node_paths=PackedStringArray("Object")]
+script = ExtResource("1_vwq7i")
+Object = NodePath("")

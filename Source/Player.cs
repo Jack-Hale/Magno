@@ -1,17 +1,27 @@
 using Godot;
 using System;
+using System.Linq;
 
 public partial class Player : CharacterBody2D
 {
-	public const float MAX_SPEED = 400.0f;
-	public const float JUMP_VELOCITY = -140.0f;
-	public const float JUMP_HOLD_TIME = 0.2f;	
+	[Export]
+	public float MAX_SPEED = 400;
+	[Export]
+	public float JUMP_VELOCITY = -140.0f;
+	[Export]
+	public float JUMP_HOLD_TIME = 0.2f;	
 
-	public const float FRICTION = 2200.0f;
-	public const float AIR_FRICTION = 1.0f;
+	[Export]
+	public float FRICTION = 2200.0f;
+	[Export]
+	public float AIR_FRICTION = 1.0f;
 
-	public const float ACCELERATION = 2200.0f;
-	public const float AIR_ACCELERATION = 1800.0f;
+	[Export]
+	public float ACCELERATION = 2200.0f;
+	[Export]
+	public float AIR_ACCELERATION = 1800.0f;
+	[Export]
+	public float PushForce = 80.0f;
 
 	public float CurrentJumpVelocity = 0.0f;
 	public bool Jumping = false;
@@ -22,15 +32,24 @@ public partial class Player : CharacterBody2D
 	private RayCast2D _magnetBeam;
 	private Sprite2D _magnetBeamSprite;
 
+	private Vector2 DrawVector1 = Vector2.Zero;
+	private Vector2 DrawVector2 = Vector2.Zero;
+
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 
 	public override void _Ready() {
+		
 		_magnet = GetNode<Node2D>("Magnet");
 		_magnetBeam = _magnet.GetNode<RayCast2D>("MagnetBeam");
 		_magnetBeamSprite = _magnetBeam.GetNode<Sprite2D>("Sprite2D");
 	}
+
+	public override void _Draw()
+    {
+        DrawLine(DrawVector1, DrawVector2, Colors.Green, 1.0f);
+    }
 
 	public override void _PhysicsProcess(double delta) {
 		Vector2 NewVelocity = Velocity;
@@ -43,19 +62,25 @@ public partial class Player : CharacterBody2D
 
 		_magnet.LookAt(GetGlobalMousePosition());
 
-		if (Godot.Input.IsActionPressed("ActivateMagnet")) {
-			GD.Print(_magnetBeam.IsColliding());
-			_magnetBeamSprite.Visible = true;
-		} else {
-			_magnetBeamSprite.Visible = false;
-		}
+		HandleMagnet();
 
 		NewVelocity.Y += HandleJump(delta);
 
 		NewVelocity.X = MovePlayer(delta);
 
 		Velocity = NewVelocity;
+
+		QueueRedraw();
 		MoveAndSlide();
+
+		// Push RigidBody2D objects
+		for (int i = 0; i < GetSlideCollisionCount(); i++) {
+			KinematicCollision2D collision = GetSlideCollision(i);
+			if (collision.GetCollider() is RigidBody2D) {
+				RigidBody2D c = (RigidBody2D) collision.GetCollider();
+				c.ApplyCentralImpulse(-collision.GetNormal() * PushForce);
+			}
+		}
 	}
 
 	public Vector2 GetInput() {
@@ -63,6 +88,23 @@ public partial class Player : CharacterBody2D
 		Vector2 InputX = Input;
 		InputX.X = Godot.Input.GetVector("MoveLeft", "MoveRight", "MoveUp", "MoveDown").X;
 		return InputX.Normalized();
+	}
+
+	public void HandleMagnet() {
+
+		if (Godot.Input.IsActionPressed("ActivateMagnet")) {
+			if (_magnetBeam.IsColliding()) {
+				Node Object = (Node) _magnetBeam.GetCollider();
+				if (Object.IsInGroup("Magnetic")) {
+					MagneticComponent MagneticComponent = (MagneticComponent) Object.FindChild("MagneticComponent");
+					MagneticComponent.MoveObjectTowardsVector(_magnetBeam.GetCollisionPoint(), GlobalPosition);
+				}
+			}
+			
+			_magnetBeamSprite.Visible = true;
+		} else {
+			_magnetBeamSprite.Visible = false;
+		}
 	}
 
 	public float HandleJump(double delta) {
