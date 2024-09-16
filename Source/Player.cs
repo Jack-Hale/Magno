@@ -35,6 +35,8 @@ public partial class Player : CharacterBody2D
 	private Vector2 DrawVector1 = Vector2.Zero;
 	private Vector2 DrawVector2 = Vector2.Zero;
 
+	private bool Godmode = false;
+
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
@@ -54,19 +56,25 @@ public partial class Player : CharacterBody2D
 	public override void _PhysicsProcess(double delta) {
 		Vector2 NewVelocity = Velocity;
 
-		// Add the gravity.
-		if (!IsOnFloor())
-			NewVelocity.Y += gravity * (float)delta;
-
-		// GD.Print(GetViewport().GetMousePosition());
-
 		_magnet.LookAt(GetGlobalMousePosition());
 
 		HandleMagnet();
 
-		NewVelocity.Y += HandleJump(delta);
+		if (Godot.Input.IsActionPressed("ToggleGodmode")) {
+			Godmode = !Godmode;
+		}
 
-		NewVelocity.X = MovePlayer(delta);
+		if (!Godmode) {
+			// Add the gravity.
+			if (!IsOnFloor())
+				NewVelocity.Y += gravity * (float)delta;
+
+			NewVelocity.Y += HandleJump(delta);
+
+			NewVelocity.X = MovePlayer(delta);
+		} else {
+			NewVelocity = GodmodeMove(delta);
+		}
 
 		Velocity = NewVelocity;
 
@@ -83,11 +91,18 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
-	public Vector2 GetInput() {
+	public Vector2 GetXInput() {
 		// Only X input is read because jump is handled separately
 		Vector2 InputX = Input;
 		InputX.X = Godot.Input.GetVector("MoveLeft", "MoveRight", "MoveUp", "MoveDown").X;
 		return InputX.Normalized();
+	}
+
+	public Vector2 GetInput() {
+		// Only X input is read because jump is handled separately
+		Vector2 Input = this.Input;
+		Input = Godot.Input.GetVector("MoveLeft", "MoveRight", "MoveUp", "MoveDown");
+		return Input.Normalized();
 	}
 
 	public void HandleMagnet() {
@@ -132,7 +147,7 @@ public partial class Player : CharacterBody2D
 	}
 
 	public float MovePlayer(double delta) {
-		Input = GetInput();
+		Input = GetXInput();
 		Vector2 NewVelocity = Vector2.Zero;
 
 		// Needs to be only on X otherwise LimitLength takes falling and jumping into account affecting speed
@@ -162,5 +177,11 @@ public partial class Player : CharacterBody2D
 		}
 
 		return NewVelocity.X;
+	}
+
+	public Vector2 GodmodeMove(double delta) {
+		Input = GetInput();
+		
+		return Input * MAX_SPEED*2;
 	}
 }
