@@ -112,7 +112,7 @@ public partial class Player : CharacterBody2D
 				Node Object = (Node) _magnetBeam.GetCollider();
 				if (Object.IsInGroup("Magnetic")) {
 					MagneticComponent MagneticComponent = (MagneticComponent) Object.FindChild("MagneticComponent");
-					MagneticComponent.MoveObjectTowardsVector(_magnetBeam.GetCollisionPoint(), GlobalPosition);
+					MagneticComponent.AttractObject(_magnetBeam.GetCollisionPoint(), GlobalPosition, _magnetBeam.TargetPosition.X);
 				}
 			}
 			

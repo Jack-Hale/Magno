@@ -11,7 +11,7 @@ public partial class MagneticComponent : Node2D
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
-	{
+	{	
 		GetParent().AddToGroup("Magnetic");
 	}
 
@@ -21,9 +21,10 @@ public partial class MagneticComponent : Node2D
 		
 	}
 
-	public void MoveObjectTowardsVector(Vector2 collisionPoint, Vector2 vector)
+	public void AttractObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength)
 	{
-		GD.Print(Object.LinearVelocity);
-		Object.ApplyForce(collisionPoint, vector*2);
+		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(Object.GlobalPosition), 1, beamLength);
+
+		Object.ApplyForce((attractionPoint - Object.GlobalPosition) * magnetStrength, collisionPoint - Object.GlobalPosition);
 	}
 }
