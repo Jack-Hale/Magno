@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://dnj20y18w3snv"]
+
+[ext_resource type="Texture2D" uid="uid://d1twsj7v8l5tk" path="res://Assets/Sprites/BigBox.png" id="1_ri2s0"]
+[ext_resource type="PackedScene" uid="uid://m30ped810gwe" path="res://Scenes/magnetic_component.tscn" id="2_ac7st"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_20c16"]
+size = Vector2(64, 64)
+
+[node name="BigBox" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 31
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_ri2s0")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_20c16")
+
+[node name="MagneticComponent" parent="." node_paths=PackedStringArray("Object") instance=ExtResource("2_ac7st")]
+Object = NodePath("..")
