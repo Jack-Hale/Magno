@@ -113,19 +113,31 @@ public partial class Player : CharacterBody2D
 	public void HandleMagnet() {
 		if (Godot.Input.IsActionPressed("ActivateMagnet")) {
 			if (_magnetBeam.IsColliding()) {
+
+				// Check if the object in the beam is in the Magnetic group.
 				Node Object = (Node) _magnetBeam.GetCollider();
 				if (Object.IsInGroup("Magnetic")) {
-					MagneticComponent newObject = (MagneticComponent) Object.FindChild("MagneticComponent");	
+					MagneticComponent newObject = (MagneticComponent) Object.FindChild("MagneticComponent");
+
+					// Checking if the object is a different object to the previous call. 
+					// If it is different, dettach the old one
 					if (attachedObject != null && newObject != attachedObject) {
 						attachedObject.Dettach();
 					}
 					attachedObject = newObject;
 					attachedObject.AttractObject(_magnetBeam.GetCollisionPoint(), _magnet.GlobalPosition, _magnetBeam.TargetPosition.X);
 				}
+			} else {
+				if (attachedObject != null) {
+					attachedObject.Dettach();
+					attachedObject = null;
+				}
 			}
 			magnet.SetActivation(true);
 			_magnetBeamSprite.Visible = true;
 		} else {
+
+			// Dettach the object when deactivating magnet
 			if (attachedObject != null) {
 				attachedObject.Dettach();
 				attachedObject = null;

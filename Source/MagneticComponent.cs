@@ -20,11 +20,21 @@ public partial class MagneticComponent : Node2D
 
     public void AttractObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength) {
 		attached = true;
+
+		Object.SetCollisionMaskValue(2, false);
+		Object.SetCollisionMaskValue(4, false);
+		Object.SetCollisionLayerValue(3, false);
+		Object.SetCollisionLayerValue(5, true);
+
 		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(Object.GlobalPosition), 1, beamLength);
 		Object.ApplyForce((attractionPoint - Object.GlobalPosition) * magnetStrength, collisionPoint - Object.GlobalPosition);
 	}
 
 	public void Dettach() {
 		attached = false;
+		Object.SetCollisionMaskValue(2, true);
+		Object.SetCollisionMaskValue(4, true);
+		Object.SetCollisionLayerValue(3, true);
+		Object.SetCollisionLayerValue(5, false);
 	}
 }

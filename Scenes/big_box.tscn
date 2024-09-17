@@ -8,7 +8,7 @@ size = Vector2(64, 64)
 
 [node name="BigBox" type="RigidBody2D"]
 collision_layer = 4
-collision_mask = 15
+collision_mask = 31
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("1_ri2s0")

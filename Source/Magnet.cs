@@ -18,7 +18,6 @@ public partial class Magnet : Area2D
 	public override void _Process(double delta) {
 		// GD.Print(_joint.GetChildCount());
 		if (EnteredBody != null && ActivationStatus) {
-			EnteredBody.SetCollisionMaskValue(2, false);
 			_joint.NodeB = EnteredBody.GetPath();
 		}
 		if (!ActivationStatus) {
@@ -39,18 +38,17 @@ public partial class Magnet : Area2D
     }
 
     private void OnBodyEntered(Node2D body) {
-		if (body.IsInGroup("Magnetic")) {
+		if (body.IsInGroup("Magnetic") && ActivationStatus) {
 			EnteredBody = (PhysicsBody2D) body;
 			
 			var angleToBody = (GlobalPosition - EnteredBody.GlobalPosition).Angle();
-			Node2D parent = (Node2D) GetParent();
-			rotationFix = parent.GlobalRotation - angleToBody;
+			rotationFix = GlobalRotation - angleToBody;
 		}
 	}
 
 	private void OnBodyExited(Node2D body) {
 		if (body == EnteredBody) {
-			EnteredBody.SetCollisionMaskValue(2, true);
+			
 			EnteredBody = null;
 		}
 	}
