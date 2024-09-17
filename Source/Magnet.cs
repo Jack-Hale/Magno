@@ -18,7 +18,7 @@ public partial class Magnet : Area2D
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta) {
-		GD.Print(canJoin);
+		// GD.Print(canJoin);
 
 
 		if (EnteredBody != null && ActivationStatus && canJoin) {
@@ -33,21 +33,19 @@ public partial class Magnet : Area2D
 
     public override void _PhysicsProcess(double delta)
     {
-        if (EnteredBody != null)
-        {
-			var angleToBody = (GlobalPosition - EnteredBody.GlobalPosition).Angle();
-			EnteredBody.SetDeferred("rotation", angleToBody + rotationFix);
-
-			GD.Print(GlobalPosition - EnteredBody.GlobalPosition);
-        }
+        // if (EnteredBody != null)
+        // {
+		// 	var angleToBody = (GlobalPosition - EnteredBody.GlobalPosition).Angle();
+		// 	EnteredBody.SetDeferred("rotation", angleToBody + rotationFix);
+        // }
     }
 
     private void OnBodyEntered(Node2D body) {
 		if (body.IsInGroup("Magnetic") && ActivationStatus) {
 			EnteredBody = (PhysicsBody2D) body;
 			
-			var angleToBody = (GlobalPosition - EnteredBody.GlobalPosition).Angle();
-			rotationFix = GlobalRotation - angleToBody;
+			// var angleToBody = (GlobalPosition - EnteredBody.GlobalPosition).Angle();
+			// rotationFix = GlobalRotation - angleToBody;
 		}
 	}
 

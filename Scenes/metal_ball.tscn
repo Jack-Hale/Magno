@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://d2x7fg2yui813"]
+
+[ext_resource type="Texture2D" uid="uid://dlrnocduybvj0" path="res://Assets/Sprites/MetalBall.png" id="1_hvdk3"]
+[ext_resource type="PackedScene" uid="uid://m30ped810gwe" path="res://Scenes/magnetic_component.tscn" id="2_ou183"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_f3lc0"]
+radius = 4.0
+
+[node name="MetalBall" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 29
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_hvdk3")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_f3lc0")
+
+[node name="MagneticComponent" parent="." node_paths=PackedStringArray("Object") instance=ExtResource("2_ou183")]
+Object = NodePath("..")
