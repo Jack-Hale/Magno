@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://myao5ri8dmaf"]
+[gd_scene load_steps=6 format=3 uid="uid://myao5ri8dmaf"]
 
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_5jwp8"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/player.tscn" id="2_db5ix"]
 [ext_resource type="PackedScene" uid="uid://o6t0s6so7keq" path="res://Scenes/box.tscn" id="3_klnl8"]
+[ext_resource type="PackedScene" uid="uid://dnj20y18w3snv" path="res://Scenes/big_box.tscn" id="4_vdl72"]
+[ext_resource type="PackedScene" uid="uid://c632msmw2cqt3" path="res://Scenes/wood_box.tscn" id="5_v0ue4"]
 
 [node name="TestLevel" type="Node2D"]
 
@@ -16,3 +18,9 @@ position = Vector2(583, 419)
 
 [node name="Box" parent="." instance=ExtResource("3_klnl8")]
 position = Vector2(418, 378)
+
+[node name="BigBox" parent="." instance=ExtResource("4_vdl72")]
+position = Vector2(310, 504)
+
+[node name="wood_box" parent="." instance=ExtResource("5_v0ue4")]
+position = Vector2(800, 555)

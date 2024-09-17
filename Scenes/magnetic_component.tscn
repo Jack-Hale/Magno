@@ -2,6 +2,5 @@
 
 [ext_resource type="Script" path="res://Source/MagneticComponent.cs" id="1_vwq7i"]
 
-[node name="MagneticComponent" type="Node2D" node_paths=PackedStringArray("Object")]
+[node name="MagneticComponent" type="Node2D"]
 script = ExtResource("1_vwq7i")
-Object = NodePath("")

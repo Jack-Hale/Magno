@@ -28,7 +28,7 @@ public partial class Player : CharacterBody2D
 	public float CurrentJumpTimer = 0.0f;
 	Vector2 Input = Vector2.Zero;
 
-	private Node2D _magnet;
+	private Area2D _magnet;
 	private RayCast2D _magnetBeam;
 	private Sprite2D _magnetBeamSprite;
 
@@ -37,13 +37,18 @@ public partial class Player : CharacterBody2D
 
 	private bool Godmode = false;
 
+	private Magnet magnet;
+
+	private MagneticComponent attachedObject;
+
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 
 	public override void _Ready() {
 		
-		_magnet = GetNode<Node2D>("Magnet");
+		_magnet = GetNode<Area2D>("Magnet");
+		magnet = (Magnet) _magnet;
 		_magnetBeam = _magnet.GetNode<RayCast2D>("MagnetBeam");
 		_magnetBeamSprite = _magnetBeam.GetNode<Sprite2D>("Sprite2D");
 	}
@@ -106,18 +111,26 @@ public partial class Player : CharacterBody2D
 	}
 
 	public void HandleMagnet() {
-
 		if (Godot.Input.IsActionPressed("ActivateMagnet")) {
 			if (_magnetBeam.IsColliding()) {
 				Node Object = (Node) _magnetBeam.GetCollider();
 				if (Object.IsInGroup("Magnetic")) {
-					MagneticComponent MagneticComponent = (MagneticComponent) Object.FindChild("MagneticComponent");
-					MagneticComponent.AttractObject(_magnetBeam.GetCollisionPoint(), GlobalPosition, _magnetBeam.TargetPosition.X);
+					MagneticComponent newObject = (MagneticComponent) Object.FindChild("MagneticComponent");	
+					if (attachedObject != null && newObject != attachedObject) {
+						attachedObject.Dettach();
+					}
+					attachedObject = newObject;
+					attachedObject.AttractObject(_magnetBeam.GetCollisionPoint(), _magnet.GlobalPosition, _magnetBeam.TargetPosition.X);
 				}
 			}
-			
+			magnet.SetActivation(true);
 			_magnetBeamSprite.Visible = true;
 		} else {
+			if (attachedObject != null) {
+				attachedObject.Dettach();
+				attachedObject = null;
+			}
+			magnet.SetActivation(false);
 			_magnetBeamSprite.Visible = false;
 		}
 	}
