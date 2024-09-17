@@ -41,6 +41,8 @@ public partial class Player : CharacterBody2D
 
 	private MagneticComponent attachedObject;
 
+	private bool pullMode = false;
+
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
@@ -65,8 +67,13 @@ public partial class Player : CharacterBody2D
 
 		HandleMagnet();
 
-		if (Godot.Input.IsActionPressed("ToggleGodmode")) {
+		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
 			Godmode = !Godmode;
+		}
+
+		if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
+			pullMode = !pullMode;
+			magnet.SetCanJoin(pullMode);
 		}
 
 		if (!Godmode) {
@@ -125,7 +132,7 @@ public partial class Player : CharacterBody2D
 						attachedObject.Dettach();
 					}
 					attachedObject = newObject;
-					attachedObject.AttractObject(_magnetBeam.GetCollisionPoint(), _magnet.GlobalPosition, _magnetBeam.TargetPosition.X);
+					attachedObject.ForceObject(_magnetBeam.GetCollisionPoint(), _magnet.GlobalPosition, _magnetBeam.TargetPosition.X, pullMode);
 				}
 			} else {
 				if (attachedObject != null) {

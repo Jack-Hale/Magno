@@ -5,9 +5,9 @@ public partial class Magnet : Area2D
 {
 	private bool ActivationStatus = false;
 	private PhysicsBody2D EnteredBody;
-
 	private PinJoint2D _joint;
 	private float rotationFix = 0;
+	private bool canJoin = false;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -16,8 +16,10 @@ public partial class Magnet : Area2D
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta) {
-		// GD.Print(_joint.GetChildCount());
-		if (EnteredBody != null && ActivationStatus) {
+		GD.Print(canJoin);
+
+
+		if (EnteredBody != null && ActivationStatus && canJoin) {
 			_joint.NodeB = EnteredBody.GetPath();
 		}
 		if (!ActivationStatus) {
@@ -55,5 +57,9 @@ public partial class Magnet : Area2D
 
 	public void SetActivation(bool status) {
 		ActivationStatus = status;
+	}
+
+	public void SetCanJoin(bool canJoin) {
+		this.canJoin = canJoin;
 	}
 }

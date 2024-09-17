@@ -18,7 +18,7 @@ public partial class MagneticComponent : Node2D
 		Object.GravityScale = attached ? 0 : 1;
 	}
 
-    public void AttractObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength) {
+    public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull) {
 		attached = true;
 
 		Object.SetCollisionMaskValue(2, false);
@@ -26,8 +26,10 @@ public partial class MagneticComponent : Node2D
 		Object.SetCollisionLayerValue(3, false);
 		Object.SetCollisionLayerValue(5, true);
 
+		Vector2 pushForce = pull ? attractionPoint - Object.GlobalPosition : Object.GlobalPosition - attractionPoint;
+
 		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(Object.GlobalPosition), 1, beamLength);
-		Object.ApplyForce((attractionPoint - Object.GlobalPosition) * magnetStrength, collisionPoint - Object.GlobalPosition);
+		Object.ApplyForce(pushForce * magnetStrength, collisionPoint - Object.GlobalPosition);
 	}
 
 	public void Dettach() {
