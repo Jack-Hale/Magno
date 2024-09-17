@@ -21,6 +21,14 @@ rotation = 1.5708
 texture = ExtResource("1_intaa")
 offset = Vector2(0, -24)
 
+[node name="MagnetPinPoint" type="StaticBody2D" parent="."]
+collision_layer = 8
+collision_mask = 15
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MagnetPinPoint"]
+position = Vector2(24, 0)
+shape = SubResource("RectangleShape2D_fxy4w")
+
 [node name="MagnetBeam" type="RayCast2D" parent="."]
 position = Vector2(30, 0)
 target_position = Vector2(291, 0)
@@ -32,16 +40,13 @@ scale = Vector2(2.24219, 1)
 texture = ExtResource("2_k2fj3")
 offset = Vector2(64, 0)
 
-[node name="MagnetPinPoint" type="StaticBody2D" parent="."]
-collision_layer = 8
-collision_mask = 15
+[node name="PinJoint2D_1" type="PinJoint2D" parent="."]
+position = Vector2(31, -6)
+node_a = NodePath("../MagnetPinPoint")
+disable_collision = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="MagnetPinPoint"]
-position = Vector2(24, 0)
-shape = SubResource("RectangleShape2D_fxy4w")
-
-[node name="FixedJoint2D" type="PinJoint2D" parent="."]
-position = Vector2(32, 0)
+[node name="PinJoint2D_2" type="PinJoint2D" parent="."]
+position = Vector2(31, 6)
 node_a = NodePath("../MagnetPinPoint")
 disable_collision = false
 
