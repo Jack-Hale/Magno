@@ -29,8 +29,6 @@ public partial class Player : CharacterBody2D
 	Vector2 Input = Vector2.Zero;
 
 	private Area2D _magnet;
-	private RayCast2D _magnetBeam;
-	private Sprite2D _magnetBeamSprite;
 
 	private Vector2 DrawVector1 = Vector2.Zero;
 	private Vector2 DrawVector2 = Vector2.Zero;
@@ -41,7 +39,7 @@ public partial class Player : CharacterBody2D
 
 	private MagneticComponent attachedObject;
 
-	private bool pullMode = false;
+	private bool pullMode;
 
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
@@ -51,8 +49,8 @@ public partial class Player : CharacterBody2D
 		
 		_magnet = GetNode<Area2D>("Magnet");
 		magnet = (Magnet) _magnet;
-		_magnetBeam = _magnet.GetNode<RayCast2D>("MagnetBeam");
-		_magnetBeamSprite = _magnetBeam.GetNode<Sprite2D>("Sprite2D");
+
+		pullMode = magnet.GetPullMode();
 	}
 
 	public override void _Draw()
@@ -73,7 +71,7 @@ public partial class Player : CharacterBody2D
 
 		if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
 			pullMode = !pullMode;
-			magnet.SetCanJoin(pullMode);
+			magnet.SetPullMode(pullMode);
 		}
 
 		if (!Godmode) {
@@ -118,40 +116,7 @@ public partial class Player : CharacterBody2D
 	}
 
 	public void HandleMagnet() {
-		if (Godot.Input.IsActionPressed("ActivateMagnet")) {
-			if (_magnetBeam.IsColliding()) {
-
-				// Check if the object in the beam is in the Magnetic group.
-				Node Object = (Node) _magnetBeam.GetCollider();
-				if (Object.IsInGroup("Magnetic")) {
-					MagneticComponent newObject = (MagneticComponent) Object.FindChild("MagneticComponent");
-
-					// Checking if the object is a different object to the previous call. 
-					// If it is different, dettach the old one
-					if (attachedObject != null && newObject != attachedObject) {
-						attachedObject.Dettach();
-					}
-					attachedObject = newObject;
-					attachedObject.ForceObject(_magnetBeam.GetCollisionPoint(), _magnet.GlobalPosition, _magnetBeam.TargetPosition.X, pullMode);
-				}
-			} else {
-				if (attachedObject != null) {
-					attachedObject.Dettach();
-					attachedObject = null;
-				}
-			}
-			magnet.SetActivation(true);
-			_magnetBeamSprite.Visible = true;
-		} else {
-
-			// Dettach the object when deactivating magnet
-			if (attachedObject != null) {
-				attachedObject.Dettach();
-				attachedObject = null;
-			}
-			magnet.SetActivation(false);
-			_magnetBeamSprite.Visible = false;
-		}
+		magnet.SetActivation(Godot.Input.IsActionPressed("ActivateMagnet"));
 	}
 
 	public float HandleJump(double delta) {

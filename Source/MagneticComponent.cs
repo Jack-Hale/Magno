@@ -5,7 +5,10 @@ using System.Reflection;
 public partial class MagneticComponent : Node2D
 {
 	[Export]
-	public RigidBody2D Object;
+	public PhysicsBody2D Object;
+
+	private RigidBody2D RBObject;
+	private CharacterBody2D CBObject;
 
 	private bool attached = false;
 
@@ -15,6 +18,13 @@ public partial class MagneticComponent : Node2D
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {	
 		GetParent().AddToGroup("Magnetic");
+
+
+		if (Object.GetType() == typeof(RigidBody2D)) {
+			RBObject = (RigidBody2D)Object;
+		} else if (Object.GetType() == typeof(CharacterBody2D)) {
+			CBObject = (CharacterBody2D)Object;
+		}
 
 		if (Object.GetParent() is PhysicsBody2D) {
 			parent = (PhysicsBody2D) Object.GetParent();
@@ -28,11 +38,12 @@ public partial class MagneticComponent : Node2D
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta) {
-		Object.GravityScale = attached ? 0 : 1;
+
+		if (RBObject != null) {
+			RBObject.GravityScale = attached ? 0 : 1;
+		}
 
 		if (parent != null) {
-
-			// GD.Print(parent);
 			if (parent.GlobalPosition.DistanceTo(Object.GlobalPosition) > 12) {
 				joint.NodeB = null;
 			}
@@ -50,8 +61,14 @@ public partial class MagneticComponent : Node2D
 		Vector2 pushForce = pull ? attractionPoint - Object.GlobalPosition : Object.GlobalPosition - attractionPoint;
 
 		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(Object.GlobalPosition), 1, beamLength);
-		Object.ApplyForce(pushForce * magnetStrength, collisionPoint - Object.GlobalPosition);
+		if (RBObject != null) {
+			RBObject.ApplyForce(pushForce * magnetStrength, collisionPoint - Object.GlobalPosition);
+		}
 
+		if (CBObject != null) {
+			GD.Print("CharacterBody2D");
+			CBObject.Velocity = Vector2.Up;
+		}
 		
 	}
 
