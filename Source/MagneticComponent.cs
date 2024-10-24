@@ -121,7 +121,8 @@ public partial class MagneticComponent : Node2D
 		// Handle force if parent exists. Apply force to the parent not the metal object
 		if (characterObject != null) {
 			// TODO: Disable the movement of the characterObject defined by the object itself
-			characterObject.SetPhysicsProcess(false);
+			// characterObject.SetPhysicsProcess(false);
+			characterObject.AddToGroup("Affected");
 
 			//TODO: Make the dampener value based on the mass of the object pulled
 			float dampener = 20;
@@ -143,6 +144,7 @@ public partial class MagneticComponent : Node2D
 
 		if (characterObject != null) {
 			characterObject.SetPhysicsProcess(true);
+			characterObject.RemoveFromGroup("Affected");
 		}
 	}
 
