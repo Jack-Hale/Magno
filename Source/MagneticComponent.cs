@@ -7,7 +7,7 @@ public partial class MagneticComponent : Node2D
 	[Export]
 	private RigidBody2D Object;
 	private CharacterBody2D characterObject;
-	private CollisionShape2D parentCollision;
+	private CollisionShape2D parentHoldRegion;
 	private bool attached = false;
 
 	private Joint2D joint;
@@ -40,12 +40,12 @@ public partial class MagneticComponent : Node2D
 			characterObject.AddToGroup("Magnetic");
 
 			// Accessing the collision shape of the parent
-			parentCollision = (CollisionShape2D)characterObject.FindChild("MagnetHoldRegion");
+			parentHoldRegion = (CollisionShape2D)characterObject.FindChild("MagnetHoldRegion");
 			
 			// Getting the radius of the collision shape
 			// ONLY WORKS IF COLLISION SHAPE IS A CIRCLE
-			if (parentCollision != null) {
-				Shape2D shape = parentCollision.Shape;
+			if (parentHoldRegion != null) {
+				Shape2D shape = parentHoldRegion.Shape;
 				CircleShape2D circle = null;
 				if (shape is CircleShape2D) {
 					circle = (CircleShape2D)shape;
@@ -66,7 +66,7 @@ public partial class MagneticComponent : Node2D
 
 	public override void _Draw()
     {
-	
+        // DrawLine(ToLocal(Object.GlobalPosition), ToLocal(characterObject.GlobalPosition), Colors.Red, 1.0f);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -74,13 +74,33 @@ public partial class MagneticComponent : Node2D
 		if (Object != null) {
 			Object.GravityScale = attached ? 0 : 1;
 		}
-
+		GD.Print(Object);
 		if (characterObject != null) {
 			// Disconnecting magnetic object from parent if too far away
 			if (characterObject.GlobalPosition.DistanceTo(Object.GlobalPosition) > objectCollisionRadius) {
+				// Disconnect object from parent joint
 				joint.NodeB = null;
+
+				// Store object space data
+				Vector2 ObjectPosition = Object.GlobalPosition;
+				float ObjectRotation = Object.GlobalRotation;
+				Vector2 ObjectVelocity = Object.LinearVelocity;
+
+				// Store the scene tree to put the object back into
+				SceneTree sceneTree = GetTree();
+
+				// Remove all reference from parent to object
 				characterObject.RemoveFromGroup("Magnetic");
+				characterObject.RemoveChild(Object);
 				characterObject = null;
+
+				// Add object back into scene tree
+				sceneTree.Root.AddChild(Object);
+
+				// Return object to it's original movement state
+				Object.GlobalPosition = ObjectPosition;
+				Object.GlobalRotation = ObjectRotation;
+				Object.LinearVelocity = ObjectVelocity;
 			}
 		}
 		QueueRedraw();
