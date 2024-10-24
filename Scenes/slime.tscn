@@ -1,10 +1,13 @@
-[gd_scene load_steps=5 format=3 uid="uid://c4cdcu4q84oud"]
+[gd_scene load_steps=6 format=3 uid="uid://c4cdcu4q84oud"]
 
 [ext_resource type="Script" path="res://Source/Slime.cs" id="1_gh7n1"]
 [ext_resource type="Texture2D" uid="uid://0t3we2jv6272" path="res://Assets/Sprites/Slime.png" id="1_lteqa"]
 [ext_resource type="PackedScene" uid="uid://d2x7fg2yui813" path="res://Scenes/metal_ball.tscn" id="3_cfl5u"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_o1h5e"]
+radius = 14.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_6s1jn"]
 radius = 14.0
 
 [node name="Slime" type="CharacterBody2D"]
@@ -26,3 +29,7 @@ node_b = NodePath("../MetalBall")
 
 [node name="MetalBall" parent="." instance=ExtResource("3_cfl5u")]
 position = Vector2(0, 2)
+
+[node name="MagnetHoldRegion" type="CollisionShape2D" parent="."]
+position = Vector2(0, 2)
+shape = SubResource("CircleShape2D_6s1jn")

@@ -17,6 +17,12 @@ public partial class Slime : CharacterBody2D
 	{
 		Vector2 velocity = Velocity;
 
+		// if (IsInGroup("Magnetic")) {
+		// 	GD.Print("Yes");
+		// } else {
+		// 	GD.Print("No");
+		// }
+
 		// Add the gravity.
 		if (!IsOnFloor())
 			velocity.Y += gravity * (float)delta;

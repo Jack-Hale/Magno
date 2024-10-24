@@ -40,13 +40,8 @@ public partial class MagneticComponent : Node2D
 			characterObject.AddToGroup("Magnetic");
 
 			// Accessing the collision shape of the parent
-			foreach (Node child in characterObject.GetChildren()) {
-				if (child is CollisionShape2D) {
-					parentCollision = (CollisionShape2D)child;
-					break;
-				}
-			}
-
+			parentCollision = (CollisionShape2D)characterObject.FindChild("MagnetHoldRegion");
+			
 			// Getting the radius of the collision shape
 			// ONLY WORKS IF COLLISION SHAPE IS A CIRCLE
 			if (parentCollision != null) {
@@ -59,8 +54,12 @@ public partial class MagneticComponent : Node2D
 				if (circle != null) {
 					objectCollisionRadius = circle.Radius;
 				} else {
-					GD.PrintErr("ITS NOT A CIRCLE TIME TO PANIC");
+					GD.PrintErr(characterObject.Name, "s MagnetHoldRegion is not a circle");
+					GD.PushError(characterObject.Name, "s MagnetHoldRegion is not a circle");
 				}
+			} else {
+				GD.PrintErr(characterObject.Name, " HAS NO CollisionShape2D named \"MagnetHoldRegion\"");
+				GD.PushError(characterObject.Name, " HAS NO CollisionShape2D named \"MagnetHoldRegion\"");
 			}
 		}
 	}
@@ -79,7 +78,9 @@ public partial class MagneticComponent : Node2D
 		if (characterObject != null) {
 			// Disconnecting magnetic object from parent if too far away
 			if (characterObject.GlobalPosition.DistanceTo(Object.GlobalPosition) > objectCollisionRadius) {
-				// joint.NodeB = null;
+				joint.NodeB = null;
+				characterObject.RemoveFromGroup("Magnetic");
+				characterObject = null;
 			}
 		}
 		QueueRedraw();
