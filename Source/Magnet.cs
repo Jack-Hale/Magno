@@ -67,7 +67,6 @@ public partial class Magnet : Area2D
 						
 					}
 					if (_joint1.NodeB != "" && attachedObject.GetCharacterObject() != null) {
-						GD.Print(_joint1.NodeB);
 						CharacterBody2D character = attachedObject.GetCharacterObject();
 						character.GlobalPosition = _joint1.GlobalPosition.Lerp(_joint2.GlobalPosition, 0.5f);
 						character.Rotation = _joint1.GlobalPosition.AngleTo(_joint2.GlobalPosition) + 90;

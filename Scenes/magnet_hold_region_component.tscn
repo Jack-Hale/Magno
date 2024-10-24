@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://bbg5iximvelpk"]
+
+[ext_resource type="Script" path="res://Source/MagnetHoldRegionComponent.cs" id="1_qrmby"]
+
+[node name="Area2D" type="Area2D"]
+collision_layer = 64
+collision_mask = 20
+script = ExtResource("1_qrmby")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]

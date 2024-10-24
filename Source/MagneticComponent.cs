@@ -7,13 +7,14 @@ public partial class MagneticComponent : Node2D
 	[Export]
 	private RigidBody2D Object;
 	private CharacterBody2D characterObject;
-	private CollisionShape2D parentHoldRegion;
 	private bool attached = false;
 
 	private Joint2D joint;
 	private PhysicsBody2D parent;
 
-	private float objectCollisionRadius;
+	private bool connected;
+
+	private Area2D _magnetHoldRegion;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {	
@@ -34,35 +35,33 @@ public partial class MagneticComponent : Node2D
 
 		// Handling if parent object is a CharacterBody2D
 		if (parent != null && parent is CharacterBody2D) {
+			connected = true;
 			characterObject = (CharacterBody2D) parent;
 
 			// Making the parent respond to magnets
 			characterObject.AddToGroup("Magnetic");
 
-			// Accessing the collision shape of the parent
-			parentHoldRegion = (CollisionShape2D)characterObject.FindChild("MagnetHoldRegion");
-			
-			// Getting the radius of the collision shape
-			// ONLY WORKS IF COLLISION SHAPE IS A CIRCLE
-			if (parentHoldRegion != null) {
-				Shape2D shape = parentHoldRegion.Shape;
-				CircleShape2D circle = null;
-				if (shape is CircleShape2D) {
-					circle = (CircleShape2D)shape;
-				}
+			// Connecting the magnet hold region exit trigger
+			if (characterObject.FindChild("MagnetHoldRegion") != null) {
+				_magnetHoldRegion = characterObject.GetNode<Area2D>("MagnetHoldRegion");
 
-				if (circle != null) {
-					objectCollisionRadius = circle.Radius;
-				} else {
-					GD.PrintErr(characterObject.Name, "s MagnetHoldRegion is not a circle");
-					GD.PushError(characterObject.Name, "s MagnetHoldRegion is not a circle");
-				}
+        		_magnetHoldRegion.Connect("body_exited", new Callable(this, MethodName.OnBodyExited));
 			} else {
-				GD.PrintErr(characterObject.Name, " HAS NO CollisionShape2D named \"MagnetHoldRegion\"");
-				GD.PushError(characterObject.Name, " HAS NO CollisionShape2D named \"MagnetHoldRegion\"");
+				GD.PrintErr(characterObject.Name, " HAS NO \"MagnetHoldRegion\"");
+				GD.PushError(characterObject.Name, " HAS NO \"MagnetHoldRegion\"");
 			}
+		} else {
+			connected = false;
 		}
 	}
+	
+	private void OnBodyExited(Node body)
+    {
+		// If Object has exited, disconnect all trace of Object from characterObject
+    	if (body == Object) {
+			connected = false;
+		}
+    }
 
 	public override void _Draw()
     {
@@ -72,37 +71,36 @@ public partial class MagneticComponent : Node2D
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _PhysicsProcess(double delta) {
 		if (Object != null) {
-			Object.GravityScale = attached ? 0 : 1;
+			// Object.GravityScale = attached ? 0 : 1;
 		}
-		GD.Print(Object);
-		if (characterObject != null) {
-			// Disconnecting magnetic object from parent if too far away
-			if (characterObject.GlobalPosition.DistanceTo(Object.GlobalPosition) > objectCollisionRadius) {
-				// Disconnect object from parent joint
-				joint.NodeB = null;
 
-				// Store object space data
-				Vector2 ObjectPosition = Object.GlobalPosition;
-				float ObjectRotation = Object.GlobalRotation;
-				Vector2 ObjectVelocity = Object.LinearVelocity;
+		// Removes any connection between Object and characterObject
+		if (characterObject != null && !connected) {
+			// Disconnect object from parent joint
+			joint.NodeB = null;
 
-				// Store the scene tree to put the object back into
-				SceneTree sceneTree = GetTree();
+			// Store object space data
+			Vector2 ObjectPosition = Object.GlobalPosition;
+			float ObjectRotation = Object.GlobalRotation;
+			Vector2 ObjectVelocity = Object.LinearVelocity;
 
-				// Remove all reference from parent to object
-				characterObject.RemoveFromGroup("Magnetic");
-				characterObject.RemoveChild(Object);
-				characterObject = null;
+			// Store the scene tree to put the object back into
+			SceneTree sceneTree = GetTree();
 
-				// Add object back into scene tree
-				sceneTree.Root.AddChild(Object);
+			// Remove all reference from parent to object
+			characterObject.RemoveFromGroup("Magnetic");
+			characterObject.RemoveChild(Object);
+			characterObject = null;
 
-				// Return object to it's original movement state
-				Object.GlobalPosition = ObjectPosition;
-				Object.GlobalRotation = ObjectRotation;
-				Object.LinearVelocity = ObjectVelocity;
-			}
+			// Add object back into scene tree
+			sceneTree.Root.AddChild(Object);
+
+			// Return object to it's original movement state
+			Object.GlobalPosition = ObjectPosition;
+			Object.GlobalRotation = ObjectRotation;
+			Object.LinearVelocity = ObjectVelocity;
 		}
+
 		QueueRedraw();
 	}
 
