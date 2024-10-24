@@ -5,49 +5,84 @@ using System.Reflection;
 public partial class MagneticComponent : Node2D
 {
 	[Export]
-	public PhysicsBody2D Object;
-
-	private RigidBody2D RBObject;
-	private CharacterBody2D CBObject;
-
+	private RigidBody2D Object;
+	private CharacterBody2D characterObject;
+	private CollisionShape2D parentCollision;
 	private bool attached = false;
 
 	private Joint2D joint;
 	private PhysicsBody2D parent;
 
+	private float objectCollisionRadius;
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {	
 		GetParent().AddToGroup("Magnetic");
+		PhysicsBody2D parent = null;
 
-
-		if (Object.GetType() == typeof(RigidBody2D)) {
-			RBObject = (RigidBody2D)Object;
-		} else if (Object.GetType() == typeof(CharacterBody2D)) {
-			CBObject = (CharacterBody2D)Object;
-		}
-
+		// Gaining access to parent of the magnetic object if there is one
 		if (Object.GetParent() is PhysicsBody2D) {
 			parent = (PhysicsBody2D) Object.GetParent();
+
+			// Getting the joint connecting the parent to the object
 			foreach (var child in Object.GetParent().GetChildren()) {
 				if (child is Joint2D) {
 					joint = (Joint2D) child;
 				}
 			}
 		}
+
+		// Handling if parent object is a CharacterBody2D
+		if (parent != null && parent is CharacterBody2D) {
+			characterObject = (CharacterBody2D) parent;
+
+			// Making the parent respond to magnets
+			characterObject.AddToGroup("Magnetic");
+
+			// Accessing the collision shape of the parent
+			foreach (Node child in characterObject.GetChildren()) {
+				if (child is CollisionShape2D) {
+					parentCollision = (CollisionShape2D)child;
+					break;
+				}
+			}
+
+			// Getting the radius of the collision shape
+			// ONLY WORKS IF COLLISION SHAPE IS A CIRCLE
+			if (parentCollision != null) {
+				Shape2D shape = parentCollision.Shape;
+				CircleShape2D circle = null;
+				if (shape is CircleShape2D) {
+					circle = (CircleShape2D)shape;
+				}
+
+				if (circle != null) {
+					objectCollisionRadius = circle.Radius;
+				} else {
+					GD.PrintErr("ITS NOT A CIRCLE TIME TO PANIC");
+				}
+			}
+		}
+	}
+
+	public override void _Draw()
+    {
+	
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta) {
-
-		if (RBObject != null) {
-			RBObject.GravityScale = attached ? 0 : 1;
+	public override void _PhysicsProcess(double delta) {
+		if (Object != null) {
+			Object.GravityScale = attached ? 0 : 1;
 		}
 
-		if (parent != null) {
-			if (parent.GlobalPosition.DistanceTo(Object.GlobalPosition) > 12) {
-				joint.NodeB = null;
+		if (characterObject != null) {
+			// Disconnecting magnetic object from parent if too far away
+			if (characterObject.GlobalPosition.DistanceTo(Object.GlobalPosition) > objectCollisionRadius) {
+				// joint.NodeB = null;
 			}
 		}
+		QueueRedraw();
 	}
 
     public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull) {
@@ -58,18 +93,26 @@ public partial class MagneticComponent : Node2D
 		Object.SetCollisionLayerValue(3, false);
 		Object.SetCollisionLayerValue(5, true);
 
+		// Vector that is positive or negative depending on what pull mode the magnet is in
 		Vector2 pushForce = pull ? attractionPoint - Object.GlobalPosition : Object.GlobalPosition - attractionPoint;
 
+		// Vector that is larger the closer the Object is to the magnet
 		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(Object.GlobalPosition), 1, beamLength);
-		if (RBObject != null) {
-			RBObject.ApplyForce(pushForce * magnetStrength, collisionPoint - Object.GlobalPosition);
-		}
 
-		if (CBObject != null) {
-			GD.Print("CharacterBody2D");
-			CBObject.Velocity = Vector2.Up;
+		// Handle force if parent exists. Apply force to the parent not the metal object
+		if (characterObject != null) {
+			// TODO: Disable the movement of the characterObject defined by the object itself
+			characterObject.SetPhysicsProcess(false);
+
+			//TODO: Make the dampener value based on the mass of the object pulled
+			float dampener = 20;
+			characterObject.Velocity = pushForce * magnetStrength / dampener;
+			characterObject.MoveAndSlide();
+
+		// Handle force if no parent
+		} else if (Object != null) {
+			Object.ApplyForce(pushForce * magnetStrength, collisionPoint - Object.GlobalPosition);
 		}
-		
 	}
 
 	public void Dettach() {
@@ -78,5 +121,27 @@ public partial class MagneticComponent : Node2D
 		Object.SetCollisionMaskValue(4, true);
 		Object.SetCollisionLayerValue(3, true);
 		Object.SetCollisionLayerValue(5, false);
+
+		if (characterObject != null) {
+			characterObject.SetPhysicsProcess(true);
+		}
+	}
+
+	public RigidBody2D GetObject() {
+		return Object;
+	}
+
+	public CharacterBody2D GetCharacterObject() {
+		if (characterObject != null) {
+			return characterObject;
+		}
+		return null;
+	}
+	
+	public bool IsCharacterObject() {
+		if (characterObject != null) {
+			return true;
+		}
+		return false;
 	}
 }

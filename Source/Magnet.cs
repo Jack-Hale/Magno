@@ -3,7 +3,9 @@ using System;
 
 public partial class Magnet : Area2D
 {
+	[Export]
 	private bool activated = false;
+	[Export]
 	private bool pullMode = true;
 	private bool canJoin;
 	private PhysicsBody2D EnteredBody;
@@ -35,17 +37,17 @@ public partial class Magnet : Area2D
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta) {
 
-		if (EnteredBody != null && activated && canJoin) {
-			_joint1.NodeB = EnteredBody.GetPath();
-			_joint2.NodeB = EnteredBody.GetPath();
-		}
-		if (!activated) {
-			_joint1.NodeB = null;
-			_joint2.NodeB = null;
-		}
 	}
 
     public override void _PhysicsProcess(double delta) {
+
+		if (EnteredBody != null && activated && canJoin) {
+			_joint1.NodeB = EnteredBody.GetPath();
+			_joint2.NodeB = EnteredBody.GetPath();
+			// GD.Print(_joint1.NodeB);
+			// GD.Print(_joint2.NodeB);
+		}
+
 		if (activated) {
 			if (_magnetBeam.IsColliding()) {
 
@@ -60,6 +62,18 @@ public partial class Magnet : Area2D
 						attachedObject.Dettach();
 					}
 					attachedObject = newObject;
+
+					if (attachedObject.IsCharacterObject()) {
+						
+					}
+					if (_joint1.NodeB != "" && attachedObject.GetCharacterObject() != null) {
+						GD.Print(_joint1.NodeB);
+						CharacterBody2D character = attachedObject.GetCharacterObject();
+						character.GlobalPosition = _joint1.GlobalPosition.Lerp(_joint2.GlobalPosition, 0.5f);
+						character.Rotation = _joint1.GlobalPosition.AngleTo(_joint2.GlobalPosition) + 90;
+					}
+
+
 					attachedObject.ForceObject(_magnetBeam.GetCollisionPoint(), GlobalPosition, _magnetBeam.TargetPosition.X, pullMode);
 				}
 			} else {
@@ -67,6 +81,8 @@ public partial class Magnet : Area2D
 					attachedObject.Dettach();
 					attachedObject = null;
 				}
+				_joint1.NodeB = null;
+				_joint2.NodeB = null;
 			}
 		} else {
 			// Dettach the object when deactivating magnet
@@ -74,12 +90,18 @@ public partial class Magnet : Area2D
 				attachedObject.Dettach();
 				attachedObject = null;
 			}
+			_joint1.NodeB = null;
+			_joint2.NodeB = null;
 		}
     }
 
     private void OnBodyEntered(Node2D body) {
 		if (body.IsInGroup("Magnetic") && activated) {
-			EnteredBody = (PhysicsBody2D) body;
+			if (body.GetParent().IsInGroup("Magnetic")) {
+				EnteredBody = (PhysicsBody2D) body.GetParent();
+			} else {
+				EnteredBody = (PhysicsBody2D) body;
+			}
 			
 			// var angleToBody = (GlobalPosition - EnteredBody.GlobalPosition).Angle();
 			// rotationFix = GlobalRotation - angleToBody;
