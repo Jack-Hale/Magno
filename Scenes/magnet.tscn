@@ -9,7 +9,7 @@ size = Vector2(16, 16)
 
 [node name="Magnet" type="Area2D"]
 collision_layer = 8
-collision_mask = 15
+collision_mask = 63
 script = ExtResource("1_exilv")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -31,8 +31,8 @@ shape = SubResource("RectangleShape2D_fxy4w")
 
 [node name="MagnetBeam" type="RayCast2D" parent="."]
 position = Vector2(30, 0)
-target_position = Vector2(291, 0)
-collision_mask = 6
+target_position = Vector2(289, 0)
+collision_mask = 22
 
 [node name="Sprite2D" type="Sprite2D" parent="MagnetBeam"]
 position = Vector2(2, 0)
@@ -40,15 +40,8 @@ scale = Vector2(2.24219, 1)
 texture = ExtResource("2_k2fj3")
 offset = Vector2(64, 0)
 
-[node name="PinJoint2D_1" type="PinJoint2D" parent="."]
-position = Vector2(31, -6)
-node_a = NodePath("../MagnetPinPoint")
-disable_collision = false
-
-[node name="PinJoint2D_2" type="PinJoint2D" parent="."]
-position = Vector2(31, 6)
-node_a = NodePath("../MagnetPinPoint")
-disable_collision = false
+[node name="Anchor" type="Marker2D" parent="."]
+position = Vector2(32, 0)
 
 [connection signal="body_entered" from="." to="." method="OnBodyEntered"]
 [connection signal="body_exited" from="." to="." method="OnBodyExited"]

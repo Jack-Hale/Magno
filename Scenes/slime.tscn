@@ -1,0 +1,36 @@
+[gd_scene load_steps=7 format=3 uid="uid://c4cdcu4q84oud"]
+
+[ext_resource type="Script" path="res://Source/Slime.cs" id="1_gh7n1"]
+[ext_resource type="Texture2D" uid="uid://0t3we2jv6272" path="res://Assets/Sprites/Slime.png" id="1_lteqa"]
+[ext_resource type="PackedScene" uid="uid://d2x7fg2yui813" path="res://Scenes/metal_ball.tscn" id="3_cfl5u"]
+[ext_resource type="PackedScene" path="res://Scenes/magnet_hold_region_component.tscn" id="4_mku1u"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_o1h5e"]
+radius = 14.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gpuby"]
+radius = 20.0
+
+[node name="Slime" type="CharacterBody2D"]
+collision_layer = 32
+collision_mask = 45
+script = ExtResource("1_gh7n1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_lteqa")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 2)
+shape = SubResource("CircleShape2D_o1h5e")
+
+[node name="PinJoint2D" type="PinJoint2D" parent="."]
+position = Vector2(0, 2)
+node_a = NodePath("..")
+node_b = NodePath("../MetalBall")
+
+[node name="MetalBall" parent="." instance=ExtResource("3_cfl5u")]
+position = Vector2(0, 2)
+
+[node name="MagnetHoldRegion" parent="." instance=ExtResource("4_mku1u")]
+position = Vector2(0, 2)
+CollisionShape = SubResource("CircleShape2D_gpuby")
