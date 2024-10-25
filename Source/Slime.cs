@@ -18,7 +18,6 @@ public partial class Slime : CharacterBody2D
 	public override void _PhysicsProcess(double delta)
 	{
 		Vector2 velocity = Velocity;
-
 		if (IsInGroup("Magnetic")) {
 			if (IsInGroup("Affected")) {
 				canMove = false;

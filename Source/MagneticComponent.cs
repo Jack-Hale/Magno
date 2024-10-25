@@ -59,7 +59,7 @@ public partial class MagneticComponent : Node2D
     {
 		// If Object has exited, disconnect all trace of Object from characterObject
     	if (body == Object) {
-			connected = false;
+			// connected = false;
 		}
     }
 
@@ -76,6 +76,7 @@ public partial class MagneticComponent : Node2D
 
 		// Removes any connection between Object and characterObject
 		if (characterObject != null && !connected) {
+			GD.Print("HERE");
 			// Disconnect object from parent joint
 			joint.NodeB = null;
 
@@ -108,7 +109,6 @@ public partial class MagneticComponent : Node2D
 		attached = true;
 
 		Object.SetCollisionMaskValue(2, false);
-		Object.SetCollisionMaskValue(4, false);
 		Object.SetCollisionLayerValue(3, false);
 		Object.SetCollisionLayerValue(5, true);
 
@@ -121,29 +121,26 @@ public partial class MagneticComponent : Node2D
 		// Handle force if parent exists. Apply force to the parent not the metal object
 		if (characterObject != null) {
 			// TODO: Disable the movement of the characterObject defined by the object itself
-			// characterObject.SetPhysicsProcess(false);
 			characterObject.AddToGroup("Affected");
 
 			//TODO: Make the dampener value based on the mass of the object pulled
-			float dampener = 20;
+			float dampener = 50;
 			characterObject.Velocity = pushForce * magnetStrength / dampener;
 			characterObject.MoveAndSlide();
 
 		// Handle force if no parent
 		} else if (Object != null) {
-			Object.ApplyForce(pushForce * magnetStrength, collisionPoint - Object.GlobalPosition);
+			Object.ApplyForce(pushForce * magnetStrength/4, collisionPoint - Object.GlobalPosition);
 		}
 	}
 
 	public void Dettach() {
 		attached = false;
 		Object.SetCollisionMaskValue(2, true);
-		Object.SetCollisionMaskValue(4, true);
 		Object.SetCollisionLayerValue(3, true);
 		Object.SetCollisionLayerValue(5, false);
 
 		if (characterObject != null) {
-			characterObject.SetPhysicsProcess(true);
 			characterObject.RemoveFromGroup("Affected");
 		}
 	}
