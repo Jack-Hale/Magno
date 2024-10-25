@@ -83,6 +83,10 @@ public partial class Magnet : Area2D
 					// GD.Print("Dettach (not magnetic)");
 					Dettach();
 				}
+			} else {
+				if (!ObjectAttached) {
+					Dettach();
+				}
 			}
 			if (ObjectAttached && !pullMode) {
 				Dettach();
