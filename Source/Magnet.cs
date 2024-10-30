@@ -7,6 +7,8 @@ public partial class Magnet : Area2D
 	private bool activated = false;
 	[Export]
 	private bool pullMode = true;
+	[Export]
+	private bool strongMagnet = false;
 	private bool canJoin;
 	private PhysicsBody2D EnteredBody;
 
@@ -78,7 +80,7 @@ public partial class Magnet : Area2D
 					if (EnteredBody == attractedObject && canJoin) {
 						AttachObject();
 					}
-					if (blast) {
+					if (blast || strongMagnet) {
 						objectMagComp.ForceObject(_magnetBeam.GetCollisionPoint(), GlobalPosition, _magnetBeam.TargetPosition.X, pullMode, true);
 						blast = false;
 					} else {
@@ -198,9 +200,10 @@ public partial class Magnet : Area2D
 		}
 	}
 
-	public void SetActivation(bool status) {
-		activated = status;
-		_magnetBeamSprite.Visible = status;
+	public void SetActivation(bool weak, bool strong) {
+		activated = weak || strong;
+		strongMagnet = strong;
+		_magnetBeamSprite.Visible = weak || strong;
 	}
 
 	public void SetPullMode(bool pullmode) {

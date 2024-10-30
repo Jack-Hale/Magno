@@ -116,7 +116,7 @@ public partial class Player : CharacterBody2D
 	}
 
 	public void HandleMagnet() {
-		magnet.SetActivation(Godot.Input.IsActionPressed("ActivateMagnet"));
+		magnet.SetActivation(Godot.Input.IsActionPressed("ActivateWeakMagnet"), Godot.Input.IsActionPressed("ActivateStrongMagnet"));
 	}
 
 	public float HandleJump(double delta) {
