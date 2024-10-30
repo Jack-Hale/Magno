@@ -59,7 +59,7 @@ public partial class MagneticComponent : Node2D
     {
 		// If Object has exited, disconnect all trace of Object from characterObject
     	if (body == Object) {
-			// connected = false;
+			connected = false;
 		}
     }
 
@@ -105,32 +105,41 @@ public partial class MagneticComponent : Node2D
 		QueueRedraw();
 	}
 
-    public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull) {
+    public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool blast) {
 		attached = true;
 
 		Object.SetCollisionMaskValue(2, false);
 		Object.SetCollisionLayerValue(3, false);
 		Object.SetCollisionLayerValue(5, true);
-
+		
 		// Vector that is positive or negative depending on what pull mode the magnet is in
 		Vector2 pushForce = pull ? attractionPoint - Object.GlobalPosition : Object.GlobalPosition - attractionPoint;
 
 		// Vector that is larger the closer the Object is to the magnet
 		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(Object.GlobalPosition), 1, beamLength);
 
-		// Handle force if parent exists. Apply force to the parent not the metal object
-		if (characterObject != null) {
-			// TODO: Disable the movement of the characterObject defined by the object itself
-			characterObject.AddToGroup("Affected");
+		if (blast) {
+			if (characterObject != null) {
+				
+			} else if (Object != null) {
+				Object.ApplyForce(pushForce * magnetStrength * 5, collisionPoint - Object.GlobalPosition);
+			}
+		} else {
 
-			//TODO: Make the dampener value based on the mass of the object pulled
-			float dampener = 50;
-			characterObject.Velocity = pushForce * magnetStrength / dampener;
-			characterObject.MoveAndSlide();
+			// Handle force if parent exists. Apply force to the parent not the metal object
+			if (characterObject != null) {
+				// TODO: Disable the movement of the characterObject defined by the object itself
+				characterObject.AddToGroup("Affected");
 
-		// Handle force if no parent
-		} else if (Object != null) {
-			Object.ApplyForce(pushForce * magnetStrength/4, collisionPoint - Object.GlobalPosition);
+				//TODO: Make the dampener value based on the mass of the object pulled
+				float dampener = 50;
+				characterObject.Velocity = pushForce * magnetStrength / dampener;
+				characterObject.MoveAndSlide();
+
+			// Handle force if no parent
+			} else if (Object != null) {
+				Object.ApplyForce(pushForce * magnetStrength/4, collisionPoint - Object.GlobalPosition);
+			}
 		}
 	}
 

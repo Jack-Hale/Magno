@@ -25,6 +25,8 @@ public partial class Magnet : Area2D
 
 	private Node ObjectParent;
 
+	private bool blast;
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
 		_anchor = GetNode<Marker2D>("Anchor");
@@ -76,8 +78,12 @@ public partial class Magnet : Area2D
 					if (EnteredBody == attractedObject && canJoin) {
 						AttachObject();
 					}
-					
-					objectMagComp.ForceObject(_magnetBeam.GetCollisionPoint(), GlobalPosition, _magnetBeam.TargetPosition.X, pullMode);
+					if (blast) {
+						objectMagComp.ForceObject(_magnetBeam.GetCollisionPoint(), GlobalPosition, _magnetBeam.TargetPosition.X, pullMode, true);
+						blast = false;
+					} else {
+						objectMagComp.ForceObject(_magnetBeam.GetCollisionPoint(), GlobalPosition, _magnetBeam.TargetPosition.X, pullMode, false);
+					}
 					
 				} else {
 					// GD.Print("Dettach (not magnetic)");
@@ -198,8 +204,12 @@ public partial class Magnet : Area2D
 	}
 
 	public void SetPullMode(bool pullmode) {
+		if (this.pullMode && ObjectAttached) {
+			blast = true;
+		}
 		pullMode = pullmode;
 		canJoin = pullmode;
+
 	}
 
 	public bool GetPullMode() {
