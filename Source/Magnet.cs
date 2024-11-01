@@ -35,7 +35,7 @@ public partial class Magnet : Area2D
 		anchorPositionDefault = _anchor.Position;
 		_magnetBeam = GetNode<RayCast2D>("MagnetBeam");
 		_magnetBeamSprite = _magnetBeam.GetNode<Sprite2D>("Sprite2D");
-
+		
 		if (_magnetBeam == null) {
 			GD.PrintErr("No Raycast found");
 			GD.PushError("No Raycast found");
@@ -186,7 +186,7 @@ public partial class Magnet : Area2D
     private void OnBodyEntered(Node2D body) {
 		// Store body if it is magnetic, the magnet is activated and there is no other object attached
 		if (body.IsInGroup("Magnetic") && activated && !ObjectAttached) {
-			if (body.GetParent().IsInGroup("Magnetic")) {
+			if (body.GetParent().IsInGroup("Magnetic")) {	
 				EnteredBody = (PhysicsBody2D) body.GetParent();
 			} else {
 				EnteredBody = (PhysicsBody2D) body;

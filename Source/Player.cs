@@ -29,6 +29,7 @@ public partial class Player : CharacterBody2D
 	Vector2 Input = Vector2.Zero;
 
 	private Area2D _magnet;
+	private Area2D _magnetA;
 
 	private Vector2 DrawVector1 = Vector2.Zero;
 	private Vector2 DrawVector2 = Vector2.Zero;
@@ -36,6 +37,8 @@ public partial class Player : CharacterBody2D
 	private bool Godmode = false;
 
 	private Magnet magnet;
+	private MagnetA magnetA;
+	private bool magnetMode = true;
 
 	private MagneticComponent attachedObject;
 
@@ -50,6 +53,9 @@ public partial class Player : CharacterBody2D
 		_magnet = GetNode<Area2D>("Magnet");
 		magnet = (Magnet) _magnet;
 
+		_magnetA = GetNode<Area2D>("MagnetA");
+		magnetA = (MagnetA) _magnetA;
+
 		pullMode = magnet.GetPullMode();
 	}
 
@@ -62,6 +68,7 @@ public partial class Player : CharacterBody2D
 		Vector2 NewVelocity = Velocity;
 
 		_magnet.LookAt(GetGlobalMousePosition());
+		_magnetA.LookAt(GetGlobalMousePosition());
 
 		HandleMagnet();
 
@@ -69,9 +76,28 @@ public partial class Player : CharacterBody2D
 			Godmode = !Godmode;
 		}
 
+		if (Godot.Input.IsActionJustPressed("SwitchMagnet")) {
+			magnetMode = !magnetMode;
+		}
+
+		if (magnetMode) {
+			_magnetA.ProcessMode = ProcessModeEnum.Disabled;
+			_magnetA.Visible = false;
+
+			_magnet.ProcessMode = ProcessModeEnum.Inherit;
+			_magnet.Visible = true;
+		} else {
+			_magnet.ProcessMode = ProcessModeEnum.Disabled;
+			_magnet.Visible = false;
+
+			_magnetA.ProcessMode = ProcessModeEnum.Inherit;
+			_magnetA.Visible = true;
+		}
+
 		if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
 			pullMode = !pullMode;
 			magnet.SetPullMode(pullMode);
+			magnetA.SetPullMode(pullMode);
 		}
 
 		if (!Godmode) {
@@ -117,6 +143,7 @@ public partial class Player : CharacterBody2D
 
 	public void HandleMagnet() {
 		magnet.SetActivation(Godot.Input.IsActionPressed("ActivateWeakMagnet"), Godot.Input.IsActionPressed("ActivateStrongMagnet"));
+		magnetA.SetActivation(Godot.Input.IsActionPressed("ActivateWeakMagnet"), Godot.Input.IsActionPressed("ActivateStrongMagnet"));
 	}
 
 	public float HandleJump(double delta) {
