@@ -75,13 +75,22 @@ public partial class MagnetA : Area2D
 
 	public override void _Draw()
     {
-        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 1.0f);
+        DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 1.0f);
         // DrawLine(ToLocal(draw3), ToLocal(draw4), Colors.Blue, 3.0f);
         // DrawLine(ToLocal(draw5), ToLocal(draw6), Colors.Blue, 3.0f);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta) {
+		// Removing velocity on first tick object is removed
+		if (!ObjectAttached && attachedObject != null) {	
+			if (attachedObject is RigidBody2D rigidBody) {
+				rigidBody.AngularVelocity = 0;
+				rigidBody.LinearVelocity = Vector2.Zero;
+			}		
+
+			attachedObject = null;
+		}
 	}
 
     public override void _PhysicsProcess(double delta) {
@@ -105,11 +114,12 @@ public partial class MagnetA : Area2D
 				// Fire two raycasts along both edges of the magnet beam
 				var spaceState = GetWorld2D().DirectSpaceState;
 
+				// Get the outer edges of the beam as two vectors represented by start and end
 				var start1 = ToGlobal(_beamArea.Polygon[1]);
 				var end1 = ToGlobal(_beamArea.Polygon[2]);
 				var start2 = ToGlobal(_beamArea.Polygon[0]);
 				var end2 = ToGlobal(_beamArea.Polygon[3]);
-			
+
 				var query1 = PhysicsRayQueryParameters2D.Create(start1, end1, _magnetBeam.CollisionMask);
 				var query2 = PhysicsRayQueryParameters2D.Create(start2, end2, _magnetBeam.CollisionMask);
 			
@@ -127,11 +137,6 @@ public partial class MagnetA : Area2D
 
 				const int maxIterations = 40;
 				int iterationCount = 0;
-				
-				draw3 = ToGlobal(_beamArea.Polygon[1] + _magnetBeam.Position);
-				draw4 = ToGlobal(_beamArea.Polygon[2] + _magnetBeam.Position);
-				draw5 = ToGlobal(_beamArea.Polygon[0] + _magnetBeam.Position);
-				draw6 = ToGlobal(_beamArea.Polygon[3] + _magnetBeam.Position);
 
 				while (breakCheck1 || breakCheck2) {
 					
@@ -193,37 +198,29 @@ public partial class MagnetA : Area2D
 					}
 				}
 
-				// GD.Print("1 ", finalResult1 != null ? finalResult1["collider"] : "null", " 2 ", finalResult2 != null ? finalResult2["collider"] : "null");
-
 				Vector2 collisionPoint = Vector2.Zero;
 
 				// If only one query found target, get the position of that query
 				if (finalResult1 != null && finalResult2 == null) {
-					draw1 = body.Position;
-					draw2 = (Vector2)finalResult1["position"];
 					collisionPoint = (Vector2)finalResult1["position"];
 
 				} else if (finalResult1 == null && finalResult2 != null) {
-					draw1 = body.Position;
-					draw2 = (Vector2)finalResult2["position"];
 					collisionPoint = (Vector2)finalResult2["position"];
 					
 				// If both queries found target, get position between both points
 				} else if (finalResult1 != null && finalResult2 != null) {
 					Vector2 position1 = (Vector2)finalResult1["position"];
 					Vector2 position2 = (Vector2)finalResult2["position"];
-					draw1 = body.Position;
-					draw2 = position1.Lerp(position2, 0.5f);
 					collisionPoint = position1.Lerp(position2, 0.5f);
 				}
 
-				magComp.ForceObjectWtihArea(collisionPoint, GlobalPosition, beamLength, pullMode, false, delta);
+				if (blast || strongMagnet) {
+					magComp.ForceObjectWtihArea(collisionPoint, GlobalPosition, beamLength, pullMode, true, blast, delta);
+					blast = false;
+				} else {
+					magComp.ForceObjectWtihArea(collisionPoint, GlobalPosition, beamLength, pullMode, false, false, delta);
+				}
 			}
-		}
-
-		// Keeping the attached object to the anchor position
-		if (ObjectAttached) {
-			attachedObject.Position = _anchor.Position;
 		}
 
 		QueueRedraw();
@@ -232,15 +229,16 @@ public partial class MagnetA : Area2D
 	// Called when object touches the magnet beam
 	// Adds object to dict of attracted objects
 	private void OnBodyEnteredBeam(Node body) {
-
-		// Check if the object in the beam is in the Magnetic group.
-		Node Object = body;
-		if (Object.IsInGroup("Magnetic")) {
-			
-			MagneticComponent newObject = (MagneticComponent) Object.FindChild("MagneticComponent");
-			
-			// Add the object to the dict of objects to be manipulated
-			attractedObjects.Add((PhysicsBody2D)body, newObject);
+		if (!ObjectAttached) {
+			// Check if the object in the beam is in the Magnetic group.
+			Node Object = body;
+			if (Object.IsInGroup("Magnetic")) {
+				
+				MagneticComponent newObject = (MagneticComponent) Object.FindChild("MagneticComponent");
+				
+				// Add the object to the dict of objects to be manipulated
+				attractedObjects.Add((PhysicsBody2D)body, newObject);
+			}
 		}
 	}
 
@@ -287,20 +285,19 @@ public partial class MagnetA : Area2D
 
 	private void AttachObject(PhysicsBody2D body) {
 		if (body.GetParent() != this && body is PhysicsBody2D) {
-			attachedObject = body;
+			
 			// Store object space data
-			Vector2 ObjectPosition = attachedObject.GlobalPosition;
-			float ObjectRotation = attachedObject.GlobalRotation;
-
+			Vector2 ObjectPosition = body.GlobalPosition;
+			float ObjectRotation = body.GlobalRotation;
+			
 			// Remove object from original parent and add to this
-			ObjectParent = attachedObject.GetParent();
-			ObjectParent.RemoveChild(attachedObject);
-			AddChild(attachedObject);
-
+			ObjectParent = body.GetParent();
+			ObjectParent.RemoveChild(body);
+			AddChild(body);
 
 			// Get the collision shape from the attracted object
 			CollisionShape2D ObjectCollision = null;
-			foreach (Node node in attachedObject.GetChildren()) {
+			foreach (Node node in body.GetChildren()) {
 				if (node is CollisionShape2D shape) {
 					ObjectCollision = shape;
 				}
@@ -315,8 +312,19 @@ public partial class MagnetA : Area2D
 			_anchor.Position = new Vector2(_anchor.Position.X + (anchorOffset / 2), _anchor.Position.Y);
 
 			// Return object to it's original movement state
-			attachedObject.GlobalPosition = ObjectPosition;
-			attachedObject.GlobalRotation = ObjectRotation;
+			body.Position = _anchor.Position;
+			body.Rotation = _anchor.Rotation;
+
+			if (body is RigidBody2D rigidBody) {
+				// Temporarily stop physics on the attached object
+        		rigidBody.Freeze = true;
+				rigidBody.Sleeping = true;
+				rigidBody.DisableMode = DisableModeEnum.MakeStatic;
+				rigidBody.ProcessMode = ProcessModeEnum.Disabled;
+			}
+
+			// Store attached object in global variable
+			attachedObject = body;
 
 			ObjectAttached = true;		
 		}
@@ -326,14 +334,24 @@ public partial class MagnetA : Area2D
 	private void Dettach() {
 		// Removes any object from the magnet
 		if (ObjectAttached) {
-		GD.Print("dettach ", attachedObject.Name);
 			// Store object space data
 			Vector2 ObjectPosition = attachedObject.GlobalPosition;
 			float ObjectRotation = attachedObject.GlobalRotation;
+			
+			draw1 = ObjectPosition;
+			draw2 = _anchor.GlobalPosition;
 
 			// Return the child to it's original parent
 			RemoveChild(attachedObject);
 			ObjectParent.AddChild(attachedObject);
+
+			if (attachedObject is RigidBody2D rigidBody) {
+				// Reenable physics on the attached object
+				rigidBody.Sleeping = false;
+				rigidBody.Freeze = false;
+				rigidBody.ProcessMode = ProcessModeEnum.Inherit;
+				rigidBody.DisableMode = DisableModeEnum.Remove;
+			}
 
 			// Return object to it's original movement state
 			attachedObject.GlobalPosition = ObjectPosition;
@@ -344,9 +362,16 @@ public partial class MagnetA : Area2D
 		
 		// Reset anchor position
 		_anchor.Position = anchorPositionDefault;
-
+		
 		ObjectParent = null;
-		attachedObject = null;
+	}
+
+	private void DettachAll() {
+		foreach (var objectKey in attractedObjects.Keys) {
+			MagneticComponent magComp = attractedObjects[objectKey];
+			magComp.Dettach();
+		}
+		attractedObjects = new Dictionary<PhysicsBody2D, MagneticComponent>{};
 	}
 
 	public void SetActivation(bool weak, bool strong) {
@@ -355,17 +380,17 @@ public partial class MagnetA : Area2D
 		_magnetBeamSprite.Visible = weak || strong;
 		_magnetBeam.ProcessMode = activated ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 
-		if (!activated) {
-			attractedObjects = new Dictionary<PhysicsBody2D, MagneticComponent>{};
+		if (!activated && attractedObjects.Count > 0) {
+			DettachAll();
 		}
 	}
 
-	public void SetPullMode(bool pullmode) {
-		if (this.pullMode && ObjectAttached) {
+	public void SetPullMode(bool pullmodeInput) {
+		if (pullMode && ObjectAttached) {
 			blast = true;
 		}
-		pullMode = pullmode;
-		canJoin = pullmode;
+		pullMode = pullmodeInput;
+		canJoin = pullmodeInput;
 
 	}
 

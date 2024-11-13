@@ -74,6 +74,15 @@ public partial class Player : CharacterBody2D
 
 		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
 			Godmode = !Godmode;
+
+			foreach (var item in GetParent().GetChildren())
+			{
+				if (item is RigidBody2D body) {
+					body.AngularVelocity = 0;
+					body.LinearVelocity = Vector2.Zero;
+				}
+			}
+
 		}
 
 		if (Godot.Input.IsActionJustPressed("SwitchMagnet")) {
