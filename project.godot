@@ -81,6 +81,7 @@ SwitchMagnet={
 2d_physics/layer_5="heldObjects"
 2d_physics/layer_6="characters"
 2d_physics/layer_7="magnetHoldRegion"
+2d_physics/layer_8="magneticTerrain"
 
 [physics]
 

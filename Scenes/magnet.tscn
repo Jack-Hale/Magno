@@ -27,21 +27,23 @@ scale = Vector2(2.24219, 1)
 texture = ExtResource("3_cnjx5")
 offset = Vector2(64, 0)
 
-[node name="MagnetPinPoint" type="StaticBody2D" parent="."]
-collision_layer = 8
-collision_mask = 15
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="MagnetPinPoint"]
-position = Vector2(24, 0)
-shape = SubResource("RectangleShape2D_fxy4w")
-
 [node name="Anchor" type="Marker2D" parent="."]
 position = Vector2(32, 0)
+
+[node name="TileBeamCast" type="RayCast2D" parent="."]
+position = Vector2(32, 0)
+target_position = Vector2(289, 0)
+collision_mask = 128
+
+[node name="ObjectCheck" type="RayCast2D" parent="."]
+position = Vector2(32, 0)
+target_position = Vector2(15, 0)
+collision_mask = 22
 
 [node name="MagnetBeam" type="Area2D" parent="."]
 position = Vector2(32, 0)
 collision_layer = 0
-collision_mask = 22
+collision_mask = 150
 
 [node name="BeamArea" type="CollisionPolygon2D" parent="MagnetBeam"]
 polygon = PackedVector2Array(0, 4, 0, -4, 289, -15, 289, 15)

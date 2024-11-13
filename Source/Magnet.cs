@@ -10,6 +10,11 @@ public partial class Magnet : Area2D
 	private bool pullMode = true;
 	[Export]
 	private bool strongMagnet = false;
+	[Export]
+	private PhysicsBody2D parent;
+
+	private RigidBody2D parentRigid;
+	private CharacterBody2D parentCharacter;
 	private bool canJoin;
 	private PhysicsBody2D EnteredBody;
 
@@ -17,12 +22,16 @@ public partial class Magnet : Area2D
 
 	CollisionPolygon2D _beamArea;
 	private float beamLength;
+
+	private RayCast2D _tileBeamCast;
+	private RayCast2D _objectCheck;
 	
 	private PhysicsBody2D attachedObject;
+	private MagneticComponent attachedObjectMagComp;
 	private Dictionary<PhysicsBody2D, MagneticComponent> attractedObjects = new Dictionary<PhysicsBody2D, MagneticComponent>{};
 	private Sprite2D _magnetBeamSprite;
 
-	private bool ObjectAttached = false;
+	public bool ObjectAttached = false;
 
 	private Marker2D _anchor;
 	private Vector2 anchorPositionDefault;
@@ -47,8 +56,15 @@ public partial class Magnet : Area2D
 		anchorPositionDefault = _anchor.Position;
 		_magnetBeam = GetNode<Area2D>("MagnetBeam");
 		_magnetBeamSprite = GetNode<Sprite2D>("BeamSprite");
+		_tileBeamCast = GetNode<RayCast2D>("TileBeamCast");
+		_objectCheck = GetNode<RayCast2D>("ObjectCheck");
 		_magnetBeam.Connect("body_entered", new Callable(this, MethodName.OnBodyEnteredBeam));
 		_magnetBeam.Connect("body_exited", new Callable(this, MethodName.OnBodyExitedBeam));
+
+		if (parent != null) {
+			if (parent is RigidBody2D rigidBody) parentRigid = rigidBody;
+			if (parent is CharacterBody2D characterBody) parentCharacter = characterBody;
+		}
 
 
 		// Cannot figure out how to access the actual polygon data yet so I am hard coding the
@@ -88,7 +104,7 @@ public partial class Magnet : Area2D
 			
 			if (attachedObject is RigidBody2D rigidBody) {
 				rigidBody.AngularVelocity = 0;
-				rigidBody.LinearVelocity = Vector2.Zero;
+				rigidBody.LinearVelocity = parentCharacter != null ? parentCharacter.Velocity : parentRigid != null ? parentRigid.LinearVelocity : Vector2.Zero;
 			}
 
 			MagneticComponent magneticComponent = (MagneticComponent) attachedObject.FindChild("MagneticComponent");
@@ -96,6 +112,7 @@ public partial class Magnet : Area2D
 
 			if (blast) {
 				magneticComponent.ForceObject(attachedObject.GlobalPosition, GlobalPosition, beamLength, pullMode, false, true, delta);
+				magneticComponent.Dettach();
 			}
 
 			attachedObject = null;
@@ -104,6 +121,20 @@ public partial class Magnet : Area2D
 	}
 
     public override void _PhysicsProcess(double delta) {
+		if (_tileBeamCast.IsColliding()) {
+			if (_tileBeamCast.GetCollider() is TileMap tileMap) {
+
+				Vector2I collisionCoords =  tileMap.LocalToMap(_tileBeamCast.GetCollisionPoint());
+				if (_tileBeamCast.GetCollisionPoint().X < GlobalPosition.X) collisionCoords.X = collisionCoords.X - 1;
+				if (_tileBeamCast.GetCollisionPoint().Y < GlobalPosition.Y) collisionCoords.Y = collisionCoords.Y - 1;
+				
+				TileData data = tileMap.GetCellTileData(0, collisionCoords);
+				if (data != null && (bool) data.GetCustomData("Magnetic")) {
+					ForceObject(_tileBeamCast.GetCollisionPoint(), delta);
+				}
+			}
+		}		
+
 		if (attachedObject != null && (!activated || !canJoin)) {
 			Dettach();
 		}
@@ -114,11 +145,16 @@ public partial class Magnet : Area2D
 			foreach (PhysicsBody2D body in attractedObjects.Keys) {
 
 				// Attach object that reaches the magnet
+				MagneticComponent magComp = attractedObjects[body];
 				if (EnteredBody == body && attachedObject != body && canJoin) {
-					AttachObject(body);
+					if (magComp.IsBeingHeld()) {
+						magComp.GetMagnetParent().Dettach();
+						magComp.Dettach();
+					}
+					magComp.SetMagnetParent(this);
+					AttachObject(body, magComp);
 				}
 
-				MagneticComponent magComp = attractedObjects[body];
 
 				// Fire two raycasts along both edges of the magnet beam
 				var spaceState = GetWorld2D().DirectSpaceState;
@@ -287,7 +323,7 @@ public partial class Magnet : Area2D
 		}
 	}
 
-	private void AttachObject(PhysicsBody2D body) {
+	private void AttachObject(PhysicsBody2D body, MagneticComponent bodyMagComp) {
 		if (body.GetParent() != this && body is PhysicsBody2D) {
 			
 			// Store object space data
@@ -297,7 +333,7 @@ public partial class Magnet : Area2D
 			// Remove object from original parent and add to this
 			ObjectParent = body.GetParent();
 			ObjectParent.RemoveChild(body);
-			AddChild(body);
+			_anchor.AddChild(body);
 
 			// Get the collision shape from the attracted object
 			CollisionShape2D ObjectCollision = null;
@@ -313,7 +349,7 @@ public partial class Magnet : Area2D
 				Vector2 shapeSize = GetShapeSize(ObjectCollision);
 				anchorOffset = shapeSize.X >= shapeSize.Y ? shapeSize.X : shapeSize.Y;
 			}
-			_anchor.Position = new Vector2(_anchor.Position.X + (anchorOffset / 2), _anchor.Position.Y);
+			_anchor.Position = new Vector2(anchorOffset / 2, _anchor.Position.Y);
 
 			// Return object to it's original movement state
 			body.Position = _anchor.Position;
@@ -323,12 +359,13 @@ public partial class Magnet : Area2D
 				// Temporarily stop physics on the attached object
         		rigidBody.Freeze = true;
 				rigidBody.Sleeping = true;
-				rigidBody.DisableMode = DisableModeEnum.MakeStatic;
-				rigidBody.ProcessMode = ProcessModeEnum.Disabled;
+				// rigidBody.DisableMode = DisableModeEnum.MakeStatic;
+				// rigidBody.ProcessMode = ProcessModeEnum.Disabled;
 			}
 
 			// Store attached object in global variable
 			attachedObject = body;
+			attachedObjectMagComp = bodyMagComp;
 
 			ObjectAttached = true;		
 		}
@@ -343,23 +380,28 @@ public partial class Magnet : Area2D
 			float ObjectRotation = attachedObject.GlobalRotation;
 
 			// Return the child to it's original parent
-			RemoveChild(attachedObject);
+			_anchor.RemoveChild(attachedObject);
 			ObjectParent.AddChild(attachedObject);
 
 			if (attachedObject is RigidBody2D rigidBody) {
 				// Reenable physics on the attached object
 				rigidBody.Sleeping = false;
 				rigidBody.Freeze = false;
-				rigidBody.ProcessMode = ProcessModeEnum.Inherit;
-				rigidBody.DisableMode = DisableModeEnum.Remove;
+				// rigidBody.ProcessMode = ProcessModeEnum.Inherit;
+				// rigidBody.DisableMode = DisableModeEnum.Remove;
 			}
 
 			// Return object to it's original movement state
 			attachedObject.GlobalPosition = ObjectPosition;
 			attachedObject.GlobalRotation = ObjectRotation;
+			attachedObjectMagComp.Dettach();
+			attachedObjectMagComp.SetMagnetParent(null);
+			attachedObjectMagComp = null;
 
 			ObjectAttached = false;
 		}
+
+
 		
 		// Reset anchor position
 		_anchor.Position = anchorPositionDefault;
@@ -380,6 +422,8 @@ public partial class Magnet : Area2D
 		strongMagnet = strong;
 		_magnetBeamSprite.Visible = weak || strong;
 		_magnetBeam.ProcessMode = activated ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
+		_tileBeamCast.Enabled = activated;
+		
 
 		if (!activated && attractedObjects.Count > 0) {
 			DettachAll();
@@ -396,6 +440,27 @@ public partial class Magnet : Area2D
 
 	public bool GetPullMode() {
 		return pullMode;
+	}
+
+	public void ForceObject(Vector2 collisionPoint, double delta) {
+		
+		// Vector that is positive or negative depending on what pull mode the magnet is in
+		Vector2 pushForce = pullMode ? collisionPoint - GlobalPosition : GlobalPosition - collisionPoint;
+	
+		// Vector that is larger the closer the Object is to the magnet
+		float magnetStrength = Math.Clamp(beamLength - collisionPoint.DistanceTo(GlobalPosition), 1, beamLength);
+		
+		// Handle force if parent is CharacterBody2D
+		if (parentCharacter != null) {
+			
+			parentCharacter.Velocity += pushForce * magnetStrength / 3f * (float)delta;
+
+		// Handle force parent is RigidBody2D
+		} else if (parentRigid != null) {
+			float multiplier = strongMagnet ? 40 : 16;
+			
+			parentRigid.ApplyForce(pushForce * magnetStrength * multiplier * (float)delta, collisionPoint - GlobalPosition);
+		}
 	}
 
 	// Given a CollisionShape2D, return a Vector2 representing the size of the shape

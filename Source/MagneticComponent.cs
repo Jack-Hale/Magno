@@ -16,7 +16,7 @@ public partial class MagneticComponent : Node2D
 	private bool attached = false;
 
 	private Joint2D joint;
-	private PhysicsBody2D parent;
+	private Magnet parent;
 
 	private bool connected;
 
@@ -78,8 +78,13 @@ public partial class MagneticComponent : Node2D
         // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 1.0f);
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _PhysicsProcess(double delta) {
+    public override void _Process(double delta)
+    {
+		
+    }
+
+    // Called every frame. 'delta' is the elapsed time since the previous frame.
+    public override void _PhysicsProcess(double delta) {
 		
 		// Removes any connection between Object and characterObject
 		if (characterObject != null && !connected) {
@@ -112,9 +117,16 @@ public partial class MagneticComponent : Node2D
 		QueueRedraw();
 	}
 
+	public bool IsBeingHeld() {
+		if (characterObject == null) {
+			return GetParent().GetParent().GetParent() is Magnet;
+		} else {
+			return GetParent().GetParent().GetParent().GetParent() is Magnet;
+		}
+	}
+
 	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta) {
 		attached = true;
-
 
 		Object.SetCollisionMaskValue(2, false);
 		Object.SetCollisionLayerValue(1, false);
@@ -156,14 +168,22 @@ public partial class MagneticComponent : Node2D
 
 	public void Dettach() {
 		attached = false;
-		Object.SetCollisionLayerValue(1, true);
 		Object.SetCollisionMaskValue(2, true);
+		Object.SetCollisionLayerValue(1, true);
 		Object.SetCollisionLayerValue(3, true);
 		Object.SetCollisionLayerValue(5, false);
 
 		if (characterObject != null) {
 			characterObject.RemoveFromGroup("Affected");
 		}
+	}
+
+	public void SetMagnetParent(Magnet newParent) {
+		parent = newParent;
+	}
+
+	public Magnet GetMagnetParent() {
+		return parent;
 	}
 
 	public RigidBody2D GetObject() {
