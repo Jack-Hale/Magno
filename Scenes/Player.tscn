@@ -1,9 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://dfdg8yipq3ya0"]
+[gd_scene load_steps=5 format=3 uid="uid://dfdg8yipq3ya0"]
 
 [ext_resource type="Texture2D" uid="uid://dmiecbveok1ib" path="res://Assets/Sprites/Magnoman.png" id="1_a4gl4"]
 [ext_resource type="Script" path="res://Source/Player.cs" id="1_fhg01"]
-[ext_resource type="PackedScene" uid="uid://yki3nqruelln" path="res://Scenes/magnet.tscn" id="3_3ajgd"]
-[ext_resource type="PackedScene" uid="uid://cv122wmaloumx" path="res://Scenes/magnetA.tscn" id="4_m1cei"]
+[ext_resource type="PackedScene" uid="uid://cv122wmaloumx" path="res://Scenes/magnet.tscn" id="4_m1cei"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_cwh6n"]
 radius = 16.0
@@ -26,8 +25,4 @@ process_callback = 0
 position_smoothing_enabled = true
 position_smoothing_speed = 15.0
 
-[node name="Magnet" parent="." instance=ExtResource("3_3ajgd")]
-
-[node name="MagnetA" parent="." instance=ExtResource("4_m1cei")]
-process_mode = 4
-visible = false
+[node name="Magnet" parent="." instance=ExtResource("4_m1cei")]

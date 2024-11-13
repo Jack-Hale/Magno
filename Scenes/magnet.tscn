@@ -1,8 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://yki3nqruelln"]
+[gd_scene load_steps=5 format=3 uid="uid://cv122wmaloumx"]
 
-[ext_resource type="Script" path="res://Source/Magnet.cs" id="1_exilv"]
-[ext_resource type="Texture2D" uid="uid://qca1diyg3tg1" path="res://Assets/Sprites/magnet.png" id="1_intaa"]
-[ext_resource type="Texture2D" uid="uid://bytruga3qtq5u" path="res://Assets/Sprites/MagnetBeam.png" id="2_k2fj3"]
+[ext_resource type="Script" path="res://Source/Magnet.cs" id="1_iodp0"]
+[ext_resource type="Texture2D" uid="uid://qca1diyg3tg1" path="res://Assets/Sprites/magnet.png" id="2_i74f3"]
+[ext_resource type="Texture2D" uid="uid://bytruga3qtq5u" path="res://Assets/Sprites/MagnetBeam.png" id="3_cnjx5"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fxy4w"]
 size = Vector2(16, 16)
@@ -10,16 +10,22 @@ size = Vector2(16, 16)
 [node name="Magnet" type="Area2D"]
 collision_layer = 8
 collision_mask = 63
-script = ExtResource("1_exilv")
+script = ExtResource("1_iodp0")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(24, 0)
 shape = SubResource("RectangleShape2D_fxy4w")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="MagnetSprite" type="Sprite2D" parent="."]
 rotation = 1.5708
-texture = ExtResource("1_intaa")
+texture = ExtResource("2_i74f3")
 offset = Vector2(0, -24)
+
+[node name="BeamSprite" type="Sprite2D" parent="."]
+position = Vector2(32, 0)
+scale = Vector2(2.24219, 1)
+texture = ExtResource("3_cnjx5")
+offset = Vector2(64, 0)
 
 [node name="MagnetPinPoint" type="StaticBody2D" parent="."]
 collision_layer = 8
@@ -29,19 +35,16 @@ collision_mask = 15
 position = Vector2(24, 0)
 shape = SubResource("RectangleShape2D_fxy4w")
 
-[node name="MagnetBeam" type="RayCast2D" parent="."]
-position = Vector2(30, 0)
-target_position = Vector2(289, 0)
-collision_mask = 22
-
-[node name="Sprite2D" type="Sprite2D" parent="MagnetBeam"]
-position = Vector2(2, 0)
-scale = Vector2(2.24219, 1)
-texture = ExtResource("2_k2fj3")
-offset = Vector2(64, 0)
-
 [node name="Anchor" type="Marker2D" parent="."]
 position = Vector2(32, 0)
+
+[node name="MagnetBeam" type="Area2D" parent="."]
+position = Vector2(32, 0)
+collision_layer = 0
+collision_mask = 22
+
+[node name="BeamArea" type="CollisionPolygon2D" parent="MagnetBeam"]
+polygon = PackedVector2Array(0, 4, 0, -4, 289, -15, 289, 15)
 
 [connection signal="body_entered" from="." to="." method="OnBodyEntered"]
 [connection signal="body_exited" from="." to="." method="OnBodyExited"]
