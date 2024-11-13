@@ -83,18 +83,22 @@ public partial class MagnetA : Area2D
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta) {
 		// Removing velocity on first tick object is removed
-		if (!ObjectAttached && attachedObject != null) {	
+		if (!ObjectAttached && attachedObject != null) {
 			if (attachedObject is RigidBody2D rigidBody) {
 				rigidBody.AngularVelocity = 0;
 				rigidBody.LinearVelocity = Vector2.Zero;
-			}		
+			}
+
+			if (blast) {
+				MagneticComponent magneticComponent = (MagneticComponent) attachedObject.FindChild("MagneticComponent");
+				magneticComponent.ForceObjectWithArea(attachedObject.GlobalPosition, GlobalPosition, beamLength, pullMode, false, true, delta);
+			}
 
 			attachedObject = null;
 		}
 	}
 
     public override void _PhysicsProcess(double delta) {
-		
 		if (attachedObject != null && (!activated || !canJoin)) {
 			Dettach();
 		}
@@ -214,12 +218,7 @@ public partial class MagnetA : Area2D
 					collisionPoint = position1.Lerp(position2, 0.5f);
 				}
 
-				if (blast || strongMagnet) {
-					magComp.ForceObjectWtihArea(collisionPoint, GlobalPosition, beamLength, pullMode, true, blast, delta);
-					blast = false;
-				} else {
-					magComp.ForceObjectWtihArea(collisionPoint, GlobalPosition, beamLength, pullMode, false, false, delta);
-				}
+				magComp.ForceObjectWithArea(collisionPoint, GlobalPosition, beamLength, pullMode, strongMagnet, false, delta);
 			}
 		}
 
@@ -337,9 +336,6 @@ public partial class MagnetA : Area2D
 			// Store object space data
 			Vector2 ObjectPosition = attachedObject.GlobalPosition;
 			float ObjectRotation = attachedObject.GlobalRotation;
-			
-			draw1 = ObjectPosition;
-			draw2 = _anchor.GlobalPosition;
 
 			// Return the child to it's original parent
 			RemoveChild(attachedObject);
@@ -386,12 +382,11 @@ public partial class MagnetA : Area2D
 	}
 
 	public void SetPullMode(bool pullmodeInput) {
-		if (pullMode && ObjectAttached) {
+		if (pullMode && !pullmodeInput && ObjectAttached) {
 			blast = true;
 		}
 		pullMode = pullmodeInput;
 		canJoin = pullmodeInput;
-
 	}
 
 	public bool GetPullMode() {

@@ -158,8 +158,9 @@ public partial class MagneticComponent : Node2D
 		}
 	}
 
-	public void ForceObjectWtihArea(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta) {
+	public void ForceObjectWithArea(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta) {
 		attached = true;
+
 
 		Object.SetCollisionMaskValue(2, false);
 		Object.SetCollisionLayerValue(1, false);
@@ -168,10 +169,10 @@ public partial class MagneticComponent : Node2D
 		
 		// Vector that is positive or negative depending on what pull mode the magnet is in
 		Vector2 pushForce = pull ? attractionPoint - Object.GlobalPosition : Object.GlobalPosition - attractionPoint;
-		// GD.Print(pushForce);
 	
 		// Vector that is larger the closer the Object is to the magnet
 		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(Object.GlobalPosition), 1, beamLength);
+		
 		// Push the object at a higher velocity
 		if (strongMagnet) {
 			if (characterObject != null) {
@@ -189,13 +190,12 @@ public partial class MagneticComponent : Node2D
 				// characterObject.Velocity = pushForce * magnetStrength / CharacterDampener * (float)delta;
 				characterObject.MoveAndSlide();
 
+
 			// Handle force if no parent
 			} else if (Object != null) {
-				// Object.ApplyForce(pushForce * magnetStrength / ObjectDampener * (float)delta, Object.GlobalPosition);
-				Object.ApplyForce(pushForce * magnetStrength * 16 * (float)delta, collisionPoint - Object.GlobalPosition);
-				// draw1 = Object.GlobalPosition;
-				// draw2 = pushForce * magnetStrength * 1 * (float)delta;
-				// Object.ApplyForce(attractionPoint - Object.GlobalPosition * 100 * (float)delta);
+				float multiplier = blast ? 1000 : strongMagnet ? 40 : 16;
+				
+				Object.ApplyForce(pushForce * magnetStrength * multiplier * (float)delta, collisionPoint - Object.GlobalPosition);
 			}
 		}
 	}

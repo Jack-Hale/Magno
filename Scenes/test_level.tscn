@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://myao5ri8dmaf"]
+[gd_scene load_steps=7 format=3 uid="uid://myao5ri8dmaf"]
 
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_5jwp8"]
 [ext_resource type="Texture2D" uid="uid://cyr8e60umod7f" path="res://Assets/BackgroundSprites/WhiteImage.jpg" id="1_33rmr"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/player.tscn" id="2_db5ix"]
 [ext_resource type="PackedScene" uid="uid://dnj20y18w3snv" path="res://Scenes/big_box.tscn" id="6_8pht1"]
+[ext_resource type="PackedScene" uid="uid://o6t0s6so7keq" path="res://Scenes/box.tscn" id="6_yfx4y"]
 [ext_resource type="PackedScene" uid="uid://b145p5mykonho" path="res://Scenes/test.tscn" id="7_nwchr"]
 
 [node name="TestLevel" type="Node2D"]
@@ -27,3 +28,39 @@ position = Vector2(1130, 405)
 
 [node name="Player" parent="." instance=ExtResource("2_db5ix")]
 position = Vector2(626, 557)
+
+[node name="Box" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(364, 540)
+
+[node name="Box2" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(264, 533)
+
+[node name="Box3" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(361, 491)
+
+[node name="Box4" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(261, 484)
+
+[node name="Box5" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(365, 443)
+
+[node name="Box6" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(265, 436)
+
+[node name="Box7" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(313, 536)
+
+[node name="Box8" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(213, 529)
+
+[node name="Box9" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(310, 487)
+
+[node name="Box10" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(210, 480)
+
+[node name="Box11" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(314, 439)
+
+[node name="Box12" parent="." instance=ExtResource("6_yfx4y")]
+position = Vector2(214, 432)
