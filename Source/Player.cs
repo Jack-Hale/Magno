@@ -7,9 +7,9 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float MAX_SPEED = 400;
 	[Export]
-	public float JUMP_VELOCITY = -140.0f;
+	public float JUMP_VELOCITY = -150.0f;
 	[Export]
-	public float JUMP_HOLD_TIME = 0.2f;	
+	public float JUMP_HOLD_TIME = 0.1f;	
 
 	[Export]
 	public float FRICTION = 2200.0f;

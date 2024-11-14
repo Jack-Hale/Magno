@@ -25,6 +25,7 @@ public partial class Magnet : Area2D
 
 	private RayCast2D _tileBeamCast;
 	private RayCast2D _objectCheck;
+	private StaticBody2D _physicsObject;
 	
 	private PhysicsBody2D attachedObject;
 	private MagneticComponent attachedObjectMagComp;
@@ -58,6 +59,7 @@ public partial class Magnet : Area2D
 		_magnetBeamSprite = GetNode<Sprite2D>("BeamSprite");
 		_tileBeamCast = GetNode<RayCast2D>("TileBeamCast");
 		_objectCheck = GetNode<RayCast2D>("ObjectCheck");
+		_physicsObject = GetNode<StaticBody2D>("PhysicsObject");
 		_magnetBeam.Connect("body_entered", new Callable(this, MethodName.OnBodyEnteredBeam));
 		_magnetBeam.Connect("body_exited", new Callable(this, MethodName.OnBodyExitedBeam));
 
@@ -66,9 +68,8 @@ public partial class Magnet : Area2D
 			if (parent is CharacterBody2D characterBody) parentCharacter = characterBody;
 		}
 
+		_physicsObject.AddCollisionExceptionWith(GetParent());
 
-		// Cannot figure out how to access the actual polygon data yet so I am hard coding the
-		// values in until I figure it out
 		_beamArea = _magnetBeam.GetNode<CollisionPolygon2D>("BeamArea");
 		
 		float minX = float.MaxValue;
@@ -121,25 +122,36 @@ public partial class Magnet : Area2D
 	}
 
     public override void _PhysicsProcess(double delta) {
-		if (_tileBeamCast.IsColliding()) {
-			if (_tileBeamCast.GetCollider() is TileMap tileMap) {
 
-				Vector2I collisionCoords =  tileMap.LocalToMap(_tileBeamCast.GetCollisionPoint());
-				if (_tileBeamCast.GetCollisionPoint().X < GlobalPosition.X) collisionCoords.X = collisionCoords.X - 1;
-				if (_tileBeamCast.GetCollisionPoint().Y < GlobalPosition.Y) collisionCoords.Y = collisionCoords.Y - 1;
-				
-				TileData data = tileMap.GetCellTileData(0, collisionCoords);
-				if (data != null && (bool) data.GetCustomData("Magnetic")) {
-					ForceObject(_tileBeamCast.GetCollisionPoint(), delta);
-				}
+		if (attachedObject != null) {
+			// Disabling beam sprite if object attached
+			_magnetBeamSprite.Visible = false;
+			if (!activated || !canJoin) {
+				Dettach();
 			}
-		}		
-
-		if (attachedObject != null && (!activated || !canJoin)) {
-			Dettach();
 		}
 
 		if (attachedObject == null) {
+			// Reenabling beam sprite if no object attached
+			_magnetBeamSprite.Visible = activated;
+			// Checking if there are tiles in the beam
+			if (_tileBeamCast.IsColliding()) {
+				if (_tileBeamCast.GetCollider() is TileMap tileMap) {
+
+					Vector2I collisionCoords =  tileMap.LocalToMap(_tileBeamCast.GetCollisionPoint());
+
+					// Offsetting the collision point to account for bad data when converting from float to int
+					if (_tileBeamCast.GetCollisionPoint().X < GlobalPosition.X) collisionCoords.X = collisionCoords.X - 1;
+					if (_tileBeamCast.GetCollisionPoint().Y < GlobalPosition.Y) collisionCoords.Y = collisionCoords.Y - 1;
+					
+					TileData data = tileMap.GetCellTileData(0, collisionCoords);
+
+					// Moving magnet holder if terrain is magnetic
+					if (data != null && (bool) data.GetCustomData("Magnetic")) {
+						ForceObject(_tileBeamCast.GetCollisionPoint(), delta);
+					}
+				}
+			}		
 
 			// Iterate through all attracted objects to process attraction physics
 			foreach (PhysicsBody2D body in attractedObjects.Keys) {
@@ -147,6 +159,8 @@ public partial class Magnet : Area2D
 				// Attach object that reaches the magnet
 				MagneticComponent magComp = attractedObjects[body];
 				if (EnteredBody == body && attachedObject != body && canJoin) {
+
+					// Dettaching object from any magnet that is already holding it
 					if (magComp.IsBeingHeld()) {
 						magComp.GetMagnetParent().Dettach();
 						magComp.Dettach();

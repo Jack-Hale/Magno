@@ -118,20 +118,23 @@ public partial class MagneticComponent : Node2D
 	}
 
 	public bool IsBeingHeld() {
-		if (characterObject == null) {
-			return GetParent().GetParent().GetParent() is Magnet;
-		} else {
-			return GetParent().GetParent().GetParent().GetParent() is Magnet;
+		Node parentCheck = GetParent();
+
+		// Iterate through parents until Magnet or Root is found
+		while (parentCheck is not Magnet && parentCheck != GetTree().Root) {
+			parentCheck = parentCheck.GetParent();
 		}
+
+		return parentCheck is Magnet;
 	}
 
 	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta) {
 		attached = true;
 
-		Object.SetCollisionMaskValue(2, false);
-		Object.SetCollisionLayerValue(1, false);
-		Object.SetCollisionLayerValue(3, false);
-		Object.SetCollisionLayerValue(5, true);
+		// Object.SetCollisionMaskValue(2, false);
+		// Object.SetCollisionLayerValue(1, false);
+		// Object.SetCollisionLayerValue(3, false);
+		// Object.SetCollisionLayerValue(5, true);
 		
 		// Vector that is positive or negative depending on what pull mode the magnet is in
 		Vector2 pushForce = pull ? attractionPoint - Object.GlobalPosition : Object.GlobalPosition - attractionPoint;
@@ -168,10 +171,10 @@ public partial class MagneticComponent : Node2D
 
 	public void Dettach() {
 		attached = false;
-		Object.SetCollisionMaskValue(2, true);
-		Object.SetCollisionLayerValue(1, true);
-		Object.SetCollisionLayerValue(3, true);
-		Object.SetCollisionLayerValue(5, false);
+		// Object.SetCollisionMaskValue(2, true);
+		// Object.SetCollisionLayerValue(1, true);
+		// Object.SetCollisionLayerValue(3, true);
+		// Object.SetCollisionLayerValue(5, false);
 
 		if (characterObject != null) {
 			characterObject.RemoveFromGroup("Affected");
