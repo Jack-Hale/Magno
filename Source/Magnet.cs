@@ -69,7 +69,7 @@ public partial class Magnet : Area2D
 		}
 
 		_physicsObject.AddCollisionExceptionWith(GetParent());
-
+		
 		_beamArea = _magnetBeam.GetNode<CollisionPolygon2D>("BeamArea");
 		
 		float minX = float.MaxValue;
@@ -122,7 +122,6 @@ public partial class Magnet : Area2D
 	}
 
     public override void _PhysicsProcess(double delta) {
-
 		if (attachedObject != null) {
 			// Disabling beam sprite if object attached
 			_magnetBeamSprite.Visible = false;
@@ -151,7 +150,7 @@ public partial class Magnet : Area2D
 						ForceObject(_tileBeamCast.GetCollisionPoint(), delta);
 					}
 				}
-			}		
+			}
 
 			// Iterate through all attracted objects to process attraction physics
 			foreach (PhysicsBody2D body in attractedObjects.Keys) {
@@ -389,6 +388,7 @@ public partial class Magnet : Area2D
 	private void Dettach() {
 		// Removes any object from the magnet
 		if (ObjectAttached) {
+
 			// Store object space data
 			Vector2 ObjectPosition = attachedObject.GlobalPosition;
 			float ObjectRotation = attachedObject.GlobalRotation;
@@ -403,11 +403,15 @@ public partial class Magnet : Area2D
 				rigidBody.Freeze = false;
 				// rigidBody.ProcessMode = ProcessModeEnum.Inherit;
 				// rigidBody.DisableMode = DisableModeEnum.Remove;
+
+				// rigidBody.AngularVelocity = 0;
+				// rigidBody.LinearVelocity = Vector2.Zero;
 			}
 
 			// Return object to it's original movement state
-			attachedObject.GlobalPosition = ObjectPosition;
+			attachedObject.GlobalPosition = ObjectPosition + (GlobalPosition.DirectionTo(ObjectPosition) * 10); // Adding slight offset from magnet object
 			attachedObject.GlobalRotation = ObjectRotation;
+
 			attachedObjectMagComp.Dettach();
 			attachedObjectMagComp.SetMagnetParent(null);
 			attachedObjectMagComp = null;
@@ -415,8 +419,6 @@ public partial class Magnet : Area2D
 			ObjectAttached = false;
 		}
 
-
-		
 		// Reset anchor position
 		_anchor.Position = anchorPositionDefault;
 		
