@@ -7,9 +7,9 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float MAX_SPEED = 400;
 	[Export]
-	public float JUMP_VELOCITY = -140.0f;
+	public float JUMP_VELOCITY = -150.0f;
 	[Export]
-	public float JUMP_HOLD_TIME = 0.2f;	
+	public float JUMP_HOLD_TIME = 0.1f;	
 
 	[Export]
 	public float FRICTION = 2200.0f;
@@ -28,7 +28,7 @@ public partial class Player : CharacterBody2D
 	public float CurrentJumpTimer = 0.0f;
 	Vector2 Input = Vector2.Zero;
 
-	private Area2D _magnet;
+	private Magnet _magnet;
 
 	private Vector2 DrawVector1 = Vector2.Zero;
 	private Vector2 DrawVector2 = Vector2.Zero;
@@ -47,10 +47,9 @@ public partial class Player : CharacterBody2D
 
 	public override void _Ready() {
 		
-		_magnet = GetNode<Area2D>("Magnet");
-		magnet = (Magnet) _magnet;
+		_magnet = GetNode<Magnet>("Magnet");
 
-		pullMode = magnet.GetPullMode();
+		pullMode = _magnet.GetPullMode();
 	}
 
 	public override void _Draw()
@@ -61,17 +60,27 @@ public partial class Player : CharacterBody2D
 	public override void _PhysicsProcess(double delta) {
 		Vector2 NewVelocity = Velocity;
 
+		// if (_magnet.)
 		_magnet.LookAt(GetGlobalMousePosition());
 
 		HandleMagnet();
 
 		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
 			Godmode = !Godmode;
+
+			foreach (var item in GetParent().GetChildren())
+			{
+				if (item is RigidBody2D body) {
+					body.AngularVelocity = 0;
+					body.LinearVelocity = Vector2.Zero;
+				}
+			}
+
 		}
 
 		if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
 			pullMode = !pullMode;
-			magnet.SetPullMode(pullMode);
+			_magnet.SetPullMode(pullMode);
 		}
 
 		if (!Godmode) {
@@ -116,7 +125,7 @@ public partial class Player : CharacterBody2D
 	}
 
 	public void HandleMagnet() {
-		magnet.SetActivation(Godot.Input.IsActionPressed("ActivateMagnet"));
+		_magnet.SetActivation(Godot.Input.IsActionPressed("ActivateWeakMagnet"), Godot.Input.IsActionPressed("ActivateStrongMagnet"));
 	}
 
 	public float HandleJump(double delta) {

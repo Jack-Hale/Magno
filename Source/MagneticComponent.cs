@@ -6,18 +6,28 @@ public partial class MagneticComponent : Node2D
 {
 	[Export]
 	private RigidBody2D Object;
+	[Export]
+	private float WeakMultiplier = 16;	
+	[Export]
+	private float StrongMultiplier = 40;
+	[Export]
+	private float BlastMultiplier = 1000;
 	private CharacterBody2D characterObject;
 	private bool attached = false;
 
 	private Joint2D joint;
-	private PhysicsBody2D parent;
+	private Magnet parent;
 
 	private bool connected;
 
 	private Area2D _magnetHoldRegion;
 
+	private Vector2 draw1 = Vector2.Zero;
+	private Vector2 draw2 = Vector2.Zero;
+	
+
 	// Called when the node enters the scene tree for the first time.
-	public override void _Ready() {	
+	public override void _Ready() {
 		GetParent().AddToGroup("Magnetic");
 		PhysicsBody2D parent = null;
 
@@ -59,24 +69,25 @@ public partial class MagneticComponent : Node2D
     {
 		// If Object has exited, disconnect all trace of Object from characterObject
     	if (body == Object) {
-			// connected = false;
+			connected = false;
 		}
     }
 
 	public override void _Draw()
     {
-        // DrawLine(ToLocal(Object.GlobalPosition), ToLocal(characterObject.GlobalPosition), Colors.Red, 1.0f);
+        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 1.0f);
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _PhysicsProcess(double delta) {
-		if (Object != null) {
-			// Object.GravityScale = attached ? 0 : 1;
-		}
+    public override void _Process(double delta)
+    {
+		
+    }
 
+    // Called every frame. 'delta' is the elapsed time since the previous frame.
+    public override void _PhysicsProcess(double delta) {
+		
 		// Removes any connection between Object and characterObject
 		if (characterObject != null && !connected) {
-			GD.Print("HERE");
 			// Disconnect object from parent joint
 			joint.NodeB = null;
 
@@ -91,6 +102,7 @@ public partial class MagneticComponent : Node2D
 			// Remove all reference from parent to object
 			characterObject.RemoveFromGroup("Magnetic");
 			characterObject.RemoveChild(Object);
+			// GD.Print("disconnect", characterObject);
 			characterObject = null;
 
 			// Add object back into scene tree
@@ -105,44 +117,76 @@ public partial class MagneticComponent : Node2D
 		QueueRedraw();
 	}
 
-    public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull) {
+	public bool IsBeingHeld() {
+		Node parentCheck = GetParent();
+
+		// Iterate through parents until Magnet or Root is found
+		while (parentCheck is not Magnet && parentCheck != GetTree().Root) {
+			parentCheck = parentCheck.GetParent();
+		}
+
+		return parentCheck is Magnet;
+	}
+
+	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta) {
 		attached = true;
 
-		Object.SetCollisionMaskValue(2, false);
-		Object.SetCollisionLayerValue(3, false);
-		Object.SetCollisionLayerValue(5, true);
-
+		// Object.SetCollisionMaskValue(2, false);
+		// Object.SetCollisionLayerValue(1, false);
+		// Object.SetCollisionLayerValue(3, false);
+		// Object.SetCollisionLayerValue(5, true);
+		
 		// Vector that is positive or negative depending on what pull mode the magnet is in
 		Vector2 pushForce = pull ? attractionPoint - Object.GlobalPosition : Object.GlobalPosition - attractionPoint;
-
+	
 		// Vector that is larger the closer the Object is to the magnet
 		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(Object.GlobalPosition), 1, beamLength);
+		
+		// Push the object at a higher velocity
+		if (strongMagnet) {
+			if (characterObject != null) {
+				
+			} else if (Object != null) {
+				Object.ApplyForce(pushForce * magnetStrength * (blast ? 70 : 40) * (float)delta, collisionPoint - Object.GlobalPosition);
+			}
+		} else {
+			// Handle force if parent exists. Apply force to the parent not the metal object
+			if (characterObject != null) {
+				// TODO: Disable the movement of the characterObject defined by the object itself
+				characterObject.AddToGroup("Affected");
 
-		// Handle force if parent exists. Apply force to the parent not the metal object
-		if (characterObject != null) {
-			// TODO: Disable the movement of the characterObject defined by the object itself
-			characterObject.AddToGroup("Affected");
+				characterObject.Velocity = pushForce * magnetStrength * 1 * (float)delta;
+				// characterObject.Velocity = pushForce * magnetStrength / CharacterDampener * (float)delta;
+				characterObject.MoveAndSlide();
 
-			//TODO: Make the dampener value based on the mass of the object pulled
-			float dampener = 50;
-			characterObject.Velocity = pushForce * magnetStrength / dampener;
-			characterObject.MoveAndSlide();
 
-		// Handle force if no parent
-		} else if (Object != null) {
-			Object.ApplyForce(pushForce * magnetStrength/4, collisionPoint - Object.GlobalPosition);
+			// Handle force if no parent
+			} else if (Object != null) {
+				float multiplier = blast ? BlastMultiplier : strongMagnet ? StrongMultiplier : WeakMultiplier;
+				
+				Object.ApplyForce(pushForce * magnetStrength * multiplier * (float)delta, collisionPoint - Object.GlobalPosition);
+			}
 		}
 	}
 
 	public void Dettach() {
 		attached = false;
-		Object.SetCollisionMaskValue(2, true);
-		Object.SetCollisionLayerValue(3, true);
-		Object.SetCollisionLayerValue(5, false);
+		// Object.SetCollisionMaskValue(2, true);
+		// Object.SetCollisionLayerValue(1, true);
+		// Object.SetCollisionLayerValue(3, true);
+		// Object.SetCollisionLayerValue(5, false);
 
 		if (characterObject != null) {
 			characterObject.RemoveFromGroup("Affected");
 		}
+	}
+
+	public void SetMagnetParent(Magnet newParent) {
+		parent = newParent;
+	}
+
+	public Magnet GetMagnetParent() {
+		return parent;
 	}
 
 	public RigidBody2D GetObject() {
@@ -161,5 +205,10 @@ public partial class MagneticComponent : Node2D
 			return true;
 		}
 		return false;
+	}
+
+	public void ZeroVelocity() {
+		Object.LinearVelocity = Vector2.Zero;
+		Object.AngularVelocity = 0;
 	}
 }

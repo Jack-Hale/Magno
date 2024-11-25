@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://b145p5mykonho"]
+
+[ext_resource type="PackedScene" uid="uid://m30ped810gwe" path="res://Scenes/magnetic_component.tscn" id="1_751sn"]
+[ext_resource type="Texture2D" uid="uid://dkstplgq1c6qx" path="res://Assets/Sprites/bruh.png" id="1_w1cg2"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_kicfi"]
+radius = 33.1361
+
+[node name="RigidBody2D" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 31
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-2.86102e-06, -1.78814e-07)
+scale = Vector2(0.151376, 0.151376)
+texture = ExtResource("1_w1cg2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_kicfi")
+
+[node name="MagneticComponent" parent="." node_paths=PackedStringArray("Object") instance=ExtResource("1_751sn")]
+Object = NodePath("..")
