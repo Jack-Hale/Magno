@@ -53,6 +53,10 @@ public partial class Player : CharacterBody2D
 	private Sprite2D _sprite2D;
 	private Label _label;
 
+	private Vector2 stickAimVector = Vector2.Zero;
+
+	private bool mnkControl = true;
+
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
@@ -98,10 +102,7 @@ public partial class Player : CharacterBody2D
 			_label.Text = "Push";
 		}
 
-
 		Vector2 NewVelocity = Velocity;
-
-		_magnet.LookAt(GetGlobalMousePosition());
 
 		HandleMagnet();
 
@@ -125,6 +126,24 @@ public partial class Player : CharacterBody2D
 		}
 
 		UpdateAnimations();
+
+		Vector2 newAimVector = Godot.Input.GetVector("AimLeft", "AimRight", "AimUp", "AimDown");
+
+		// Switches the aim to controller if new input is detected from the right thumbstick
+		if (newAimVector != stickAimVector && newAimVector != Vector2.Zero) {
+			mnkControl = false;
+		}
+
+		if (newAimVector != Vector2.Zero) {
+			stickAimVector = newAimVector;
+		}
+
+		// Handles rotating the magnet to whatever input in active
+		if (mnkControl) {
+			_magnet.LookAt(GetGlobalMousePosition());
+		} else {
+			_magnet.Rotation = stickAimVector.Angle();
+		}
 	
 		if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
 			pullMode = !pullMode;
@@ -158,7 +177,15 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
-	public Vector2 GetXInput() {
+    public override void _Input(InputEvent @event)
+    {
+		// If any mouse movement is detected, switch the aim control to mouse
+        if (@event is InputEventMouseMotion) {
+			mnkControl = true;
+		}
+    }
+
+    public Vector2 GetXInput() {
 		// Only X input is read because jump is handled separately
 		Vector2 InputX = Input;
 		InputX.X = Godot.Input.GetVector("MoveLeft", "MoveRight", "MoveUp", "MoveDown").X;
