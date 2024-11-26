@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.ComponentModel;
 using System.Linq;
 
 public partial class Player : CharacterBody2D
@@ -9,8 +10,7 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float JUMP_VELOCITY = -150f;
 	[Export]
-	public float JUMP_HOLD_TIME = 0.1f;	
-
+	public float JUMP_HOLD_TIME = 0.1f;
 	[Export]
 	public float FRICTION = 2200f;
 	[Export]
@@ -21,7 +21,7 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float AIR_ACCELERATION = 1800f;
 	[Export]
-	public float PushForce = 80f;
+	public float PUSH_FORCE = 80f;
 
 	public float CurrentJumpVelocity = 0f;
 	public bool Jumping = false;
@@ -49,6 +49,9 @@ public partial class Player : CharacterBody2D
 
 	private bool wasOnFloor;
 
+	private AnimationPlayer _animationPlayer;
+	private Sprite2D _sprite2D;
+
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
@@ -56,6 +59,8 @@ public partial class Player : CharacterBody2D
 	public override void _Ready() {
 		
 		_magnet = GetNode<Magnet>("Magnet");
+		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
+		_sprite2D = GetNode<Sprite2D>("Sprite2D");
 
 		pullMode = _magnet.GetPullMode();
 	}
@@ -78,7 +83,6 @@ public partial class Player : CharacterBody2D
 
 		if (jumpBufferTimer > 0) {
 			jumpBufferTimer -= (float)delta;
-			GD.Print("buffer");
 		}
 
         wasOnFloor = IsOnFloor();
@@ -104,6 +108,13 @@ public partial class Player : CharacterBody2D
 
 		}
 
+		// Flipping the sprite to face the way its moving
+		if (Velocity.X != 0) 
+		{
+			_sprite2D.FlipH = Velocity.X < 0;
+		}
+
+		UpdateAnimations();
 	
 		if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
 			pullMode = !pullMode;
@@ -132,7 +143,7 @@ public partial class Player : CharacterBody2D
 			KinematicCollision2D collision = GetSlideCollision(i);
 			if (collision.GetCollider() is RigidBody2D) {
 				RigidBody2D c = (RigidBody2D) collision.GetCollider();
-				c.ApplyCentralImpulse(-collision.GetNormal() * PushForce);
+				c.ApplyCentralImpulse(-collision.GetNormal() * PUSH_FORCE);
 			}
 		}
 	}
@@ -173,7 +184,7 @@ public partial class Player : CharacterBody2D
 		// Jump is held down, decrease the timer
 		if (Godot.Input.IsActionPressed("Jump") && Jumping) {
 			CurrentJumpTimer -= 1.0f * (float)delta;
-			CurrentJumpVelocity += 200.0f * (float)delta;
+			CurrentJumpVelocity += 200.0f * CurrentJumpTimer * (float)delta;
 		} 
 
 		// Jump was released or timer ran out, stop jump sequence
@@ -223,4 +234,28 @@ public partial class Player : CharacterBody2D
 		
 		return Input * MAX_SPEED*2;
 	}
+
+	public void UpdateAnimations() {
+		if (IsOnFloor())  {
+			if (Velocity.X == 0) {
+				_animationPlayer.Play("idle");
+			}
+			else if (Mathf.Abs(Velocity.X) > MAX_SPEED) {
+				_animationPlayer.Play("run");
+			}
+			else {
+				if (Input.X > 0 && Velocity.X < 0 || Input.X < 0 && Velocity.X > 0) {
+					_animationPlayer.Play("run");
+				}
+				else {
+					_animationPlayer.Play("run");
+				}
+			}
+		}
+		else {				
+			_animationPlayer.Play("jump");
+		}
+	}
 }
+
+
