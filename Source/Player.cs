@@ -29,6 +29,9 @@ public partial class Player : CharacterBody2D
 
 	private const float coyoteTimerMax = 0.10f;
 	private float coyoteTimer = 0f;
+
+	private const float jumpBufferTimerMax = 0.05f;
+	private float jumpBufferTimer = 0f;
 	Vector2 Input = Vector2.Zero;
 
 	private Magnet _magnet;
@@ -69,9 +72,13 @@ public partial class Player : CharacterBody2D
 			coyoteTimer = coyoteTimerMax;
 		}
 
-
 		if (coyoteTimer > 0) {
 			coyoteTimer -= (float)delta;
+		}
+
+		if (jumpBufferTimer > 0) {
+			jumpBufferTimer -= (float)delta;
+			GD.Print("buffer");
 		}
 
         wasOnFloor = IsOnFloor();
@@ -150,8 +157,14 @@ public partial class Player : CharacterBody2D
 
 	public float HandleJump(double delta) {
 
+		// Activates the jump buffer timer if jump is pressed not on the floor
+		if (Godot.Input.IsActionJustPressed("Jump") && !IsOnFloor()) {
+			jumpBufferTimer = jumpBufferTimerMax;
+		}
+
 		// Jump pressed while on the floor or the coyote timer is active, set jump velocity to max
-		if (Godot.Input.IsActionJustPressed("Jump") && (IsOnFloor() || coyoteTimer > 0)) {
+		// Will jump when jump key is not pressed if the jump buffer is active
+		if ((IsOnFloor() && jumpBufferTimer > 0) || Godot.Input.IsActionJustPressed("Jump") && (IsOnFloor() || coyoteTimer > 0)) {
 			CurrentJumpVelocity = JUMP_VELOCITY;
 			CurrentJumpTimer = JUMP_HOLD_TIME;
 			Jumping = true;
