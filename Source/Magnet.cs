@@ -30,7 +30,8 @@ public partial class Magnet : Area2D
 	private PhysicsBody2D attachedObject;
 	private MagneticComponent attachedObjectMagComp;
 	private Dictionary<PhysicsBody2D, MagneticComponent> attractedObjects = new Dictionary<PhysicsBody2D, MagneticComponent>{};
-	private Sprite2D _magnetBeamSprite;
+	private Sprite2D _beamSpriteWeak;
+	private Sprite2D _beamSpriteStrong;
 
 	public bool ObjectAttached = false;
 
@@ -56,7 +57,8 @@ public partial class Magnet : Area2D
 		_anchor = GetNode<Marker2D>("Anchor");
 		anchorPositionDefault = _anchor.Position;
 		_magnetBeam = GetNode<Area2D>("MagnetBeam");
-		_magnetBeamSprite = GetNode<Sprite2D>("BeamSprite");
+		_beamSpriteWeak = GetNode<Sprite2D>("BeamSpriteWeak");
+		_beamSpriteStrong = GetNode<Sprite2D>("BeamSpriteStrong");
 		_tileBeamCast = GetNode<RayCast2D>("TileBeamCast");
 		_objectCheck = GetNode<RayCast2D>("ObjectCheck");
 		_physicsObject = GetNode<StaticBody2D>("PhysicsObject");
@@ -124,7 +126,11 @@ public partial class Magnet : Area2D
     public override void _PhysicsProcess(double delta) {
 		if (attachedObject != null) {
 			// Disabling beam sprite if object attached
-			_magnetBeamSprite.Visible = false;
+			if (strongMagnet) {
+				_beamSpriteStrong.Visible = false;
+			} else {
+				_beamSpriteWeak.Visible = false;
+			}
 			if (!activated || !canJoin) {
 				Dettach();
 			}
@@ -132,7 +138,11 @@ public partial class Magnet : Area2D
 
 		if (attachedObject == null) {
 			// Reenabling beam sprite if no object attached
-			_magnetBeamSprite.Visible = activated;
+			if (strongMagnet) {
+				_beamSpriteStrong.Visible = activated;
+			} else {
+				_beamSpriteWeak.Visible = activated;
+			}
 			// Checking if there are tiles in the beam
 			if (_tileBeamCast.IsColliding()) {
 				if (_tileBeamCast.GetCollider() is TileMap tileMap) {
@@ -381,6 +391,9 @@ public partial class Magnet : Area2D
 			attachedObjectMagComp = bodyMagComp;
 
 			ObjectAttached = true;		
+
+			GD.Print(anchorOffset);
+			GD.Print(_anchor.Position, " ", body.Position);
 		}
 	}
 
@@ -436,7 +449,8 @@ public partial class Magnet : Area2D
 	public void SetActivation(bool weak, bool strong) {
 		activated = weak || strong;
 		strongMagnet = strong;
-		_magnetBeamSprite.Visible = weak || strong;
+		_beamSpriteWeak.Visible = weak;
+		_beamSpriteStrong.Visible = strong;
 		_magnetBeam.ProcessMode = activated ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 		_tileBeamCast.Enabled = activated;
 		
@@ -468,8 +482,8 @@ public partial class Magnet : Area2D
 		
 		// Handle force if parent is CharacterBody2D
 		if (parentCharacter != null) {
-			
-			parentCharacter.Velocity += pushForce * magnetStrength / 3f * (float)delta;
+			float multiplier = strongMagnet ? 1.4f : 1;
+			parentCharacter.Velocity += pushForce * multiplier * magnetStrength / 3f * (float)delta;
 
 		// Handle force parent is RigidBody2D
 		} else if (parentRigid != null) {

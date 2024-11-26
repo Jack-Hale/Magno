@@ -8,7 +8,7 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float MAX_SPEED = 400;
 	[Export]
-	public float JUMP_VELOCITY = -150f;
+	public float JUMP_VELOCITY = -180f;
 	[Export]
 	public float JUMP_HOLD_TIME = 0.1f;
 	[Export]
@@ -51,6 +51,7 @@ public partial class Player : CharacterBody2D
 
 	private AnimationPlayer _animationPlayer;
 	private Sprite2D _sprite2D;
+	private Label _label;
 
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
@@ -61,6 +62,7 @@ public partial class Player : CharacterBody2D
 		_magnet = GetNode<Magnet>("Magnet");
 		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
 		_sprite2D = GetNode<Sprite2D>("Sprite2D");
+		_label = GetNode<Label>("Label");
 
 		pullMode = _magnet.GetPullMode();
 	}
@@ -89,6 +91,14 @@ public partial class Player : CharacterBody2D
     }
 
     public override void _PhysicsProcess(double delta) {
+
+		if (pullMode) {
+			_label.Text = "Pull";
+		} else {
+			_label.Text = "Push";
+		}
+
+
 		Vector2 NewVelocity = Velocity;
 
 		_magnet.LookAt(GetGlobalMousePosition());

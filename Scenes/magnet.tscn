@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://cv122wmaloumx"]
+[gd_scene load_steps=7 format=3 uid="uid://cv122wmaloumx"]
 
 [ext_resource type="Script" path="res://Source/Magnet.cs" id="1_iodp0"]
 [ext_resource type="Texture2D" uid="uid://qca1diyg3tg1" path="res://Assets/Sprites/magnet.png" id="2_i74f3"]
 [ext_resource type="Texture2D" uid="uid://bytruga3qtq5u" path="res://Assets/Sprites/MagnetBeam.png" id="3_cnjx5"]
+[ext_resource type="Texture2D" uid="uid://3gaaxyg3ybh3" path="res://Assets/Sprites/MagnetBeamStrong.png" id="3_j5meh"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fxy4w"]
 size = Vector2(16, 16)
@@ -19,12 +20,13 @@ script = ExtResource("1_iodp0")
 position = Vector2(24, 0)
 shape = SubResource("RectangleShape2D_fxy4w")
 
-[node name="MagnetSprite" type="Sprite2D" parent="."]
-rotation = 1.5708
-texture = ExtResource("2_i74f3")
-offset = Vector2(0, -24)
+[node name="BeamSpriteStrong" type="Sprite2D" parent="."]
+position = Vector2(32, 0)
+scale = Vector2(2.242, 1)
+texture = ExtResource("3_j5meh")
+offset = Vector2(64, 0)
 
-[node name="BeamSprite" type="Sprite2D" parent="."]
+[node name="BeamSpriteWeak" type="Sprite2D" parent="."]
 position = Vector2(32, 0)
 scale = Vector2(2.24219, 1)
 texture = ExtResource("3_cnjx5")
@@ -58,6 +60,11 @@ collision_mask = 31
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PhysicsObject"]
 position = Vector2(24, 0)
 shape = SubResource("RectangleShape2D_hlvj3")
+
+[node name="MagnetSprite" type="Sprite2D" parent="."]
+rotation = 1.5708
+texture = ExtResource("2_i74f3")
+offset = Vector2(0, -24)
 
 [connection signal="body_entered" from="." to="." method="OnBodyEntered"]
 [connection signal="body_exited" from="." to="." method="OnBodyExited"]
