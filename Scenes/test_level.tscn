@@ -23,7 +23,7 @@ layer_0/tile_data = PackedInt32Array(2424834, 4, 0, 2490370, 4, 1, 2555906, 4, 2
 position = Vector2(2611, 550)
 
 [node name="Player" parent="." instance=ExtResource("2_db5ix")]
-position = Vector2(350, 559)
+position = Vector2(1044, 171)
 
 [node name="BigBox" parent="." instance=ExtResource("6_8pht1")]
 position = Vector2(787, 559)

@@ -7,25 +7,28 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float MAX_SPEED = 400;
 	[Export]
-	public float JUMP_VELOCITY = -150.0f;
+	public float JUMP_VELOCITY = -150f;
 	[Export]
 	public float JUMP_HOLD_TIME = 0.1f;	
 
 	[Export]
-	public float FRICTION = 2200.0f;
+	public float FRICTION = 2200f;
 	[Export]
-	public float AIR_FRICTION = 1.0f;
+	public float AIR_FRICTION = 1f;
 
 	[Export]
-	public float ACCELERATION = 2200.0f;
+	public float ACCELERATION = 2200f;
 	[Export]
-	public float AIR_ACCELERATION = 1800.0f;
+	public float AIR_ACCELERATION = 1800f;
 	[Export]
-	public float PushForce = 80.0f;
+	public float PushForce = 80f;
 
-	public float CurrentJumpVelocity = 0.0f;
+	public float CurrentJumpVelocity = 0f;
 	public bool Jumping = false;
-	public float CurrentJumpTimer = 0.0f;
+	public float CurrentJumpTimer = 0f;
+
+	private const float coyoteTimerMax = 0.10f;
+	private float coyoteTimer = 0f;
 	Vector2 Input = Vector2.Zero;
 
 	private Magnet _magnet;
@@ -40,6 +43,8 @@ public partial class Player : CharacterBody2D
 	private MagneticComponent attachedObject;
 
 	private bool pullMode;
+
+	private bool wasOnFloor;
 
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
@@ -57,10 +62,24 @@ public partial class Player : CharacterBody2D
         DrawLine(DrawVector1, DrawVector2, Colors.Green, 1.0f);
     }
 
-	public override void _PhysicsProcess(double delta) {
+    public override void _Process(double delta)
+    {
+		// Activates Coyote timer if the player walks off an edge without jumping
+		if (wasOnFloor && !IsOnFloor() && !Jumping) {
+			coyoteTimer = coyoteTimerMax;
+		}
+
+
+		if (coyoteTimer > 0) {
+			coyoteTimer -= (float)delta;
+		}
+
+        wasOnFloor = IsOnFloor();
+    }
+
+    public override void _PhysicsProcess(double delta) {
 		Vector2 NewVelocity = Velocity;
 
-		// if (_magnet.)
 		_magnet.LookAt(GetGlobalMousePosition());
 
 		HandleMagnet();
@@ -68,16 +87,17 @@ public partial class Player : CharacterBody2D
 		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
 			Godmode = !Godmode;
 
-			foreach (var item in GetParent().GetChildren())
-			{
-				if (item is RigidBody2D body) {
-					body.AngularVelocity = 0;
-					body.LinearVelocity = Vector2.Zero;
-				}
-			}
+			// foreach (var item in GetParent().GetChildren())
+			// {
+			// 	if (item is RigidBody2D body) {
+			// 		body.AngularVelocity = 0;
+			// 		body.LinearVelocity = Vector2.Zero;
+			// 	}
+			// }
 
 		}
 
+	
 		if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
 			pullMode = !pullMode;
 			_magnet.SetPullMode(pullMode);
@@ -130,8 +150,8 @@ public partial class Player : CharacterBody2D
 
 	public float HandleJump(double delta) {
 
-		// Jump pressed while on the floor, set jump velocity to max
-		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor()) {
+		// Jump pressed while on the floor or the coyote timer is active, set jump velocity to max
+		if (Godot.Input.IsActionJustPressed("Jump") && (IsOnFloor() || coyoteTimer > 0)) {
 			CurrentJumpVelocity = JUMP_VELOCITY;
 			CurrentJumpTimer = JUMP_HOLD_TIME;
 			Jumping = true;
