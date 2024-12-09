@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.ComponentModel;
 using System.Linq;
 
 public partial class Player : CharacterBody2D
@@ -7,25 +8,31 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float MAX_SPEED = 400;
 	[Export]
-	public float JUMP_VELOCITY = -150.0f;
+	public float JUMP_VELOCITY = -180f;
 	[Export]
-	public float JUMP_HOLD_TIME = 0.1f;	
+	public float JUMP_HOLD_TIME = 0.15f;
+	[Export]
+	public float FRICTION = 2200f;
+	[Export]
+	public float AIR_FRICTION = 1f;
 
 	[Export]
-	public float FRICTION = 2200.0f;
+	public float ACCELERATION = 2200f;
 	[Export]
-	public float AIR_FRICTION = 1.0f;
+	public float AIR_ACCELERATION = 1800f;
+	[Export]
+	public float PUSH_FORCE = 80f;
 
-	[Export]
-	public float ACCELERATION = 2200.0f;
-	[Export]
-	public float AIR_ACCELERATION = 1800.0f;
-	[Export]
-	public float PushForce = 80.0f;
-
-	public float CurrentJumpVelocity = 0.0f;
+	public float CurrentJumpVelocity = 0f;
 	public bool Jumping = false;
-	public float CurrentJumpTimer = 0.0f;
+	public float CurrentJumpTimer = 0f;
+	public float JumpScalar = 1f;
+
+	private const float coyoteTimerMax = 0.10f;
+	private float coyoteTimer = 0f;
+
+	private const float jumpBufferTimerMax = 0.05f;
+	private float jumpBufferTimer = 0f;
 	Vector2 Input = Vector2.Zero;
 
 	private Magnet _magnet;
@@ -41,6 +48,16 @@ public partial class Player : CharacterBody2D
 
 	private bool pullMode;
 
+	private bool wasOnFloor;
+
+	private AnimationPlayer _animationPlayer;
+	private Sprite2D _sprite2D;
+	private Label _label;
+
+	private Vector2 stickAimVector = Vector2.Zero;
+
+	private bool mnkControl = true;
+
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
@@ -48,6 +65,9 @@ public partial class Player : CharacterBody2D
 	public override void _Ready() {
 		
 		_magnet = GetNode<Magnet>("Magnet");
+		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
+		_sprite2D = GetNode<Sprite2D>("Sprite2D");
+		_label = GetNode<Label>("Label");
 
 		pullMode = _magnet.GetPullMode();
 	}
@@ -57,27 +77,75 @@ public partial class Player : CharacterBody2D
         DrawLine(DrawVector1, DrawVector2, Colors.Green, 1.0f);
     }
 
-	public override void _PhysicsProcess(double delta) {
-		Vector2 NewVelocity = Velocity;
+    public override void _Process(double delta)
+    {
+		// Activates Coyote timer if the player walks off an edge without jumping
+		if (wasOnFloor && !IsOnFloor() && !Jumping) {
+			coyoteTimer = coyoteTimerMax;
+		}
 
-		// if (_magnet.)
-		_magnet.LookAt(GetGlobalMousePosition());
+		if (coyoteTimer > 0) {
+			coyoteTimer -= (float)delta;
+		}
+
+		if (jumpBufferTimer > 0) {
+			jumpBufferTimer -= (float)delta;
+		}
+
+        wasOnFloor = IsOnFloor();
+    }
+
+    public override void _PhysicsProcess(double delta) {
+
+		if (pullMode) {
+			_label.Text = "Pull";
+		} else {
+			_label.Text = "Push";
+		}
+
+		Vector2 NewVelocity = Velocity;
 
 		HandleMagnet();
 
 		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
 			Godmode = !Godmode;
 
-			foreach (var item in GetParent().GetChildren())
-			{
-				if (item is RigidBody2D body) {
-					body.AngularVelocity = 0;
-					body.LinearVelocity = Vector2.Zero;
-				}
-			}
+			// foreach (var item in GetParent().GetChildren())
+			// {
+			// 	if (item is RigidBody2D body) {
+			// 		body.AngularVelocity = 0;
+			// 		body.LinearVelocity = Vector2.Zero;
+			// 	}
+			// }
 
 		}
 
+		// Flipping the sprite to face the way its moving
+		if (Velocity.X != 0) 
+		{
+			_sprite2D.FlipH = Velocity.X < 0;
+		}
+
+		UpdateAnimations();
+
+		Vector2 newAimVector = Godot.Input.GetVector("AimLeft", "AimRight", "AimUp", "AimDown");
+
+		// Switches the aim to controller if new input is detected from the right thumbstick
+		if (newAimVector != stickAimVector && newAimVector != Vector2.Zero) {
+			mnkControl = false;
+		}
+
+		if (newAimVector != Vector2.Zero) {
+			stickAimVector = newAimVector;
+		}
+
+		// Handles rotating the magnet to whatever input in active
+		if (mnkControl) {
+			_magnet.LookAt(GetGlobalMousePosition());
+		} else {
+			_magnet.Rotation = stickAimVector.Angle();
+		}
+	
 		if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
 			pullMode = !pullMode;
 			_magnet.SetPullMode(pullMode);
@@ -88,7 +156,9 @@ public partial class Player : CharacterBody2D
 			if (!IsOnFloor())
 				NewVelocity.Y += gravity * (float)delta;
 
-			NewVelocity.Y += HandleJump(delta);
+			float jumpVel = HandleJump(delta);
+			if (jumpVel != 0) GD.Print(jumpVel);
+			NewVelocity.Y += jumpVel;
 
 			NewVelocity.X = MovePlayer(delta);
 		} else {
@@ -105,12 +175,20 @@ public partial class Player : CharacterBody2D
 			KinematicCollision2D collision = GetSlideCollision(i);
 			if (collision.GetCollider() is RigidBody2D) {
 				RigidBody2D c = (RigidBody2D) collision.GetCollider();
-				c.ApplyCentralImpulse(-collision.GetNormal() * PushForce);
+				c.ApplyCentralImpulse(-collision.GetNormal() * PUSH_FORCE);
 			}
 		}
 	}
 
-	public Vector2 GetXInput() {
+    public override void _Input(InputEvent @event)
+    {
+		// If any mouse movement is detected, switch the aim control to mouse
+        if (@event is InputEventMouseMotion) {
+			mnkControl = true;
+		}
+    }
+
+    public Vector2 GetXInput() {
 		// Only X input is read because jump is handled separately
 		Vector2 InputX = Input;
 		InputX.X = Godot.Input.GetVector("MoveLeft", "MoveRight", "MoveUp", "MoveDown").X;
@@ -130,8 +208,14 @@ public partial class Player : CharacterBody2D
 
 	public float HandleJump(double delta) {
 
-		// Jump pressed while on the floor, set jump velocity to max
-		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor()) {
+		// Activates the jump buffer timer if jump is pressed not on the floor
+		if (Godot.Input.IsActionJustPressed("Jump") && !IsOnFloor()) {
+			jumpBufferTimer = jumpBufferTimerMax;
+		}
+
+		// Jump pressed while on the floor or the coyote timer is active, set jump velocity to max
+		// Will jump when jump key is not pressed if the jump buffer is active
+		if ((IsOnFloor() && jumpBufferTimer > 0) || Godot.Input.IsActionJustPressed("Jump") && (IsOnFloor() || coyoteTimer > 0)) {
 			CurrentJumpVelocity = JUMP_VELOCITY;
 			CurrentJumpTimer = JUMP_HOLD_TIME;
 			Jumping = true;
@@ -139,17 +223,18 @@ public partial class Player : CharacterBody2D
 
 		// Jump is held down, decrease the timer
 		if (Godot.Input.IsActionPressed("Jump") && Jumping) {
-			CurrentJumpTimer -= 1.0f * (float)delta;
-			CurrentJumpVelocity += 200.0f * (float)delta;
-		} 
+			CurrentJumpTimer -= 1f * (float)delta;
+			CurrentJumpVelocity += 140 * CurrentJumpTimer;
+		}
 
 		// Jump was released or timer ran out, stop jump sequence
-		if (!Godot.Input.IsActionPressed("Jump") || CurrentJumpTimer <= 0.0f) {
+		if (Godot.Input.IsActionJustReleased("Jump") || CurrentJumpTimer <= 0.0f) {
 			Jumping = false;
 			CurrentJumpVelocity = 0;
 		}
 
-		return CurrentJumpVelocity;
+		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor()) return CurrentJumpVelocity - 60f;
+		else return CurrentJumpVelocity;
 	}
 
 	public float MovePlayer(double delta) {
@@ -190,4 +275,28 @@ public partial class Player : CharacterBody2D
 		
 		return Input * MAX_SPEED*2;
 	}
+
+	public void UpdateAnimations() {
+		if (IsOnFloor())  {
+			if (Velocity.X == 0) {
+				_animationPlayer.Play("idle");
+			}
+			else if (Mathf.Abs(Velocity.X) > MAX_SPEED) {
+				_animationPlayer.Play("run");
+			}
+			else {
+				if (Input.X > 0 && Velocity.X < 0 || Input.X < 0 && Velocity.X > 0) {
+					_animationPlayer.Play("run");
+				}
+				else {
+					_animationPlayer.Play("run");
+				}
+			}
+		}
+		else {				
+			_animationPlayer.Play("jump");
+		}
+	}
 }
+
+

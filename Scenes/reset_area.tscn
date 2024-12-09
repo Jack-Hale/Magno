@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://cng7ilmvsvmbl"]
+
+[ext_resource type="Script" path="res://Source/ResetArea.cs" id="1_mrcl3"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_w3a8p"]
+size = Vector2(33.5, 34.25)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_xy1ti"]
+
+[node name="ResetArea" type="Area2D"]
+collision_layer = 256
+collision_mask = 38
+script = ExtResource("1_mrcl3")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_w3a8p")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(34, 34)
+texture = SubResource("PlaceholderTexture2D_xy1ti")
+
+[connection signal="body_entered" from="." to="." method="OnBodyEntered"]
