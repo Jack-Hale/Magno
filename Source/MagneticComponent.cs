@@ -7,9 +7,9 @@ public partial class MagneticComponent : Node2D
 	[Export]
 	private RigidBody2D Object;
 	[Export]
-	private float WeakMultiplier = 16;	
+	private float WeakMultiplier = 5;	
 	[Export]
-	private float StrongMultiplier = 40;
+	private float StrongMultiplier = 10;
 	[Export]
 	private float BlastMultiplier = 1000;
 	private CharacterBody2D characterObject;
