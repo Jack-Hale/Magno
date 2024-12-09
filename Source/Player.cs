@@ -10,7 +10,7 @@ public partial class Player : CharacterBody2D
 	[Export]
 	public float JUMP_VELOCITY = -180f;
 	[Export]
-	public float JUMP_HOLD_TIME = 0.1f;
+	public float JUMP_HOLD_TIME = 0.15f;
 	[Export]
 	public float FRICTION = 2200f;
 	[Export]
@@ -26,6 +26,7 @@ public partial class Player : CharacterBody2D
 	public float CurrentJumpVelocity = 0f;
 	public bool Jumping = false;
 	public float CurrentJumpTimer = 0f;
+	public float JumpScalar = 1f;
 
 	private const float coyoteTimerMax = 0.10f;
 	private float coyoteTimer = 0f;
@@ -155,7 +156,9 @@ public partial class Player : CharacterBody2D
 			if (!IsOnFloor())
 				NewVelocity.Y += gravity * (float)delta;
 
-			NewVelocity.Y += HandleJump(delta);
+			float jumpVel = HandleJump(delta);
+			if (jumpVel != 0) GD.Print(jumpVel);
+			NewVelocity.Y += jumpVel;
 
 			NewVelocity.X = MovePlayer(delta);
 		} else {
@@ -220,17 +223,18 @@ public partial class Player : CharacterBody2D
 
 		// Jump is held down, decrease the timer
 		if (Godot.Input.IsActionPressed("Jump") && Jumping) {
-			CurrentJumpTimer -= 1.0f * (float)delta;
-			CurrentJumpVelocity += 200.0f * CurrentJumpTimer * (float)delta;
-		} 
+			CurrentJumpTimer -= 1f * (float)delta;
+			CurrentJumpVelocity += 140 * CurrentJumpTimer;
+		}
 
 		// Jump was released or timer ran out, stop jump sequence
-		if (!Godot.Input.IsActionPressed("Jump") || CurrentJumpTimer <= 0.0f) {
+		if (Godot.Input.IsActionJustReleased("Jump") || CurrentJumpTimer <= 0.0f) {
 			Jumping = false;
 			CurrentJumpVelocity = 0;
 		}
 
-		return CurrentJumpVelocity;
+		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor()) return CurrentJumpVelocity - 60f;
+		else return CurrentJumpVelocity;
 	}
 
 	public float MovePlayer(double delta) {
