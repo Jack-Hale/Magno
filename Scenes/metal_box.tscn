@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://cfbojjh3iix0h"]
+[gd_scene load_steps=4 format=3 uid="uid://bhbmgmno8rorh"]
 
 [ext_resource type="Texture2D" uid="uid://bepk745x8b6ky" path="res://Assets/Sprites/SmallBox.png" id="1_ebsbd"]
 [ext_resource type="PackedScene" uid="uid://m30ped810gwe" path="res://Scenes/magnetic_component.tscn" id="2_kvpx1"]

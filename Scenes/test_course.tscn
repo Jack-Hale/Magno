@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=4 uid="uid://myao5ri8dmaf"]
+[gd_scene load_steps=7 format=4 uid="uid://bpefa84koqvya"]
 
 [ext_resource type="PackedScene" uid="uid://cng7ilmvsvmbl" path="res://Scenes/reset_area.tscn" id="1_kynq6"]
 [ext_resource type="Texture2D" uid="uid://cyr8e60umod7f" path="res://Assets/BackgroundSprites/WhiteImage.jpg" id="2_mgkrt"]
