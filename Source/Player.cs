@@ -156,9 +156,7 @@ public partial class Player : CharacterBody2D
 			if (!IsOnFloor())
 				NewVelocity.Y += gravity * (float)delta;
 
-			float jumpVel = HandleJump(delta);
-			if (jumpVel != 0) GD.Print(jumpVel);
-			NewVelocity.Y += jumpVel;
+			NewVelocity.Y += HandleJump(delta);
 
 			NewVelocity.X = MovePlayer(delta);
 		} else {

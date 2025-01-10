@@ -11,13 +11,17 @@ config_version=5
 [application]
 
 config/name="magno"
-run/main_scene="res://Scenes/test_level.tscn"
+run/main_scene="res://Scenes/test_course.tscn"
 config/features=PackedStringArray("4.3", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [dotnet]
 
 project/assembly_name="magno"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot-box2d/plugin.cfg")
 
 [input]
 
