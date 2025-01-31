@@ -1,19 +1,14 @@
 using Godot;
 using System;
 
-public partial class Slime : CharacterBody2D
+public partial class Guy : CharacterBody2D
 {
 	public const float Speed = 300.0f;
 	public const float JumpVelocity = -400.0f;
 
-	// Get the gravity from the project settings to be synced with RigidBody nodes.
-	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
-
 	private bool canMove = true;
 
-	public override void _Process(double delta) {
-		
-	}
+	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 
 	public override void _PhysicsProcess(double delta)
 	{

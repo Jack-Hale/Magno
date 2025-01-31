@@ -68,9 +68,9 @@ public partial class Magnet : Area2D
 		if (parent != null) {
 			if (parent is RigidBody2D rigidBody) parentRigid = rigidBody;
 			if (parent is CharacterBody2D characterBody) parentCharacter = characterBody;
+			_physicsObject.AddCollisionExceptionWith(GetParent());
 		}
 
-		_physicsObject.AddCollisionExceptionWith(GetParent());
 		
 		_beamArea = _magnetBeam.GetNode<CollisionPolygon2D>("BeamArea");
 		
@@ -174,7 +174,6 @@ public partial class Magnet : Area2D
 					// Attach object that reaches the magnet
 					MagneticComponent magComp = attractedObjects[body];
 					if (EnteredBody == body && attachedObject != body && canJoin) {
-
 						// Dettaching object from any magnet that is already holding it
 						if (magComp.IsBeingHeld()) {
 							magComp.GetMagnetParent().Dettach();
@@ -302,10 +301,15 @@ public partial class Magnet : Area2D
 			// Only adds objects with Magnetic group
 			Node Object = body;
 			if (Object.IsInGroup("Magnetic")) {
-				
+				GD.Print(body);
 				MagneticComponent newObject = (MagneticComponent) Object.FindChild("MagneticComponent");
-				
-				attractedObjects.Add((PhysicsBody2D)body, newObject);
+
+				if (newObject.IsCharacterObject() && !attractedObjects.ContainsKey(newObject.GetCharacterObject())) {
+					attractedObjects.Add(newObject.GetCharacterObject(), newObject);
+
+				} else if (!attractedObjects.ContainsKey((PhysicsBody2D)body)) {
+					attractedObjects.Add((PhysicsBody2D)body, newObject);
+				}
 			}
 		}
 	}
@@ -313,21 +317,31 @@ public partial class Magnet : Area2D
 	// Called when object is not longer touching the magnet beam
 	// Removes object from dict of attracted objects
 	private void OnBodyExitedBeam(Node body) {
-		if (body is PhysicsBody2D) {
 
-			PhysicsBody2D itemToRemove = null;
+		// Body can only be dettached if it's being pushed by the beam but not attached to the magnet
+		if (body != attachedObject) {
+			if (body is PhysicsBody2D) {
 
-			// Find item in dict with the exited body as the key
-			foreach (PhysicsBody2D item in attractedObjects.Keys) {
-				if (item == ((PhysicsBody2D)body)) {
-					itemToRemove = item;
+				PhysicsBody2D itemToRemove = null;
+				// GD.Print(body, " Exited");
+				// Find item in dict with the exited body as the key
+				foreach (PhysicsBody2D item in attractedObjects.Keys) {
+					
+					if (item is CharacterBody2D character) {
+						
+						// character
+					}
+					
+					if (item == ((PhysicsBody2D)body)) {
+						itemToRemove = item;
+					}
 				}
-			}
 
-			// If body was in dict, remove from dict
-			if (itemToRemove != null) {
-				attractedObjects[itemToRemove].Dettach();
-				attractedObjects.Remove(itemToRemove);
+				// If body was in dict, remove from dict
+				if (itemToRemove != null) {
+					attractedObjects[itemToRemove].Dettach();
+					attractedObjects.Remove(itemToRemove);
+				}
 			}
 		}
 	}
