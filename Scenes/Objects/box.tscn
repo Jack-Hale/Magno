@@ -16,5 +16,4 @@ texture = ExtResource("2_3c74w")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_in2ja")
 
-[node name="MagneticComponent" parent="." node_paths=PackedStringArray("Object") instance=ExtResource("2_j6062")]
-Object = NodePath("..")
+[node name="MagneticComponent" parent="." instance=ExtResource("2_j6062")]

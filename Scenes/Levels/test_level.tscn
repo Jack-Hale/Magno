@@ -1,10 +1,9 @@
-[gd_scene load_steps=6 format=4 uid="uid://l55oyjoo6cul"]
+[gd_scene load_steps=5 format=4 uid="uid://l55oyjoo6cul"]
 
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_0rdck"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/Characters/player.tscn" id="2_5mf3d"]
 [ext_resource type="PackedScene" uid="uid://c4cdcu4q84oud" path="res://Scenes/Characters/slime.tscn" id="3_8ocbn"]
-[ext_resource type="PackedScene" uid="uid://dnj20y18w3snv" path="res://Scenes/Objects/big_box.tscn" id="4_wmlrk"]
-[ext_resource type="PackedScene" uid="uid://4btydsdp2bk7" path="res://Scenes/Characters/guy.tscn" id="5_wfjae"]
+[ext_resource type="PackedScene" uid="uid://4btydsdp2bk7" path="res://Scenes/Characters/guy.tscn" id="6_ijlmm"]
 
 [node name="TestLevel" type="Node2D"]
 
@@ -15,11 +14,14 @@ tile_set = ExtResource("1_0rdck")
 [node name="Player" parent="." instance=ExtResource("2_5mf3d")]
 position = Vector2(768, 336)
 
+[node name="Guy" parent="." instance=ExtResource("6_ijlmm")]
+position = Vector2(123, 296)
+
 [node name="Slime" parent="." instance=ExtResource("3_8ocbn")]
-position = Vector2(362, 364)
+position = Vector2(424, 290)
 
-[node name="BigBox" parent="." instance=ExtResource("4_wmlrk")]
-position = Vector2(598, 74)
+[node name="Slime2" parent="." instance=ExtResource("3_8ocbn")]
+position = Vector2(358, 303)
 
-[node name="Guy" parent="." instance=ExtResource("5_wfjae")]
-position = Vector2(602, 20)
+[node name="Slime3" parent="." instance=ExtResource("3_8ocbn")]
+position = Vector2(267, 309)

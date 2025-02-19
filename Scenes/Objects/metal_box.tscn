@@ -16,5 +16,4 @@ shape = SubResource("RectangleShape2D_kn41h")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("1_ebsbd")
 
-[node name="MagneticComponent" parent="." node_paths=PackedStringArray("Object") instance=ExtResource("2_kvpx1")]
-Object = NodePath("..")
+[node name="MagneticComponent" parent="." instance=ExtResource("2_kvpx1")]

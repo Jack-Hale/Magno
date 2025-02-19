@@ -3,8 +3,8 @@ using System;
 
 public partial class Guy : CharacterBody2D
 {
-	public const float Speed = 300.0f;
-	public const float JumpVelocity = -400.0f;
+	public const float speed = 300.0f;
+	public const float jumpVelocity = -400.0f;
 
 	private bool canMove = true;
 
@@ -15,12 +15,12 @@ public partial class Guy : CharacterBody2D
 		Vector2 velocity = Velocity;
 		if (IsInGroup("Magnetic")) {
 			if (IsInGroup("Affected")) {
-				canMove = false;
+				// canMove = false;
 			} else {
-				canMove = true;
+				// canMove = true;
 			}
 		} else {
-			canMove = true;
+			// canMove = true;
 		}
 
 		if (canMove) {
@@ -30,7 +30,7 @@ public partial class Guy : CharacterBody2D
 
 			// Handle Jump.
 			if (IsOnFloor()) {
-				// velocity.Y = JumpVelocity;
+				velocity.Y = jumpVelocity;
 			}
 		}
 
