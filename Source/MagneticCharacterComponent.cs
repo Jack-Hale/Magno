@@ -4,18 +4,18 @@ using System.IO;
 
 public partial class MagneticCharacterComponent : Node2D
 {
-	// 	[Export]
-	// 	public SwapCondition swapCondition;
+	[Export]
+	public SwapCondition swapCondition;
 
-	// [Export]
-	// public float swapTimeLimit;
+	[Export]
+	public float swapTimeLimit = 0.5f;
 
-	// public enum SwapCondition
-	// {
-	// 	SwapWhenHitSurface,
-	// 	SwapWhenLetGo,
-	// 	SwapAfterTimeLimit
-	// }
+	public enum SwapCondition
+	{
+		SwapWhenHitSurface,
+		SwapWhenLetGo,
+		SwapAfterTimeLimit
+	}
 
 	[Export]
 	public bool LargeCharacter = false;
@@ -56,18 +56,22 @@ public partial class MagneticCharacterComponent : Node2D
 		collisionM = new RigidBody2D();
 
 		if (character != null) {
-
+			
 			// Creating a copy the collision mask and layer of character
 			for (int i = 1; i <= 32; i++) {
 				collisionL.SetCollisionLayerValue(i, character.GetCollisionLayerValue(i));
 				collisionM.SetCollisionMaskValue(i, character.GetCollisionMaskValue(i));
 			}
 
+			bodyCopy.MaxContactsReported = 1;
+
 			ReplaceCollisions(bodyCopy, true);
 
 			bodyCopy.AddToGroup("Magnetic");
 			bodyCopy.AddToGroup("BodyCopy");
 			bodyCopy.Name = "BODYCOPY";
+
+			bodyCopy.Connect("body_entered", new Callable(this, MethodName.OnBodyEntered));
 
 			// Disabling BodyCopy
 			bodyCopy.Visible = false;
@@ -81,27 +85,38 @@ public partial class MagneticCharacterComponent : Node2D
 		}
 	}
 	public override void _Draw() {
-    //     DrawLine(ToLocal(draw2+ new Vector2(4,0)), ToLocal(draw2), Colors.Red, 4.0f);
-    //     DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
+        // DrawLine(ToLocal(draw2 + new Vector2(2,0)), ToLocal(draw2 - new Vector2(2,0)), Colors.Red, 4.0f);
+        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)	{
 
-		// disables swapping to character if the timer is active
-		if (ragdollTimer > 0) {
-			ragdollTimer -= (float) delta;
-			ragdoll = true;
-		} else {
-			if (ragdoll) {
+		if (swapCondition == SwapCondition.SwapWhenHitSurface) {
+			bodyCopy.ContactMonitor = ragdoll;
+		}
 
+		// disables swapping to character if the timer is active
+		if (ragdoll) {
+
+			if (ragdollTimer > 0) {
+				ragdollTimer -= (float) delta;
+
+			} else if (ragdollTimer == int.MinValue) {
+				// GD.Print("ragdolling");
+
+			} else {
 				// Manually swaps to character once the timer has ended so it doesnt need to be triggered again
 				ragdoll = false;
 				SwapToCharacter();
 			}
-		}
+		} 
 
 		QueueRedraw();
+	}
+
+	private void OnBodyEntered(Node body) {
+		ragdollTimer = 0;
 	}
 
 	// Swaps the CharacterBody2D with the Rigidbody2D bodyCopy
@@ -158,8 +173,21 @@ public partial class MagneticCharacterComponent : Node2D
 		return LargeCharacter;
 	}
 
-	public void StartRagDollTimer(float timer) {
-		ragdollTimer = timer;
+	public void StartRagDollTimer() {
+		switch (swapCondition)
+		{
+			case SwapCondition.SwapAfterTimeLimit:
+				ragdollTimer = swapTimeLimit;
+				break;
+			case SwapCondition.SwapWhenHitSurface:
+				ragdollTimer = int.MinValue;
+				break;
+			case SwapCondition.SwapWhenLetGo:
+				ragdollTimer = 0.5f;
+				break;
+		}
+		ragdoll = true;
+
 	}
 
 	public RigidBody2D GetBodyCopy() {

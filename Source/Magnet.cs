@@ -127,7 +127,7 @@ public partial class Magnet : Area2D
 				// Starts a ragdoll timer if the object is a character so it doesnt swap from rigid to char
 				// over and over again while being blasted
 				if (magCharComp != null) {
-					magCharComp.StartRagDollTimer(0.5f);
+					magCharComp.StartRagDollTimer();
 				}
 				
 				OnBodyExitedBeam(attachedObject);
@@ -339,7 +339,6 @@ public partial class Magnet : Area2D
 
 					// Uses the magcharcomp to get the bodycopy of the character before switching to rigid
 					if (magCharComp != null) {
-						GD.Print("enter ", magCharComp.IsLargeCharacter());
 						RigidBody2D bodyCopy = magCharComp.GetBodyCopy();
 						body.AddToGroup("Affected");
 						MagneticComponent newObject = (MagneticComponent) bodyCopy.GetNode("MagneticComponent");
@@ -385,7 +384,6 @@ public partial class Magnet : Area2D
 
 					MagneticCharacterComponent magCharComp = magComp.GetMagneticCharacterComponent();
 					if (magCharComp != null) {
-						GD.Print("exit ", magCharComp.IsLargeCharacter());
 						magCharComp.GetCharacter().RemoveFromGroup("Affected");
 						magCharComp.SwapToCharacter();
 					}
@@ -475,6 +473,7 @@ public partial class Magnet : Area2D
 
 			MagneticCharacterComponent magCharComp = attachedObjectMagComp.GetMagneticCharacterComponent();
 			if (magCharComp != null) {
+				magCharComp.GetCharacter().RemoveFromGroup("Affected");
 				magCharComp.SwapToCharacter();
 			}
 

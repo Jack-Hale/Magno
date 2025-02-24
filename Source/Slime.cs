@@ -29,16 +29,18 @@ public partial class Slime : CharacterBody2D
 			canMove = true;
 		}
 
+		// Add the gravity.
+		if (!IsOnFloor())
+			velocity.Y += gravity * (float)delta;
+	
 		if (canMove) {
-			// Add the gravity.
-			if (!IsOnFloor())
-				velocity.Y += gravity * (float)delta;
 
 			// Handle Jump.
 			if (IsOnFloor()) {
 				velocity.Y = jumpVelocity;
 			}
 		}
+
 
 		Velocity = velocity;
 		MoveAndSlide();
