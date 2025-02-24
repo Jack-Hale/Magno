@@ -5,11 +5,11 @@ using System.Reflection;
 public partial class MagneticComponent : Node2D
 {
 	[Export]
-	private float weakMultiplier = 3;	
+	private float weakMultiplier = 7;	
 	[Export]
 	private float strongMultiplier = 10;
 	[Export]
-	private float blastMultiplier = 1000;
+	private float blastMultiplier = 400;
 
 	private RigidBody2D rigidObject;
 	private CharacterBody2D characterObject;

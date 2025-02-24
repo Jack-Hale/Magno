@@ -4,18 +4,18 @@ using System.IO;
 
 public partial class MagneticCharacterComponent : Node2D
 {
-	[Export]
-	public SwapCondition swapCondition;
+	// 	[Export]
+	// 	public SwapCondition swapCondition;
 
-	[Export]
-	public float swapTimeLimit;
+	// [Export]
+	// public float swapTimeLimit;
 
-	public enum SwapCondition
-	{
-		SwapWhenHitSurface,
-		SwapWhenLetGo,
-		SwapAfterTimeLimit
-	}
+	// public enum SwapCondition
+	// {
+	// 	SwapWhenHitSurface,
+	// 	SwapWhenLetGo,
+	// 	SwapAfterTimeLimit
+	// }
 	private Node2D parent;
 	private CharacterBody2D character;
 
@@ -24,6 +24,13 @@ public partial class MagneticCharacterComponent : Node2D
 	public bool isCharacter = true;
 	private RigidBody2D collisionL;
 	private RigidBody2D collisionM;
+
+	private float ragdollTimer = 0;
+	private bool ragdoll = false;
+
+	private Vector2 draw1 = Vector2.Zero;
+	private Vector2 draw2 = Vector2.Zero;
+
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -70,16 +77,28 @@ public partial class MagneticCharacterComponent : Node2D
 			GD.PushError("MagneticCharacteComponent ", this, ", does not have a CharacterBody2D next to it in Scene Tree", GetParent());
 		}
 	}
+	public override void _Draw() {
+    //     DrawLine(ToLocal(draw2+ new Vector2(4,0)), ToLocal(draw2), Colors.Red, 4.0f);
+    //     DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
+	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)	{
-		// if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
-		// 	SwapToRigid();
-		// }
 
-		// if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
-		// 	SwapToCharacter();
-		// }
+		// disables swapping to character if the timer is active
+		if (ragdollTimer > 0) {
+			ragdollTimer -= (float) delta;
+			ragdoll = true;
+		} else {
+			if (ragdoll) {
+
+				// Manually swaps to character once the timer has ended so it doesnt need to be triggered again
+				ragdoll = false;
+				SwapToCharacter();
+			}
+		}
+
+		QueueRedraw();
 	}
 
 	// Swaps the CharacterBody2D with the Rigidbody2D bodyCopy
@@ -100,12 +119,13 @@ public partial class MagneticCharacterComponent : Node2D
 		}
 	}
 
+	// Swaps back to the character from the bodycopy
 	public void SwapToCharacter() {
-		if (!isCharacter) {
+		if (!isCharacter && !ragdoll) {
+			character.Velocity = bodyCopy.LinearVelocity;
 			isCharacter = true;
 			character.ProcessMode = ProcessModeEnum.Inherit;
-			character.GlobalTransform = bodyCopy.GetGlobalTransform();
-			character.Velocity = bodyCopy.LinearVelocity;
+			character.GlobalPosition = bodyCopy.GlobalPosition;
 
 			ReplaceCollisions(character, false);
 			bodyCopy.Visible = false;
@@ -120,8 +140,20 @@ public partial class MagneticCharacterComponent : Node2D
 		}
 	}
 
+	public void StartRagDollTimer(float timer) {
+		ragdollTimer = timer;
+	}
+
 	public RigidBody2D GetBodyCopy() {
 		return bodyCopy;
+	}
+
+	public Vector2 GetCharacterVelocity() {
+		return character.Velocity;
+	}
+
+	public Vector2 GetBodyVelocity() {
+		return bodyCopy.LinearVelocity;
 	}
 
 	// Replaces collision layer/mask with either no collisions or the original collisions

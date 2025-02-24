@@ -54,6 +54,20 @@ collision_mask = 182
 [node name="BeamArea" type="CollisionPolygon2D" parent="MagnetBeam"]
 polygon = PackedVector2Array(0, 4, 0, -4, 289, -15, 289, 15)
 
+[node name="BeamCheck1" type="RayCast2D" parent="MagnetBeam"]
+position = Vector2(0, -4)
+target_position = Vector2(289, -11)
+collision_mask = 54
+
+[node name="BeamCheck2" type="RayCast2D" parent="MagnetBeam"]
+target_position = Vector2(289, 0)
+collision_mask = 54
+
+[node name="BeamCheck3" type="RayCast2D" parent="MagnetBeam"]
+position = Vector2(0, 4)
+target_position = Vector2(289, 11)
+collision_mask = 54
+
 [node name="PhysicsObject" type="StaticBody2D" parent="."]
 collision_layer = 8
 collision_mask = 31

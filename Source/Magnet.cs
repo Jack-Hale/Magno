@@ -25,6 +25,9 @@ public partial class Magnet : Area2D
 
 	private RayCast2D _tileBeamCast;
 	private RayCast2D _objectCheck;
+	private RayCast2D _beamCheck1;
+	private RayCast2D _beamCheck2;
+	private RayCast2D _beamCheck3;
 	private StaticBody2D _physicsObject;
 	
 	private PhysicsBody2D attachedObject;
@@ -60,6 +63,11 @@ public partial class Magnet : Area2D
 		_tileBeamCast = GetNode<RayCast2D>("TileBeamCast");
 		_objectCheck = GetNode<RayCast2D>("ObjectCheck");
 		_physicsObject = GetNode<StaticBody2D>("PhysicsObject");
+
+		_beamCheck1 = _magnetBeam.GetNode<RayCast2D>("BeamCheck1");
+		_beamCheck2 = _magnetBeam.GetNode<RayCast2D>("BeamCheck2");
+		_beamCheck3 = _magnetBeam.GetNode<RayCast2D>("BeamCheck3");
+
 		_magnetBeam.Connect("body_entered", new Callable(this, MethodName.OnBodyEnteredBeam));
 		_magnetBeam.Connect("body_exited", new Callable(this, MethodName.OnBodyExitedBeam));
 
@@ -114,6 +122,18 @@ public partial class Magnet : Area2D
 			if (blast) {
 				magneticComponent.ForceObject(attachedObject.GlobalPosition, GlobalPosition, beamLength, pullMode, false, true, delta);
 				magneticComponent.Dettach();
+
+				MagneticCharacterComponent magCharComp = magneticComponent.GetMagneticCharacterComponent();
+
+				// Starts a ragdoll timer if the object is a character so it doesnt swap from rigid to char
+				// over and over again while being blasted
+				if (magCharComp != null) {
+					magCharComp.StartRagDollTimer(0.5f);
+				}
+				
+				OnBodyExitedBeam(attachedObject);
+
+				blast = false;
 			}
 			attachedObject = null;
 		}
@@ -122,10 +142,10 @@ public partial class Magnet : Area2D
 			_magnetBeam.Position = new Vector2(32, 0);
 		}
 
-
 	}
 
     public override void _PhysicsProcess(double delta) {
+
 		if (attachedObject != null) {
 			// Disabling beam sprite if object attached
 			if (strongMagnet) {
@@ -168,6 +188,7 @@ public partial class Magnet : Area2D
 			// Iterate through all attracted objects to process attraction physics
 			if (activated) {
 				foreach (PhysicsBody2D body in attractedObjects.Keys) {
+
 					// Attach object that reaches the magnet
 					MagneticComponent magComp = attractedObjects[body];
 					if (EnteredBody == body && attachedObject != body && canJoin) {
@@ -177,6 +198,7 @@ public partial class Magnet : Area2D
 							magComp.Dettach();
 						}
 						magComp.SetMagnetParent(this);
+
 						AttachObject(body, magComp);
 					}
 
@@ -282,9 +304,17 @@ public partial class Magnet : Area2D
 						Vector2 position2 = (Vector2)finalResult2["position"];
 						collisionPoint = position1.Lerp(position2, 0.5f);
 					}
+					
 					magComp.ForceObject(collisionPoint, GlobalPosition, beamLength, pullMode, strongMagnet, false, delta);
+					
 				}
 			}
+		}
+
+		// Failsafe for if object is not in beam but is still included in the attractedObjects Dict
+		// TODO: Make this never actually occur 
+		if (!_beamCheck1.IsColliding() && !_beamCheck2.IsColliding() && !_beamCheck3.IsColliding() && attractedObjects.Count > 0 && !isObjectAttached) {
+			DettachAll();
 		}
 
 		QueueRedraw();
@@ -317,7 +347,7 @@ public partial class Magnet : Area2D
 						if (!attractedObjects.ContainsKey(bodyCopy)) {
 							magCharComp.SwapToRigid();
 
-							attractedObjects.Add(bodyCopy, newObject);	
+							attractedObjects.Add(bodyCopy, newObject);
 						}
 					}
 				} else {
@@ -348,14 +378,13 @@ public partial class Magnet : Area2D
 					}
 				}
 
+
 				// If body was in dict, remove from dict
 				if (itemToRemove != null) {
 					MagneticComponent magComp = attractedObjects[itemToRemove];
 
 					MagneticCharacterComponent magCharComp = magComp.GetMagneticCharacterComponent();
-					
 					if (magCharComp != null) {
-						GD.Print("Swap to Character Beam Exit");
 						magCharComp.SwapToCharacter();
 					}
 					magComp.Dettach();
@@ -405,7 +434,7 @@ public partial class Magnet : Area2D
 				Vector2 shapeSize = GetShapeSize(ObjectCollision);
 				anchorOffset = shapeSize.X >= shapeSize.Y ? shapeSize.X : shapeSize.Y;
 			}
-
+			
 			attachedObject.Position = new Vector2(anchorOffset / 2, anchorPositionDefault.Y);
 			attachedObject.Rotation = _anchor.Rotation;
 
@@ -422,7 +451,6 @@ public partial class Magnet : Area2D
 	// Detach any object from the magnet beam or magnet
 	private void Dettach() {
 		if (isObjectAttached) {
-			GD.Print("Dettach");
 			// Store object space data
 			Vector2 objectPosition = attachedObject.GlobalPosition;
 			float objectRotation = attachedObject.GlobalRotation;
@@ -446,7 +474,6 @@ public partial class Magnet : Area2D
 
 			MagneticCharacterComponent magCharComp = attachedObjectMagComp.GetMagneticCharacterComponent();
 			if (magCharComp != null) {
-				GD.Print("Swap to Character Dettach");
 				magCharComp.SwapToCharacter();
 			}
 
