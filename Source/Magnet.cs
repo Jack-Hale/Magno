@@ -121,7 +121,6 @@ public partial class Magnet : Area2D
 
 			if (blast) {
 				magneticComponent.ForceObject(attachedObject.GlobalPosition, GlobalPosition, beamLength, pullMode, false, true, delta);
-				magneticComponent.Dettach();
 
 				MagneticCharacterComponent magCharComp = magneticComponent.GetMagneticCharacterComponent();
 
@@ -195,7 +194,6 @@ public partial class Magnet : Area2D
 						// Dettaching object from any magnet that is already holding it
 						if (magComp.IsBeingHeld()) {
 							magComp.GetMagnetParent().Dettach();
-							magComp.Dettach();
 						}
 						magComp.SetMagnetParent(this);
 
@@ -338,10 +336,12 @@ public partial class Magnet : Area2D
 						}
 					}
 
+
 					// Uses the magcharcomp to get the bodycopy of the character before switching to rigid
 					if (magCharComp != null) {
+						GD.Print("enter ", magCharComp.IsLargeCharacter());
 						RigidBody2D bodyCopy = magCharComp.GetBodyCopy();
-
+						body.AddToGroup("Affected");
 						MagneticComponent newObject = (MagneticComponent) bodyCopy.GetNode("MagneticComponent");
 
 						if (!attractedObjects.ContainsKey(bodyCopy)) {
@@ -385,9 +385,10 @@ public partial class Magnet : Area2D
 
 					MagneticCharacterComponent magCharComp = magComp.GetMagneticCharacterComponent();
 					if (magCharComp != null) {
+						GD.Print("exit ", magCharComp.IsLargeCharacter());
+						magCharComp.GetCharacter().RemoveFromGroup("Affected");
 						magCharComp.SwapToCharacter();
 					}
-					magComp.Dettach();
 
 					attractedObjects.Remove(itemToRemove);
 				}
@@ -477,7 +478,6 @@ public partial class Magnet : Area2D
 				magCharComp.SwapToCharacter();
 			}
 
-			attachedObjectMagComp.Dettach();
 			attachedObjectMagComp.SetMagnetParent(null);
 			attachedObjectMagComp = null;
 

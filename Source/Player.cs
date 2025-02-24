@@ -108,16 +108,7 @@ public partial class Player : CharacterBody2D
 		HandleMagnet();
 
 		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
-			godMode = !godMode;
-
-			// foreach (var item in GetParent().GetChildren())
-			// {
-			// 	if (item is RigidBody2D body) {
-			// 		body.AngularVelocity = 0;
-			// 		body.LinearVelocity = Vector2.Zero;
-			// 	}
-			// }
-
+			// godMode = !godMode;
 		}
 
 		// Flipping the sprite to face the way its moving

@@ -13,20 +13,17 @@ public partial class MagneticComponent : Node2D
 
 	private RigidBody2D rigidObject;
 	private CharacterBody2D characterObject;
-	private Joint2D joint;
 	private Magnet magnetParent;
 	private MagneticCharacterComponent magCharComp;
 
 	private RigidBody2D bodyCopy;
 
-	private bool connected;
-
-	private Area2D _magnetHoldRegion;
-
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
 
-	private Node parent;
+	private Node rigidObjectParent;
+	private Sprite2D magnetSprite = null;
+
 	private RigidBody2D objectCollisionL = new RigidBody2D();
 	private RigidBody2D objectCollisionM = new RigidBody2D();
 	
@@ -54,8 +51,7 @@ public partial class MagneticComponent : Node2D
 			// impart its magneticism onto
 			if (objectParent is PhysicsBody2D) {
 				objectParent = (PhysicsBody2D) objectParent;
-				Sprite2D magnetSprite = null;
-				
+								
 				// Getting a copy of the sprite to add to the parent
 				foreach (var child in rigidObject.GetChildren()) {
 					if (child is Sprite2D) {
@@ -98,23 +94,13 @@ public partial class MagneticComponent : Node2D
 					GD.PushError(objectParent, " requires MagneticCharacterComponent");
 				}
 
+				rigidObjectParent = magCharComp.GetParent().GetParent();
+
 				// Generates the RigidBody2D copy of the character
 				bodyCopy = magCharComp.InitialiseBodyCopy();
 
-				connected = true;
 				characterObject = (CharacterBody2D) objectParent;
 				characterObject.AddToGroup("Magnetic");
-
-
-				// Connecting the magnet hold region exit trigger
-				// if (CharacterObject.FindChild("MagnetHoldRegion") != null) {
-				// 	_magnetHoldRegion = CharacterObject.GetNode<Area2D>("MagnetHoldRegion");
-
-				// 	_magnetHoldRegion.Connect("body_exited", new Callable(this, MethodName.OnBodyExited));
-				// } else {
-				// 	GD.PrintErr(CharacterObject.Name, " HAS NO \"MagnetHoldRegion\"");
-				// 	GD.PushError(CharacterObject.Name, " HAS NO \"MagnetHoldRegion\"");
-				// }
 			}
 
 			if (parent != null && parent is RigidBody2D rigid) {
@@ -138,7 +124,6 @@ public partial class MagneticComponent : Node2D
 			// Generates the RigidBody2D copy of the character
 			bodyCopy = magCharComp.InitialiseBodyCopy();
 
-			connected = true;
 			characterObject = objectParent;
 			characterObject.AddToGroup("Magnetic");
 		} else {
@@ -146,54 +131,42 @@ public partial class MagneticComponent : Node2D
 			GD.PushError($"parent of {Name}:{this} ({parent.Name} {parent}) is not RigidBody2D");
 		}
 	}
-	
-	// private void OnBodyExited(Node body)
-    // {
-	// 	// If Object has exited the magnet hold region, disconnect all trace of Object from characterObject
-    // 	if (body == Object) {
-	// 		// connected = false;
-	// 	}
-    // }
 
-	public override void _Draw()
-    {
-        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 1.0f);
+	public override void _Draw() {
+        DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 1.0f);
 	}
 
-    public override void _Process(double delta)
-    {
-		
+    public override void _Process(double delta) {
+	
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(double delta) {
-		// // Removes any connection between Object and characterObject
-		// if (Object != null && CharacterObject != null && !connected) {
-		// 	// Disconnect object from parent joint
-		// 	joint.NodeB = null;
-
-		// 	// Store object space data
-		// 	Transform2D transform = Object.Transform;
-
-		// 	// Store the scene tree to put the object back into
-		// 	SceneTree sceneTree = GetTree();
-
-		// 	// Remove all reference from parent to object
-		// 	CharacterObject.RemoveFromGroup("Magnetic");
-		// 	CharacterObject.RemoveChild(Object);
-		// 	// GD.Print("disconnect", characterObject);
-		// 	CharacterObject = null;
-
-		// 	// Add object back into scene tree
-		// 	sceneTree.Root.AddChild(Object);
-
-		// 	// Return object to it's original movement state
-		// 	Object.Transform = transform;
-
-		// 	Object.AddToGroup("Magnetic");
-		// }
-
 		QueueRedraw();
+	}
+
+	// Destroys connection between Character and Rigid objects and removes any ability for Character to be magnetic
+	public void EnableRigidObject() {
+
+		Node parent = rigidObject.GetParent();
+		parent.RemoveChild(rigidObject);
+		
+		rigidObjectParent.AddChild(rigidObject);
+
+		for (int i = 1; i <= 32; i++) {
+			rigidObject.SetCollisionLayerValue(i, objectCollisionL.GetCollisionLayerValue(i));
+			rigidObject.SetCollisionMaskValue(i, objectCollisionM.GetCollisionMaskValue(i));
+		}
+		characterObject.RemoveChild(magnetSprite);
+
+		rigidObject.Visible = true;
+		rigidObject.Sleeping = false;
+
+		Sprite2D characterSprite = (Sprite2D) characterObject.GetNode("Sprite2D");
+		characterSprite.Texture.GetWidth();
+		rigidObject.GlobalPosition = new Vector2(characterObject.GlobalPosition.X + characterSprite.Texture.GetWidth()/2, characterObject.GlobalPosition.Y);
+
+		magCharComp.DettachMetalObject();
 	}
 
 	public bool IsBeingHeld() {
@@ -220,12 +193,6 @@ public partial class MagneticComponent : Node2D
 		
 		if (rigidObject != null) {
 			rigidObject.ApplyForce(pushForce * magnetStrength * multiplier * (float)delta, collisionPoint - rigidObject.GlobalPosition);
-		}
-	}
-
-	public void Dettach() {
-		if (characterObject != null) {
-			characterObject.RemoveFromGroup("Affected");
 		}
 	}
 

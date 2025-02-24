@@ -16,6 +16,9 @@ public partial class MagneticCharacterComponent : Node2D
 	// 	SwapWhenLetGo,
 	// 	SwapAfterTimeLimit
 	// }
+
+	[Export]
+	public bool LargeCharacter = false;
 	private Node2D parent;
 	private CharacterBody2D character;
 
@@ -103,7 +106,7 @@ public partial class MagneticCharacterComponent : Node2D
 
 	// Swaps the CharacterBody2D with the Rigidbody2D bodyCopy
 	public void SwapToRigid() {
-		if (isCharacter) {
+		if (isCharacter && !LargeCharacter) {
 			isCharacter = false;
 
 			bodyCopy.ProcessMode = ProcessModeEnum.Inherit;
@@ -121,7 +124,7 @@ public partial class MagneticCharacterComponent : Node2D
 
 	// Swaps back to the character from the bodycopy
 	public void SwapToCharacter() {
-		if (!isCharacter && !ragdoll) {
+		if (!isCharacter && !ragdoll && !LargeCharacter) {
 			character.Velocity = bodyCopy.LinearVelocity;
 			isCharacter = true;
 			character.ProcessMode = ProcessModeEnum.Inherit;
@@ -140,12 +143,31 @@ public partial class MagneticCharacterComponent : Node2D
 		}
 	}
 
+	public void DettachMetalObject() {
+		character.RemoveFromGroup("MagneticCharacter");
+		character.RemoveFromGroup("Magnetic");
+		SwapToCharacter();
+		Vector2 position = character.GlobalPosition;
+		parent.RemoveChild(character);
+		parent.GetParent().AddChild(character);
+		character.GlobalPosition = position;
+		QueueFree();
+	}
+
+	public bool IsLargeCharacter() {
+		return LargeCharacter;
+	}
+
 	public void StartRagDollTimer(float timer) {
 		ragdollTimer = timer;
 	}
 
 	public RigidBody2D GetBodyCopy() {
 		return bodyCopy;
+	}
+
+	public CharacterBody2D GetCharacter() {
+		return character;
 	}
 
 	public Vector2 GetCharacterVelocity() {

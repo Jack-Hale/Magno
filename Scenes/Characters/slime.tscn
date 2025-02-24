@@ -13,24 +13,24 @@ radius = 14.0
 
 [node name="MagneticCharacterComponent" parent="." instance=ExtResource("5_wiubn")]
 
-[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+[node name="Slime" type="CharacterBody2D" parent="."]
 collision_layer = 32
 collision_mask = 45
 script = ExtResource("1_gh7n1")
 
-[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D"]
+[node name="Sprite2D" type="Sprite2D" parent="Slime"]
 texture = ExtResource("1_lteqa")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Slime"]
 shape = SubResource("CircleShape2D_o1h5e")
 
-[node name="MetalBall" parent="CharacterBody2D" instance=ExtResource("3_cfl5u")]
+[node name="MetalBall" parent="Slime" instance=ExtResource("3_cfl5u")]
 
-[node name="PinJoint2D" type="PinJoint2D" parent="CharacterBody2D"]
+[node name="PinJoint2D" type="PinJoint2D" parent="Slime"]
 node_a = NodePath("..")
 node_b = NodePath("../MetalBall")
 bias = 0.9
 
-[node name="MagnetHoldRegion" parent="CharacterBody2D" instance=ExtResource("4_mku1u")]
+[node name="MagnetHoldRegion" parent="Slime" instance=ExtResource("4_mku1u")]
 visible = false
 position = Vector2(0, 2)
