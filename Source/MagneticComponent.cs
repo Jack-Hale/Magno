@@ -137,7 +137,9 @@ public partial class MagneticComponent : Node2D
 	}
 
     public override void _Process(double delta) {
-	
+		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
+			EnableRigidObject();
+		}
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -147,26 +149,27 @@ public partial class MagneticComponent : Node2D
 
 	// Destroys connection between Character and Rigid objects and removes any ability for Character to be magnetic
 	public void EnableRigidObject() {
+		if (characterObject != null) {
+			Node parent = rigidObject.GetParent();
+			parent.RemoveChild(rigidObject);
+			
+			rigidObjectParent.AddChild(rigidObject);
 
-		Node parent = rigidObject.GetParent();
-		parent.RemoveChild(rigidObject);
-		
-		rigidObjectParent.AddChild(rigidObject);
+			for (int i = 1; i <= 32; i++) {
+				rigidObject.SetCollisionLayerValue(i, objectCollisionL.GetCollisionLayerValue(i));
+				rigidObject.SetCollisionMaskValue(i, objectCollisionM.GetCollisionMaskValue(i));
+			}
+			characterObject.RemoveChild(magnetSprite);
 
-		for (int i = 1; i <= 32; i++) {
-			rigidObject.SetCollisionLayerValue(i, objectCollisionL.GetCollisionLayerValue(i));
-			rigidObject.SetCollisionMaskValue(i, objectCollisionM.GetCollisionMaskValue(i));
+			rigidObject.Visible = true;
+			rigidObject.Sleeping = false;
+
+			Sprite2D characterSprite = (Sprite2D) characterObject.GetNode("Sprite2D");
+			characterSprite.Texture.GetWidth();
+			rigidObject.GlobalPosition = new Vector2(characterObject.GlobalPosition.X + characterSprite.Texture.GetWidth()/2, characterObject.GlobalPosition.Y);
+			rigidObject.LinearVelocity = Vector2.Zero;
+			magCharComp.DettachMetalObject();
 		}
-		characterObject.RemoveChild(magnetSprite);
-
-		rigidObject.Visible = true;
-		rigidObject.Sleeping = false;
-
-		Sprite2D characterSprite = (Sprite2D) characterObject.GetNode("Sprite2D");
-		characterSprite.Texture.GetWidth();
-		rigidObject.GlobalPosition = new Vector2(characterObject.GlobalPosition.X + characterSprite.Texture.GetWidth()/2, characterObject.GlobalPosition.Y);
-
-		magCharComp.DettachMetalObject();
 	}
 
 	public bool IsBeingHeld() {
