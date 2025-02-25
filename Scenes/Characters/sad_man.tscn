@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://dfb1yy2rehbyp"]
+
+[ext_resource type="PackedScene" uid="uid://bmlhmqerb8kjf" path="res://Scenes/Components/magnetic_character_component.tscn" id="1_k23hm"]
+[ext_resource type="Texture2D" uid="uid://buecc67mwix1c" path="res://Assets/Sprites/SadMan.png" id="2_1ul4k"]
+[ext_resource type="PackedScene" uid="uid://b145p5mykonho" path="res://Scenes/Objects/ball.tscn" id="3_riyyy"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_sg3ei"]
+radius = 57.0
+height = 222.0
+
+[node name="SadMan" type="CharacterBody2D"]
+collision_layer = 32
+collision_mask = 45
+
+[node name="MagneticCharacterComponent" parent="." instance=ExtResource("1_k23hm")]
+largeCharacter = true
+exitTimerDefault = 5.005
+
+[node name="Ball" parent="MagneticCharacterComponent" instance=ExtResource("3_riyyy")]
+position = Vector2(11, 37)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(1.00001, 7.62939e-06)
+scale = Vector2(1.71094, 1.71094)
+texture = ExtResource("2_1ul4k")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_sg3ei")

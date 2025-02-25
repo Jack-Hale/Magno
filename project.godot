@@ -19,10 +19,6 @@ config/icon="res://icon.svg"
 
 project/assembly_name="magno"
 
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/godot-box2d/plugin.cfg")
-
 [input]
 
 MoveLeft={
