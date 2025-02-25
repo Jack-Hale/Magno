@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 public partial class MagneticComponent : Node2D
@@ -20,12 +21,19 @@ public partial class MagneticComponent : Node2D
 
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
+	private float exitTimer = 0;
+	private bool inExitSequence = false;
+	private bool largeCharacter;
+	private float exitTimerDefault;
+
 
 	private Node rigidObjectParent;
 	private Sprite2D magnetSprite = null;
 
 	private RigidBody2D objectCollisionL = new RigidBody2D();
 	private RigidBody2D objectCollisionM = new RigidBody2D();
+
+	private Tuple<bool, Vector2> magnetData = new Tuple<bool, Vector2>(false, Vector2.Inf);
 	
 	public MagneticComponent() {
 		Name = "MagneticComponent";
@@ -35,6 +43,7 @@ public partial class MagneticComponent : Node2D
 		magCharComp = magneticCharacterComponent;
 		Name = "MagneticComponent";
 		AddToGroup("MagneticComponent");
+		largeCharacter = magCharComp.GetLargeCharacter();
 	}
 
 	// Called when the node enters the scene tree for the first time.
@@ -94,6 +103,9 @@ public partial class MagneticComponent : Node2D
 					GD.PushError(objectParent, " requires MagneticCharacterComponent");
 				}
 
+				exitTimerDefault = magCharComp.GetExitTimerDefault();
+				largeCharacter = magCharComp.GetLargeCharacter();
+
 				rigidObjectParent = magCharComp.GetParent().GetParent();
 
 				// Generates the RigidBody2D copy of the character
@@ -133,17 +145,38 @@ public partial class MagneticComponent : Node2D
 	}
 
 	public override void _Draw() {
-        DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 1.0f);
+        DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 4.0f);
 	}
 
     public override void _Process(double delta) {
-		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
+		if (Input.IsActionJustPressed("ToggleGodmode")) {
 			EnableRigidObject();
 		}
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(double delta) {
+		if (characterObject != null) {
+			if (!inExitSequence && largeCharacter && characterObject.IsInGroup("Affected")) {
+				exitTimer = exitTimerDefault;
+				inExitSequence = true;
+			}
+
+			if (inExitSequence) {
+				if (exitTimer > 0) {
+					exitTimer -= (float) delta;
+				} else {
+					EnableRigidObject();
+					inExitSequence = false;
+				}
+
+				if (inExitSequence && !characterObject.IsInGroup("Affected")) {
+					inExitSequence = false;
+				}
+			}
+
+		}
+
 		QueueRedraw();
 	}
 
@@ -166,9 +199,18 @@ public partial class MagneticComponent : Node2D
 
 			Sprite2D characterSprite = (Sprite2D) characterObject.GetNode("Sprite2D");
 			characterSprite.Texture.GetWidth();
-			rigidObject.GlobalPosition = new Vector2(characterObject.GlobalPosition.X + characterSprite.Texture.GetWidth()/2, characterObject.GlobalPosition.Y);
+
+			// Ensures the rigidObject spawns in the direction of the magnet force when exiting character
+			var direction = (magCharComp.GetBodyCopyMagnetData().Item2 - characterObject.GlobalPosition).Normalized();
+			Vector2 spawnLocation = characterObject.GlobalPosition + (magCharComp.GetBodyCopyMagnetData().Item1 ? 1 : -1) * (direction * (characterSprite.Texture.GetWidth() / 2));
+
+			rigidObject.GlobalPosition = spawnLocation;
 			rigidObject.LinearVelocity = Vector2.Zero;
+			
+			characterObject = null;
+			largeCharacter = false;
 			magCharComp.DettachMetalObject();
+			magCharComp = null;
 		}
 	}
 
@@ -184,19 +226,27 @@ public partial class MagneticComponent : Node2D
 	}
 
 	// Applies the Magnetic force onto the parent object
-	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta) {
+	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta, bool largeCharacter) {
+		if (largeCharacter) {
+			magnetData = new Tuple<bool, Vector2>(pull, attractionPoint);
+		} else {
 
-		// Vector that is positive or negative depending on what pull mode the magnet is in
-		Vector2 pushForce = pull ? attractionPoint - rigidObject.GlobalPosition : rigidObject.GlobalPosition - attractionPoint;
-	
-		// Vector that is larger the closer the Object is to the magnet
-		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(rigidObject.GlobalPosition), 1, beamLength);
-
-		float multiplier = blast ? blastMultiplier : strongMagnet ? strongMultiplier : weakMultiplier;
+			// Vector that is positive or negative depending on what pull mode the magnet is in
+			Vector2 pushForce = pull ? attractionPoint - rigidObject.GlobalPosition : rigidObject.GlobalPosition - attractionPoint;
 		
-		if (rigidObject != null) {
-			rigidObject.ApplyForce(pushForce * magnetStrength * multiplier * (float)delta, collisionPoint - rigidObject.GlobalPosition);
+			// Vector that is larger the closer the Object is to the magnet
+			float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(rigidObject.GlobalPosition), 1, beamLength);
+
+			float multiplier = blast ? blastMultiplier : strongMagnet ? strongMultiplier : weakMultiplier;
+			
+			if (rigidObject != null) {
+				rigidObject.ApplyForce(pushForce * magnetStrength * multiplier * (float)delta, collisionPoint - rigidObject.GlobalPosition);
+			}
 		}
+	}
+
+	public Tuple<bool, Vector2> GetMagnetData() {
+		return magnetData;
 	}
 
 	public MagneticCharacterComponent GetMagneticCharacterComponent() {
@@ -213,5 +263,9 @@ public partial class MagneticComponent : Node2D
 
 	public RigidBody2D GetObject() {
 		return rigidObject;
+	}
+
+	public bool GetLargeCharacter() {
+		return largeCharacter;
 	}
 }

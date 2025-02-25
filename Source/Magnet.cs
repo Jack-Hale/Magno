@@ -120,7 +120,7 @@ public partial class Magnet : Area2D
 			// magneticComponent.ZeroVelocity();
 
 			if (blast) {
-				magneticComponent.ForceObject(attachedObject.GlobalPosition, GlobalPosition, beamLength, pullMode, false, true, delta);
+				magneticComponent.ForceObject(attachedObject.GlobalPosition, GlobalPosition, beamLength, pullMode, false, true, delta, false);
 
 				MagneticCharacterComponent magCharComp = magneticComponent.GetMagneticCharacterComponent();
 
@@ -196,115 +196,118 @@ public partial class Magnet : Area2D
 							magComp.GetMagnetParent().Dettach();
 						}
 						magComp.SetMagnetParent(this);
-
 						AttachObject(body, magComp);
 					}
+					if (!magComp.GetLargeCharacter()) {
 
-					// Fire two raycasts along both edges of the magnet beam
-					var spaceState = GetWorld2D().DirectSpaceState;
+						// Fire two raycasts along both edges of the magnet beam
+						var spaceState = GetWorld2D().DirectSpaceState;
 
-					// Get the outer edges of the beam as two vectors represented by start and end
-					var start1 = ToGlobal(_beamArea.Polygon[1]);
-					var end1 = ToGlobal(_beamArea.Polygon[2]);
-					var start2 = ToGlobal(_beamArea.Polygon[0]);
-					var end2 = ToGlobal(_beamArea.Polygon[3]);
+						// Get the outer edges of the beam as two vectors represented by start and end
+						var start1 = ToGlobal(_beamArea.Polygon[1]);
+						var end1 = ToGlobal(_beamArea.Polygon[2]);
+						var start2 = ToGlobal(_beamArea.Polygon[0]);
+						var end2 = ToGlobal(_beamArea.Polygon[3]);
 
-					var query1 = PhysicsRayQueryParameters2D.Create(start1, end1, _magnetBeam.CollisionMask);
-					var query2 = PhysicsRayQueryParameters2D.Create(start2, end2, _magnetBeam.CollisionMask);
-				
-					query1.Exclude = new Array<Rid>();
-					query2.Exclude = new Array<Rid>();
+						var query1 = PhysicsRayQueryParameters2D.Create(start1, end1, _magnetBeam.CollisionMask);
+						var query2 = PhysicsRayQueryParameters2D.Create(start2, end2, _magnetBeam.CollisionMask);
+					
+						query1.Exclude = new Array<Rid>();
+						query2.Exclude = new Array<Rid>();
 
-					Dictionary finalResult1 = null;
-					Dictionary finalResult2 = null;
+						Dictionary finalResult1 = null;
+						Dictionary finalResult2 = null;
 
-					bool breakCheck1 = true;
-					bool breakCheck2 = true;
+						bool breakCheck1 = true;
+						bool breakCheck2 = true;
 
-					Array<Rid> exclusionArray1 = new Array<Rid>{};
-					Array<Rid> exclusionArray2 = new Array<Rid>{};
+						Array<Rid> exclusionArray1 = new Array<Rid>{};
+						Array<Rid> exclusionArray2 = new Array<Rid>{};
 
-					const int maxIterations = 40;
-					int iterationCount = 0;
+						const int maxIterations = 40;
+						int iterationCount = 0;
 
-					while (breakCheck1 || breakCheck2) {
-						
-						if (breakCheck1) {
-							// Add list of objects found that aren't the target to exclusion list
-							query1.Exclude = exclusionArray1;
+						while (breakCheck1 || breakCheck2) {
+							
+							if (breakCheck1) {
+								// Add list of objects found that aren't the target to exclusion list
+								query1.Exclude = exclusionArray1;
 
-							// Generate new query result
-							var result1 = spaceState.IntersectRay(query1);
+								// Generate new query result
+								var result1 = spaceState.IntersectRay(query1);
 
-							// Check if the result contains a valid collider
-							if (result1.Count != 0 && breakCheck1) {
-								Rid currentRid1 = (Rid)result1["rid"];
+								// Check if the result contains a valid collider
+								if (result1.Count != 0 && breakCheck1) {
+									Rid currentRid1 = (Rid)result1["rid"];
 
-								// If the current collider is the target body, close off query track
-								if (currentRid1 == body.GetRid())
-								{
-									finalResult1 = result1;
+									// If the current collider is the target body, close off query track
+									if (currentRid1 == body.GetRid())
+									{
+										finalResult1 = result1;
+										breakCheck1 = false;
+									}
+									
+									// Exclude the current collider from the next query
+									exclusionArray1.Add(currentRid1);
+								} else {
+									// Target not found
 									breakCheck1 = false;
 								}
-								
-								// Exclude the current collider from the next query
-								exclusionArray1.Add(currentRid1);
-							} else {
-								// Target not found
-								breakCheck1 = false;
 							}
-						}
 
-						if (breakCheck2) {
-							// Add list of objects found that aren't the target to exclusion list
-							query2.Exclude = exclusionArray2;
-							
-							// Generate new query result
-							var result2 = spaceState.IntersectRay(query2);
-
-							// Check if the result contains a valid collider
-							if (result2.Count != 0 && breakCheck2) {
-								Rid currentRid2 = (Rid)result2["rid"];
+							if (breakCheck2) {
+								// Add list of objects found that aren't the target to exclusion list
+								query2.Exclude = exclusionArray2;
 								
-								// If the current collider is the target body, close off query track
-								if (currentRid2 == body.GetRid())
-								{
-									finalResult2 = result2;
+								// Generate new query result
+								var result2 = spaceState.IntersectRay(query2);
+
+								// Check if the result contains a valid collider
+								if (result2.Count != 0 && breakCheck2) {
+									Rid currentRid2 = (Rid)result2["rid"];
+									
+									// If the current collider is the target body, close off query track
+									if (currentRid2 == body.GetRid())
+									{
+										finalResult2 = result2;
+										breakCheck2 = false;
+									}
+									
+									// Exclude the current collider from the next query
+									exclusionArray2.Add(currentRid2);
+								} else {
+									// Target not found
 									breakCheck2 = false;
 								}
-								
-								// Exclude the current collider from the next query
-								exclusionArray2.Add(currentRid2);
-							} else {
-								// Target not found
-								breakCheck2 = false;
+							}
+							// If maximum interations reached, exit the loop
+							iterationCount++;
+							if (iterationCount >= maxIterations) {
+								break; 
 							}
 						}
-						// If maximum interations reached, exit the loop
-						iterationCount++;
-						if (iterationCount >= maxIterations) {
-							break; 
+
+						Vector2 collisionPoint = Vector2.Zero;
+
+						// If only one query found target, get the position of that query
+						if (finalResult1 != null && finalResult2 == null) {
+							collisionPoint = (Vector2)finalResult1["position"];
+
+						} else if (finalResult1 == null && finalResult2 != null) {
+							collisionPoint = (Vector2)finalResult2["position"];
+							
+						// If both queries found target, get position between both points
+						} else if (finalResult1 != null && finalResult2 != null) {
+							Vector2 position1 = (Vector2)finalResult1["position"];
+							Vector2 position2 = (Vector2)finalResult2["position"];
+							collisionPoint = position1.Lerp(position2, 0.5f);
 						}
-					}
-
-					Vector2 collisionPoint = Vector2.Zero;
-
-					// If only one query found target, get the position of that query
-					if (finalResult1 != null && finalResult2 == null) {
-						collisionPoint = (Vector2)finalResult1["position"];
-
-					} else if (finalResult1 == null && finalResult2 != null) {
-						collisionPoint = (Vector2)finalResult2["position"];
 						
-					// If both queries found target, get position between both points
-					} else if (finalResult1 != null && finalResult2 != null) {
-						Vector2 position1 = (Vector2)finalResult1["position"];
-						Vector2 position2 = (Vector2)finalResult2["position"];
-						collisionPoint = position1.Lerp(position2, 0.5f);
+						magComp.ForceObject(collisionPoint, GlobalPosition, beamLength, pullMode, strongMagnet, false, delta, false);
+					} else {
+						// No forces applied if object is part of a large character, only magnet data is shared
+						magComp.ForceObject(Vector2.Zero, GlobalPosition, beamLength, pullMode, strongMagnet, false, delta, true);
 					}
-					
-					magComp.ForceObject(collisionPoint, GlobalPosition, beamLength, pullMode, strongMagnet, false, delta);
-					
 				}
 			}
 		}
@@ -339,6 +342,7 @@ public partial class Magnet : Area2D
 
 					// Uses the magcharcomp to get the bodycopy of the character before switching to rigid
 					if (magCharComp != null) {
+						
 						RigidBody2D bodyCopy = magCharComp.GetBodyCopy();
 						body.AddToGroup("Affected");
 						MagneticComponent newObject = (MagneticComponent) bodyCopy.GetNode("MagneticComponent");
@@ -348,6 +352,7 @@ public partial class Magnet : Area2D
 
 							attractedObjects.Add(bodyCopy, newObject);
 						}
+						
 					}
 				} else {
 					// Just adds the rigidbody and its magnetic component to the list

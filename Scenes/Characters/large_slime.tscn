@@ -9,9 +9,10 @@
 radius = 54.0093
 
 [node name="LargeSlime" type="Node2D"]
+metadata/_edit_horizontal_guides_ = [-64.0]
 
 [node name="MagneticCharacterComponent" parent="." instance=ExtResource("1_4tb6h")]
-LargeCharacter = true
+largeCharacter = true
 
 [node name="LargeSlime" type="CharacterBody2D" parent="."]
 collision_layer = 32
