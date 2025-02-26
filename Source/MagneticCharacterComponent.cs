@@ -2,6 +2,13 @@ using Godot;
 using System;
 using System.IO;
 
+public enum SwapCondition
+{
+	SwapWhenHitSurface,
+	SwapWhenLetGo,
+	SwapAfterTimeLimit
+}
+
 public partial class MagneticCharacterComponent : Node2D
 {
 	[Export]
@@ -9,13 +16,6 @@ public partial class MagneticCharacterComponent : Node2D
 
 	[Export]
 	public float swapTimeLimit = 0.5f;
-
-	public enum SwapCondition
-	{
-		SwapWhenHitSurface,
-		SwapWhenLetGo,
-		SwapAfterTimeLimit
-	}
 
 	[Export]
 	public bool largeCharacter = false;
@@ -89,8 +89,8 @@ public partial class MagneticCharacterComponent : Node2D
 		}
 	}
 	public override void _Draw() {
-        // DrawLine(ToLocal(draw2 + new Vector2(2,0)), ToLocal(draw2 - new Vector2(2,0)), Colors.Red, 4.0f);
-        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
+        DrawLine(ToLocal(draw2 + new Vector2(2,0)), ToLocal(draw2 - new Vector2(2,0)), Colors.Red, 4.0f);
+        DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -133,7 +133,10 @@ public partial class MagneticCharacterComponent : Node2D
 			isCharacter = false;
 
 			bodyCopy.ProcessMode = ProcessModeEnum.Inherit;
-			bodyCopy.GlobalTransform = character.GetGlobalTransform();
+			bodyCopy.GlobalPosition = character.GlobalPosition;
+			bodyCopy.LinearVelocity = Vector2.Zero;
+			bodyCopy.AngularVelocity = 0;
+			bodyCopy.Rotation = character.Rotation;
 
 			ReplaceCollisions(character, true);
 			bodyCopy.Visible = true;
@@ -141,24 +144,25 @@ public partial class MagneticCharacterComponent : Node2D
         	character.Visible = false;
 			ReplaceCollisions(bodyCopy, false);
 
-			character.ProcessMode = ProcessModeEnum.Disabled;
+			// character.ProcessMode = ProcessModeEnum.Disabled;
 		}
 	}
 
 	// Swaps back to the character from the bodycopy
 	public void SwapToCharacter() {
 		if (!isCharacter && !ragdoll && !largeCharacter) {
+
 			character.Velocity = bodyCopy.LinearVelocity;
 			isCharacter = true;
-			character.ProcessMode = ProcessModeEnum.Inherit;
+			// character.ProcessMode = ProcessModeEnum.Inherit;
 			character.GlobalPosition = bodyCopy.GlobalPosition;
+			character.Velocity = bodyCopy.LinearVelocity;
 
 			ReplaceCollisions(character, false);
 			bodyCopy.Visible = false;
         	bodyCopy.Sleeping = true;
         	character.Visible = true;
 			ReplaceCollisions(bodyCopy, true);
-
 
 			bodyCopy.ProcessMode = ProcessModeEnum.Disabled;
 
@@ -260,5 +264,17 @@ public partial class MagneticCharacterComponent : Node2D
 
 	public Tuple<bool, Vector2> GetBodyCopyMagnetData() {
 		return bodyCopyMagComp.GetMagnetData();
+	}
+
+	public Tuple<Vector2, Vector2> GetBodyCopyForceData() {
+		return bodyCopyMagComp.GetForceData();
+	}
+
+	public void ApplyForceBodyCopy(Vector2 force, Vector2 position) {
+		bodyCopy.ApplyForce(force, position);
+	}
+
+	public void ApplyTorqueBodyCopy(float torque) {
+		bodyCopy.ApplyTorque(torque);
 	}
 }

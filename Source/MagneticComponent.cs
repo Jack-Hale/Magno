@@ -1,7 +1,5 @@
 using Godot;
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 
 public partial class MagneticComponent : Node2D
 {
@@ -34,6 +32,7 @@ public partial class MagneticComponent : Node2D
 	private RigidBody2D objectCollisionM = new RigidBody2D();
 
 	private Tuple<bool, Vector2> magnetData = new Tuple<bool, Vector2>(false, Vector2.Inf);
+	private Tuple<Vector2, Vector2> forceData = new Tuple<Vector2, Vector2>(Vector2.Zero, Vector2.Zero);
 	
 	public MagneticComponent() {
 		Name = "MagneticComponent";
@@ -156,6 +155,7 @@ public partial class MagneticComponent : Node2D
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(double delta) {
+		
 		if (characterObject != null) {
 			if (!inExitSequence && largeCharacter && characterObject.IsInGroup("Affected")) {
 				exitTimer = exitTimerDefault;
@@ -227,26 +227,35 @@ public partial class MagneticComponent : Node2D
 
 	// Applies the Magnetic force onto the parent object
 	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta, bool largeCharacter) {
-		if (largeCharacter) {
-			magnetData = new Tuple<bool, Vector2>(pull, attractionPoint);
-		} else {
-
-			// Vector that is positive or negative depending on what pull mode the magnet is in
-			Vector2 pushForce = pull ? attractionPoint - rigidObject.GlobalPosition : rigidObject.GlobalPosition - attractionPoint;
 		
-			// Vector that is larger the closer the Object is to the magnet
-			float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(rigidObject.GlobalPosition), 1, beamLength);
 
-			float multiplier = blast ? blastMultiplier : strongMagnet ? strongMultiplier : weakMultiplier;
-			
+		// Vector that is positive or negative depending on what pull mode the magnet is in
+		Vector2 pushForce = pull ? attractionPoint - rigidObject.GlobalPosition : rigidObject.GlobalPosition - attractionPoint;
+	
+		// Vector that is larger the closer the Object is to the magnet
+		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(rigidObject.GlobalPosition), 1, beamLength);
+
+		float multiplier = blast ? blastMultiplier : strongMagnet ? strongMultiplier : weakMultiplier;
+
+		Vector2 force = pushForce * magnetStrength * multiplier * (float)delta;
+		Vector2 position = collisionPoint - rigidObject.GlobalPosition;
+		
+		magnetData = new Tuple<bool, Vector2>(pull, attractionPoint);
+		forceData = new Tuple<Vector2, Vector2>(force, position);
+
+		if (!largeCharacter) {
 			if (rigidObject != null) {
-				rigidObject.ApplyForce(pushForce * magnetStrength * multiplier * (float)delta, collisionPoint - rigidObject.GlobalPosition);
+				rigidObject.ApplyForce(force, position);
 			}
 		}
 	}
 
 	public Tuple<bool, Vector2> GetMagnetData() {
 		return magnetData;
+	}
+
+	public Tuple<Vector2, Vector2> GetForceData() {
+		return forceData;
 	}
 
 	public MagneticCharacterComponent GetMagneticCharacterComponent() {

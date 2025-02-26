@@ -107,7 +107,6 @@ public partial class Magnet : Area2D
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta) {
-
 		// Removing velocity on first tick object is removed
 		if (!isObjectAttached && attachedObject != null) {
 			
@@ -140,7 +139,6 @@ public partial class Magnet : Area2D
 		if (_magnetBeam.Position != new Vector2(32, 0)) {
 			_magnetBeam.Position = new Vector2(32, 0);
 		}
-
 	}
 
     public override void _PhysicsProcess(double delta) {
@@ -317,7 +315,6 @@ public partial class Magnet : Area2D
 		if (!_beamCheck1.IsColliding() && !_beamCheck2.IsColliding() && !_beamCheck3.IsColliding() && attractedObjects.Count > 0 && !isObjectAttached) {
 			DettachAll();
 		}
-
 		QueueRedraw();
     }
 
