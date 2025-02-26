@@ -12,6 +12,7 @@ radius = 54.0093
 metadata/_edit_horizontal_guides_ = [-64.0]
 
 [node name="MagneticCharacterComponent" parent="." instance=ExtResource("1_4tb6h")]
+exitCondition = 1
 largeCharacter = true
 
 [node name="LargeSlime" type="CharacterBody2D" parent="."]

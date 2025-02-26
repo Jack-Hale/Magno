@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=4 uid="uid://l55oyjoo6cul"]
+[gd_scene load_steps=6 format=4 uid="uid://l55oyjoo6cul"]
 
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_0rdck"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/Characters/player.tscn" id="2_5mf3d"]
 [ext_resource type="PackedScene" uid="uid://c4cdcu4q84oud" path="res://Scenes/Characters/slime.tscn" id="3_8ocbn"]
+[ext_resource type="PackedScene" uid="uid://4btydsdp2bk7" path="res://Scenes/Characters/guy.tscn" id="4_703ki"]
+[ext_resource type="PackedScene" uid="uid://dfb1yy2rehbyp" path="res://Scenes/Characters/sad_man.tscn" id="6_stiq4"]
 
 [node name="TestLevel" type="Node2D"]
 
@@ -14,4 +16,10 @@ tile_set = ExtResource("1_0rdck")
 position = Vector2(596, 310)
 
 [node name="Slime" parent="." instance=ExtResource("3_8ocbn")]
-position = Vector2(390, 323)
+position = Vector2(894, 259)
+
+[node name="Guy" parent="." instance=ExtResource("4_703ki")]
+position = Vector2(586, 74)
+
+[node name="SadMan" parent="." instance=ExtResource("6_stiq4")]
+position = Vector2(280, 278)

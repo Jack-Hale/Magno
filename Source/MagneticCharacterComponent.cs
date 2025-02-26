@@ -2,15 +2,26 @@ using Godot;
 using System;
 using System.IO;
 
-public enum SwapCondition
-{
+public enum SwapCondition {
 	SwapWhenHitSurface,
 	SwapWhenLetGo,
 	SwapAfterTimeLimit
 }
 
-public partial class MagneticCharacterComponent : Node2D
-{
+public enum ExitCondition {
+	CannotExit,
+	TimeLimit,
+	StrongForce,
+	Throw
+}
+
+public partial class MagneticCharacterComponent : Node2D {
+	[Export]
+	public ExitCondition exitCondition;
+
+	[Export]
+	public float exitTimer = 2;
+
 	[Export]
 	public SwapCondition swapCondition;
 
@@ -20,8 +31,6 @@ public partial class MagneticCharacterComponent : Node2D
 	[Export]
 	public bool largeCharacter = false;
 
-	[Export]
-	public float exitTimerDefault = 2;
 	private Node2D parent;
 	private CharacterBody2D character;
 
@@ -176,9 +185,12 @@ public partial class MagneticCharacterComponent : Node2D
 		character.RemoveFromGroup("Magnetic");
 		SwapToCharacter();
 		Vector2 position = character.GlobalPosition;
+
 		parent.RemoveChild(character);
 		parent.GetParent().AddChild(character);
+
 		character.GlobalPosition = position;
+
 		QueueFree();
 	}
 
@@ -224,7 +236,7 @@ public partial class MagneticCharacterComponent : Node2D
 	}
 
 	public float GetExitTimerDefault() {
-		return exitTimerDefault;
+		return exitTimer;
 	}
 
 	// Replaces collision layer/mask with either no collisions or the original collisions
@@ -268,6 +280,10 @@ public partial class MagneticCharacterComponent : Node2D
 
 	public Tuple<Vector2, Vector2> GetBodyCopyForceData() {
 		return bodyCopyMagComp.GetForceData();
+	}
+
+	public Tuple<bool, bool> GetBodyCopyStrengthData() {
+		return bodyCopyMagComp.GetStrengthData();
 	}
 
 	public void ApplyForceBodyCopy(Vector2 force, Vector2 position) {

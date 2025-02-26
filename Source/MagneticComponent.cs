@@ -33,6 +33,7 @@ public partial class MagneticComponent : Node2D
 
 	private Tuple<bool, Vector2> magnetData = new Tuple<bool, Vector2>(false, Vector2.Inf);
 	private Tuple<Vector2, Vector2> forceData = new Tuple<Vector2, Vector2>(Vector2.Zero, Vector2.Zero);
+	private Tuple<bool, bool> strengthData = new Tuple<bool, bool>(false, false);
 	
 	public MagneticComponent() {
 		Name = "MagneticComponent";
@@ -155,26 +156,40 @@ public partial class MagneticComponent : Node2D
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(double delta) {
-		
-		if (characterObject != null) {
-			if (!inExitSequence && largeCharacter && characterObject.IsInGroup("Affected")) {
-				exitTimer = exitTimerDefault;
-				inExitSequence = true;
+		if (characterObject != null && rigidObject != null) {
+			switch (magCharComp.exitCondition)
+			{
+				case ExitCondition.TimeLimit:
+					if (!inExitSequence && characterObject.IsInGroup("Affected")) {
+						exitTimer = exitTimerDefault;
+						inExitSequence = true;
+					}
+
+					if (inExitSequence) {
+						if (exitTimer > 0) {
+							exitTimer -= (float) delta;
+						} else {
+							EnableRigidObject();
+							inExitSequence = false;
+						}
+
+						if (inExitSequence && !characterObject.IsInGroup("Affected")) {
+							inExitSequence = false;
+						}
+					}
+
+					break;
+				case ExitCondition.StrongForce:
+					if (magCharComp.GetBodyCopyStrengthData().Item2) {
+						EnableRigidObject();
+					}
+					break;
+				case ExitCondition.Throw:
+					if (magCharComp.GetBodyCopyStrengthData().Item1) {
+						EnableRigidObject();
+					}
+					break;
 			}
-
-			if (inExitSequence) {
-				if (exitTimer > 0) {
-					exitTimer -= (float) delta;
-				} else {
-					EnableRigidObject();
-					inExitSequence = false;
-				}
-
-				if (inExitSequence && !characterObject.IsInGroup("Affected")) {
-					inExitSequence = false;
-				}
-			}
-
 		}
 
 		QueueRedraw();
@@ -183,10 +198,12 @@ public partial class MagneticComponent : Node2D
 	// Destroys connection between Character and Rigid objects and removes any ability for Character to be magnetic
 	public void EnableRigidObject() {
 		if (characterObject != null) {
+			magCharComp.SwapToCharacter();
 			Node parent = rigidObject.GetParent();
 			parent.RemoveChild(rigidObject);
 			
 			rigidObjectParent.AddChild(rigidObject);
+
 
 			for (int i = 1; i <= 32; i++) {
 				rigidObject.SetCollisionLayerValue(i, objectCollisionL.GetCollisionLayerValue(i));
@@ -198,15 +215,18 @@ public partial class MagneticComponent : Node2D
 			rigidObject.Sleeping = false;
 
 			Sprite2D characterSprite = (Sprite2D) characterObject.GetNode("Sprite2D");
-			characterSprite.Texture.GetWidth();
+			float width = characterSprite.Texture.GetWidth();
+			float height = characterSprite.Texture.GetHeight();
+			double characterSize = Math.Sqrt(Math.Pow(width/2, 2) + Math.Pow(height/2, 2));
+			GD.Print($"width {width/2} heigh {height/2} angle {characterSize}");
 
 			// Ensures the rigidObject spawns in the direction of the magnet force when exiting character
 			var direction = (magCharComp.GetBodyCopyMagnetData().Item2 - characterObject.GlobalPosition).Normalized();
-			Vector2 spawnLocation = characterObject.GlobalPosition + (magCharComp.GetBodyCopyMagnetData().Item1 ? 1 : -1) * (direction * (characterSprite.Texture.GetWidth() / 2));
+			Vector2 spawnLocation = characterObject.GlobalPosition + (magCharComp.GetBodyCopyMagnetData().Item1 ? 1 : -1) * (direction * ((float)characterSize));
 
 			rigidObject.GlobalPosition = spawnLocation;
 			rigidObject.LinearVelocity = Vector2.Zero;
-			
+
 			characterObject = null;
 			largeCharacter = false;
 			magCharComp.DettachMetalObject();
@@ -242,6 +262,7 @@ public partial class MagneticComponent : Node2D
 		
 		magnetData = new Tuple<bool, Vector2>(pull, attractionPoint);
 		forceData = new Tuple<Vector2, Vector2>(force, position);
+		strengthData = new Tuple<bool, bool>(blast, strongMagnet);
 
 		if (!largeCharacter) {
 			if (rigidObject != null) {
@@ -256,6 +277,10 @@ public partial class MagneticComponent : Node2D
 
 	public Tuple<Vector2, Vector2> GetForceData() {
 		return forceData;
+	}
+
+	public Tuple<bool, bool> GetStrengthData() {
+		return strengthData;
 	}
 
 	public MagneticCharacterComponent GetMagneticCharacterComponent() {
