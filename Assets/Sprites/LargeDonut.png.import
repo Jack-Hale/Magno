@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://wcs34mqtgsrf"
-path="res://.godot/imported/bruh.png-1dc57833351111e1890971cdc09473ae.ctex"
+uid="uid://bqrrw65bssv5b"
+path="res://.godot/imported/LargeDonut.png-7e524991ac08b7822b27cbfc22ce8773.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Scenes/bruh.png"
-dest_files=["res://.godot/imported/bruh.png-1dc57833351111e1890971cdc09473ae.ctex"]
+source_file="res://Assets/Sprites/LargeDonut.png"
+dest_files=["res://.godot/imported/LargeDonut.png-7e524991ac08b7822b27cbfc22ce8773.ctex"]
 
 [params]
 

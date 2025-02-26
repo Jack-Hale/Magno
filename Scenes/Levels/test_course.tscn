@@ -1,11 +1,11 @@
 [gd_scene load_steps=7 format=4 uid="uid://bpefa84koqvya"]
 
-[ext_resource type="PackedScene" uid="uid://cng7ilmvsvmbl" path="res://Scenes/reset_area.tscn" id="1_kynq6"]
+[ext_resource type="PackedScene" uid="uid://cng7ilmvsvmbl" path="res://Scenes/Items/reset_area.tscn" id="1_kynq6"]
 [ext_resource type="Texture2D" uid="uid://cyr8e60umod7f" path="res://Assets/BackgroundSprites/WhiteImage.jpg" id="2_mgkrt"]
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="3_hh7fn"]
-[ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/player.tscn" id="4_qbula"]
-[ext_resource type="PackedScene" uid="uid://dnj20y18w3snv" path="res://Scenes/big_box.tscn" id="5_eu5ew"]
-[ext_resource type="PackedScene" uid="uid://b145p5mykonho" path="res://Scenes/ball.tscn" id="6_2kcg3"]
+[ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/Characters/player.tscn" id="4_qbula"]
+[ext_resource type="PackedScene" uid="uid://dnj20y18w3snv" path="res://Scenes/Objects/big_box.tscn" id="5_eu5ew"]
+[ext_resource type="PackedScene" uid="uid://b145p5mykonho" path="res://Scenes/Objects/ball.tscn" id="6_2kcg3"]
 
 [node name="TestCourse" type="Node2D"]
 
@@ -70,7 +70,7 @@ tile_map_data = PackedByteArray("AAAoACYABAAEAAAAAAAoACcABAAEAAEAAAAoACgABAAEAAI
 tile_set = ExtResource("3_hh7fn")
 
 [node name="Player" parent="." instance=ExtResource("4_qbula")]
-position = Vector2(5903, -653)
+position = Vector2(251, 551)
 
 [node name="ResetPoint" type="Marker2D" parent="."]
 position = Vector2(551, 379)
@@ -124,10 +124,10 @@ position = Vector2(6435, -773)
 position = Vector2(6573, -773)
 
 [node name="BigBox19" parent="." instance=ExtResource("5_eu5ew")]
-position = Vector2(6104, -597)
+position = Vector2(6551, -843)
 
 [node name="BigBox20" parent="." instance=ExtResource("5_eu5ew")]
-position = Vector2(6011, -593)
+position = Vector2(6455, -844)
 
 [node name="BigBox18" parent="." instance=ExtResource("5_eu5ew")]
 position = Vector2(6504, -773)
@@ -139,13 +139,13 @@ position = Vector2(6599, -577)
 position = Vector2(6534, -577)
 
 [node name="Ball" parent="." instance=ExtResource("6_2kcg3")]
-position = Vector2(6957, -821)
+position = Vector2(6267, -577)
 
 [node name="Ball2" parent="." instance=ExtResource("6_2kcg3")]
-position = Vector2(6889, -727)
+position = Vector2(6554, -915)
 
 [node name="Ball3" parent="." instance=ExtResource("6_2kcg3")]
-position = Vector2(6928, -1026)
+position = Vector2(6457, -913)
 
 [node name="Ball4" parent="." instance=ExtResource("6_2kcg3")]
-position = Vector2(6924, -683)
+position = Vector2(6736, -584)

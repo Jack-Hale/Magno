@@ -1,9 +1,9 @@
 using Godot;
 using System;
 
-public partial class Slime : CharacterBody2D
-{
-	public const float speed = 300.0f;
+public partial class Guy : CharacterBody2D
+{	
+public const float speed = 300.0f;
 	public const float jumpVelocity = -400.0f;
 
 	private bool affected = true;

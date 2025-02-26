@@ -6,27 +6,27 @@ using System.Linq;
 public partial class Player : CharacterBody2D
 {
 	[Export]
-	public float MAX_SPEED = 400;
+	public float maxSpeed = 400;
 	[Export]
-	public float JUMP_VELOCITY = -180f;
+	public float jumpVelocity = -180f;
 	[Export]
-	public float JUMP_HOLD_TIME = 0.15f;
+	public float jumpHoldTime = 0.15f;
 	[Export]
-	public float FRICTION = 2200f;
+	public float friction = 2200f;
 	[Export]
-	public float AIR_FRICTION = 1f;
+	public float airFriction = 1f;
 
 	[Export]
-	public float ACCELERATION = 2200f;
+	public float acceleration = 2200f;
 	[Export]
-	public float AIR_ACCELERATION = 1800f;
+	public float airAcceleration = 1800f;
 	[Export]
-	public float PUSH_FORCE = 80f;
+	public float pushForce = 80f;
 
-	public float CurrentJumpVelocity = 0f;
-	public bool Jumping = false;
-	public float CurrentJumpTimer = 0f;
-	public float JumpScalar = 1f;
+	public float currentJumpVelocity = 0f;
+	public bool jumping = false;
+	public float currentJumpTimer = 0f;
+	public float jumpScalar = 1f;
 
 	private const float coyoteTimerMax = 0.10f;
 	private float coyoteTimer = 0f;
@@ -37,10 +37,10 @@ public partial class Player : CharacterBody2D
 
 	private Magnet _magnet;
 
-	private Vector2 DrawVector1 = Vector2.Zero;
-	private Vector2 DrawVector2 = Vector2.Zero;
+	private Vector2 drawVector1 = Vector2.Zero;
+	private Vector2 drawVector2 = Vector2.Zero;
 
-	private bool Godmode = false;
+	private bool godMode = false;
 
 	private Magnet magnet;
 
@@ -74,13 +74,13 @@ public partial class Player : CharacterBody2D
 
 	public override void _Draw()
     {
-        DrawLine(DrawVector1, DrawVector2, Colors.Green, 1.0f);
+        DrawLine(drawVector1, drawVector2, Colors.Green, 1.0f);
     }
 
     public override void _Process(double delta)
     {
 		// Activates Coyote timer if the player walks off an edge without jumping
-		if (wasOnFloor && !IsOnFloor() && !Jumping) {
+		if (wasOnFloor && !IsOnFloor() && !jumping) {
 			coyoteTimer = coyoteTimerMax;
 		}
 
@@ -108,16 +108,7 @@ public partial class Player : CharacterBody2D
 		HandleMagnet();
 
 		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
-			Godmode = !Godmode;
-
-			// foreach (var item in GetParent().GetChildren())
-			// {
-			// 	if (item is RigidBody2D body) {
-			// 		body.AngularVelocity = 0;
-			// 		body.LinearVelocity = Vector2.Zero;
-			// 	}
-			// }
-
+			// godMode = !godMode;
 		}
 
 		// Flipping the sprite to face the way its moving
@@ -151,7 +142,7 @@ public partial class Player : CharacterBody2D
 			_magnet.SetPullMode(pullMode);
 		}
 
-		if (!Godmode) {
+		if (!godMode) {
 			// Add the gravity.
 			if (!IsOnFloor())
 				NewVelocity.Y += gravity * (float)delta;
@@ -173,7 +164,7 @@ public partial class Player : CharacterBody2D
 			KinematicCollision2D collision = GetSlideCollision(i);
 			if (collision.GetCollider() is RigidBody2D) {
 				RigidBody2D c = (RigidBody2D) collision.GetCollider();
-				c.ApplyCentralImpulse(-collision.GetNormal() * PUSH_FORCE);
+				c.ApplyCentralImpulse(-collision.GetNormal() * pushForce);
 			}
 		}
 	}
@@ -214,25 +205,25 @@ public partial class Player : CharacterBody2D
 		// Jump pressed while on the floor or the coyote timer is active, set jump velocity to max
 		// Will jump when jump key is not pressed if the jump buffer is active
 		if ((IsOnFloor() && jumpBufferTimer > 0) || Godot.Input.IsActionJustPressed("Jump") && (IsOnFloor() || coyoteTimer > 0)) {
-			CurrentJumpVelocity = JUMP_VELOCITY;
-			CurrentJumpTimer = JUMP_HOLD_TIME;
-			Jumping = true;
+			currentJumpVelocity = jumpVelocity;
+			currentJumpTimer = jumpHoldTime;
+			jumping = true;
 		}
 
 		// Jump is held down, decrease the timer
-		if (Godot.Input.IsActionPressed("Jump") && Jumping) {
-			CurrentJumpTimer -= 1f * (float)delta;
-			CurrentJumpVelocity += 140 * CurrentJumpTimer;
+		if (Godot.Input.IsActionPressed("Jump") && jumping) {
+			currentJumpTimer -= 1f * (float)delta;
+			currentJumpVelocity += 140 * currentJumpTimer;
 		}
 
 		// Jump was released or timer ran out, stop jump sequence
-		if (Godot.Input.IsActionJustReleased("Jump") || CurrentJumpTimer <= 0.0f) {
-			Jumping = false;
-			CurrentJumpVelocity = 0;
+		if (Godot.Input.IsActionJustReleased("Jump") || currentJumpTimer <= 0.0f) {
+			jumping = false;
+			currentJumpVelocity = 0;
 		}
 
-		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor()) return CurrentJumpVelocity - 60f;
-		else return CurrentJumpVelocity;
+		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor()) return currentJumpVelocity - 60f;
+		else return currentJumpVelocity;
 	}
 
 	public float MovePlayer(double delta) {
@@ -246,10 +237,10 @@ public partial class Player : CharacterBody2D
 		if (Input == Vector2.Zero)
 		{
 			// Player is moving, Apply friction to reduce speed
-			if (Math.Abs(NewVelocity.X) > (FRICTION * (float)delta))
+			if (Math.Abs(NewVelocity.X) > (friction * (float)delta))
 			{
 				// Friction is set based on land or air
-				NewVelocity -= NewVelocity.Normalized() * (IsOnFloor() ? FRICTION : AIR_FRICTION) * (float)delta;
+				NewVelocity -= NewVelocity.Normalized() * (IsOnFloor() ? friction : airFriction) * (float)delta;
 			}
 
 			// Player is not moving
@@ -261,8 +252,8 @@ public partial class Player : CharacterBody2D
 		// Input, Add acceleration
 		else if (!Godot.Input.IsActionPressed("MoveDown") || IsOnFloor())
 		{
-			NewVelocity += Input * (IsOnFloor() ? ACCELERATION : AIR_ACCELERATION) * (float)delta;
-			NewVelocity = NewVelocity.LimitLength(MAX_SPEED);
+			NewVelocity += Input * (IsOnFloor() ? acceleration : airAcceleration) * (float)delta;
+			NewVelocity = NewVelocity.LimitLength(maxSpeed);
 		}
 
 		return NewVelocity.X;
@@ -271,7 +262,7 @@ public partial class Player : CharacterBody2D
 	public Vector2 GodmodeMove(double delta) {
 		Input = GetInput();
 		
-		return Input * MAX_SPEED*2;
+		return Input * maxSpeed*2;
 	}
 
 	public void UpdateAnimations() {
@@ -279,7 +270,7 @@ public partial class Player : CharacterBody2D
 			if (Velocity.X == 0) {
 				_animationPlayer.Play("idle");
 			}
-			else if (Mathf.Abs(Velocity.X) > MAX_SPEED) {
+			else if (Mathf.Abs(Velocity.X) > maxSpeed) {
 				_animationPlayer.Play("run");
 			}
 			else {

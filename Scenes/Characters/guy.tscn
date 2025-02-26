@@ -1,0 +1,26 @@
+[gd_scene load_steps=6 format=3 uid="uid://4btydsdp2bk7"]
+
+[ext_resource type="Texture2D" uid="uid://dmiecbveok1ib" path="res://Assets/Sprites/Magnoman.png" id="1_0tl6n"]
+[ext_resource type="Script" path="res://Source/Guy.cs" id="1_8uvnm"]
+[ext_resource type="PackedScene" uid="uid://bmlhmqerb8kjf" path="res://Scenes/Components/magnetic_character_component.tscn" id="2_8otn6"]
+[ext_resource type="PackedScene" uid="uid://m30ped810gwe" path="res://Scenes/Components/magnetic_component.tscn" id="2_jmke4"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hbdjf"]
+radius = 16.0312
+
+[node name="Guy" type="Node2D"]
+
+[node name="MagneticCharacterComponent" parent="." instance=ExtResource("2_8otn6")]
+
+[node name="Guy" type="CharacterBody2D" parent="."]
+collision_layer = 32
+collision_mask = 45
+script = ExtResource("1_8uvnm")
+
+[node name="Sprite2D" type="Sprite2D" parent="Guy"]
+texture = ExtResource("1_0tl6n")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Guy"]
+shape = SubResource("CircleShape2D_hbdjf")
+
+[node name="MagneticComponent" parent="Guy" instance=ExtResource("2_jmke4")]
