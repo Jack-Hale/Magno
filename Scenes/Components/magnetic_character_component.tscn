@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bmlhmqerb8kjf"]
 
-[ext_resource type="Script" path="res://Source/MagneticCharacterComponent.cs" id="1_cfewa"]
+[ext_resource type="Script" path="res://Source/Components/MagneticCharacterComponent.cs" id="1_cfewa"]
 
 [node name="MagneticCharacterComponent" type="Node2D"]
 script = ExtResource("1_cfewa")

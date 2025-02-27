@@ -22,4 +22,4 @@ position = Vector2(894, 259)
 position = Vector2(586, 74)
 
 [node name="SadMan" parent="." instance=ExtResource("6_stiq4")]
-position = Vector2(280, 278)
+position = Vector2(278, 254)

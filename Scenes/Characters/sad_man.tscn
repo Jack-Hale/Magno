@@ -1,5 +1,6 @@
-[gd_scene load_steps=8 format=3 uid="uid://dfb1yy2rehbyp"]
+[gd_scene load_steps=9 format=3 uid="uid://dfb1yy2rehbyp"]
 
+[ext_resource type="Script" path="res://Source/Components/MagneticCharacterParent.cs" id="1_3jsrk"]
 [ext_resource type="PackedScene" uid="uid://bmlhmqerb8kjf" path="res://Scenes/Components/magnetic_character_component.tscn" id="1_k23hm"]
 [ext_resource type="Texture2D" uid="uid://buecc67mwix1c" path="res://Assets/Sprites/SadMan.png" id="2_1ul4k"]
 [ext_resource type="Script" path="res://Source/SadMan.cs" id="2_ncm33"]
@@ -17,6 +18,7 @@ radius = 62.05
 height = 256.0
 
 [node name="SadMan" type="Node2D"]
+script = ExtResource("1_3jsrk")
 
 [node name="MagneticCharacterComponent" parent="." instance=ExtResource("1_k23hm")]
 exitCondition = 1

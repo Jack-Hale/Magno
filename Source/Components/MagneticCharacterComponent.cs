@@ -52,49 +52,55 @@ public partial class MagneticCharacterComponent : Node2D {
 	public override void _Ready() {
 		parent = (Node2D)GetParent();
 
-		foreach (var child in parent.GetChildren()) {
-			if (child is CharacterBody2D) {
-				character = (CharacterBody2D)child;
-				break;
-			}
-		}
-
-		character.AddToGroup("MagneticCharacter");
-
-		// Intialising a copy of the characterBody2D as a rigidBody2D
-		bodyCopy = new RigidBody2D();
-		parent.CallDeferred("add_child", bodyCopy);
-
-		collisionL = new RigidBody2D();
-		collisionM = new RigidBody2D();
-
-		if (character != null) {
-			
-			// Creating a copy the collision mask and layer of character
-			for (int i = 1; i <= 32; i++) {
-				collisionL.SetCollisionLayerValue(i, character.GetCollisionLayerValue(i));
-				collisionM.SetCollisionMaskValue(i, character.GetCollisionMaskValue(i));
+		if (parent is MagneticCharacterParent) {
+	
+			foreach (var child in parent.GetChildren()) {
+				if (child is CharacterBody2D) {
+					character = (CharacterBody2D)child;
+					break;
+				}
 			}
 
-			bodyCopy.MaxContactsReported = 1;
+			character.AddToGroup("MagneticCharacter");
 
-			ReplaceCollisions(bodyCopy, true);
+			// Intialising a copy of the characterBody2D as a rigidBody2D
+			bodyCopy = new RigidBody2D();
+			parent.CallDeferred("add_child", bodyCopy);
 
-			bodyCopy.AddToGroup("Magnetic");
-			bodyCopy.AddToGroup("BodyCopy");
-			bodyCopy.Name = "BODYCOPY";
+			collisionL = new RigidBody2D();
+			collisionM = new RigidBody2D();
 
-			bodyCopy.Connect("body_entered", new Callable(this, MethodName.OnBodyEntered));
+			if (character != null) {
+				
+				// Creating a copy the collision mask and layer of character
+				for (int i = 1; i <= 32; i++) {
+					collisionL.SetCollisionLayerValue(i, character.GetCollisionLayerValue(i));
+					collisionM.SetCollisionMaskValue(i, character.GetCollisionMaskValue(i));
+				}
 
-			// Disabling BodyCopy
-			bodyCopy.Visible = false;
-        	bodyCopy.Sleeping = true;
-        	character.Visible = true;
+				bodyCopy.MaxContactsReported = 1;
 
-			bodyCopy.ProcessMode = ProcessModeEnum.Disabled;
+				ReplaceCollisions(bodyCopy, true);
+
+				bodyCopy.AddToGroup("Magnetic");
+				bodyCopy.AddToGroup("BodyCopy");
+				bodyCopy.Name = "BODYCOPY";
+
+				bodyCopy.Connect("body_entered", new Callable(this, MethodName.OnBodyEntered));
+
+				// Disabling BodyCopy
+				bodyCopy.Visible = false;
+				bodyCopy.Sleeping = true;
+				character.Visible = true;
+
+				bodyCopy.ProcessMode = ProcessModeEnum.Disabled;
+			} else {
+				GD.PrintErr("MagneticCharacteComponent ", this, ", does not have a CharacterBody2D next to it in Scene Tree ", GetParent());
+				GD.PushError("MagneticCharacteComponent ", this, ", does not have a CharacterBody2D next to it in Scene Tree ", GetParent());
+			}
 		} else {
-			GD.PrintErr("MagneticCharacteComponent ", this, ", does not have a CharacterBody2D next to it in Scene Tree", GetParent());
-			GD.PushError("MagneticCharacteComponent ", this, ", does not have a CharacterBody2D next to it in Scene Tree", GetParent());
+			GD.PrintErr("MagneticCharacteComponent ", this, ", does not have a parent of type MagneticCharacteParent ", GetParent());
+			GD.PushError("MagneticCharacteComponent ", this, ", does not have a parent of type MagneticCharacteParent ", GetParent());
 		}
 	}
 	public override void _Draw() {

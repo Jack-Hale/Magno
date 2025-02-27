@@ -1,5 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://3rk5mpt6d7p3"]
+[gd_scene load_steps=7 format=3 uid="uid://3rk5mpt6d7p3"]
 
+[ext_resource type="Script" path="res://Source/Components/MagneticCharacterParent.cs" id="1_0f4vy"]
 [ext_resource type="PackedScene" uid="uid://bmlhmqerb8kjf" path="res://Scenes/Components/magnetic_character_component.tscn" id="1_4tb6h"]
 [ext_resource type="Script" path="res://Source/LargeSlime.cs" id="2_7ule6"]
 [ext_resource type="PackedScene" uid="uid://bhbmgmno8rorh" path="res://Scenes/Objects/metal_box.tscn" id="2_iovpo"]
@@ -9,6 +10,7 @@
 radius = 54.0093
 
 [node name="LargeSlime" type="Node2D"]
+script = ExtResource("1_0f4vy")
 metadata/_edit_horizontal_guides_ = [-64.0]
 
 [node name="MagneticCharacterComponent" parent="." instance=ExtResource("1_4tb6h")]
