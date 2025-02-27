@@ -22,7 +22,7 @@ public partial class MagneticComponent : Node2D
 	private Vector2 draw2 = Vector2.Zero;
 	private float exitTimer = 0;
 	private bool inExitSequence = false;
-	private bool largeCharacter;
+	private bool noRigidPhysics;
 	private float exitTimerDefault;
 
 
@@ -44,7 +44,7 @@ public partial class MagneticComponent : Node2D
 		magCharComp = magneticCharacterComponent;
 		Name = "MagneticComponent";
 		AddToGroup("MagneticComponent");
-		largeCharacter = magCharComp.GetLargeCharacter();
+		noRigidPhysics = magCharComp.GetLargeCharacter();
 	}
 
 	// Called when the node enters the scene tree for the first time.
@@ -105,7 +105,7 @@ public partial class MagneticComponent : Node2D
 				}
 
 				exitTimerDefault = magCharComp.GetExitTimerDefault();
-				largeCharacter = magCharComp.GetLargeCharacter();
+				noRigidPhysics = magCharComp.GetLargeCharacter();
 
 				rigidObjectParent = magCharComp.GetParent().GetParent();
 
@@ -158,6 +158,8 @@ public partial class MagneticComponent : Node2D
 		if (characterObject != null && rigidObject != null) {
 			switch (magCharComp.exitCondition)
 			{
+				case ExitCondition.CannotExit:
+					break;
 				case ExitCondition.TimeLimit:
 					if (!inExitSequence && characterObject.IsInGroup("Affected")) {
 						exitTimer = exitTimerDefault;
@@ -234,7 +236,7 @@ public partial class MagneticComponent : Node2D
 			rigidObject.LinearVelocity = Vector2.Zero;
 
 			characterObject = null;
-			largeCharacter = false;
+			noRigidPhysics = false;
 			magCharComp.DettachMetalObject();
 			magCharComp = null;
 		}
@@ -306,6 +308,6 @@ public partial class MagneticComponent : Node2D
 	}
 
 	public bool GetLargeCharacter() {
-		return largeCharacter;
+		return noRigidPhysics;
 	}
 }

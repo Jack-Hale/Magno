@@ -24,6 +24,8 @@ script = ExtResource("1_3jsrk")
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]
 script = ExtResource("2_xktru")
+exitCondition = 1
+exitTimer = 5.0
 
 [node name="SadMan" type="CharacterBody2D" parent="."]
 collision_layer = 32

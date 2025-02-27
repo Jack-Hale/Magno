@@ -1,6 +1,8 @@
 using Godot;
+using Godot.Collections;
 using System;
 using System.IO;
+using System.Security.Principal;
 
 public enum SwapCondition {
 	SwapWhenHitSurface,
@@ -29,7 +31,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	public float swapTimeLimit = 0.5f;
 
 	[Export]
-	public bool largeCharacter = false;
+	public bool noRigidPhysics = false;
 
 	private Node2D parent;
 	private CharacterBody2D character;
@@ -144,7 +146,7 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	// Swaps the CharacterBody2D with the Rigidbody2D bodyCopy
 	public void SwapToRigid() {
-		if (isCharacter && !largeCharacter) {
+		if (isCharacter && !noRigidPhysics) {
 			isCharacter = false;
 
 			bodyCopy.ProcessMode = ProcessModeEnum.Inherit;
@@ -165,7 +167,7 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	// Swaps back to the character from the bodycopy
 	public void SwapToCharacter() {
-		if (!isCharacter && !ragdoll && !largeCharacter) {
+		if (!isCharacter && !ragdoll && !noRigidPhysics) {
 
 			character.Velocity = bodyCopy.LinearVelocity;
 			isCharacter = true;
@@ -201,7 +203,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	}
 
 	public bool IsLargeCharacter() {
-		return largeCharacter;
+		return noRigidPhysics;
 	}
 
 	// Sets the rag doll timer to the corresponding value for the swap condition
@@ -238,7 +240,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	}
 	
 	public bool GetLargeCharacter() {
-		return largeCharacter;
+		return noRigidPhysics;
 	}
 
 	public float GetExitTimerDefault() {
@@ -265,10 +267,23 @@ public partial class MagneticCharacterComponent : Node2D {
 	public RigidBody2D InitialiseBodyCopy() {
 		foreach (var child in character.GetChildren()) {
 			if (!child.IsInGroup("MagneticComponent")) {
+
+				// Duplicating all children of character into bodyCopy except the metal object
 				if (!child.IsInGroup("Magnetic")) {
 					bodyCopy.AddChild(child.Duplicate());
 				} else {
-					bodyCopy.AddChild(child.GetNode("Sprite2D").Duplicate());
+					// Extracting just the sprite from the metal object to put in bodyCopy
+					Array<Node> children = child.GetChildren();
+					for (int i = 0; i < children.Count; i++) {
+						if (children[i] is Sprite2D && child is PhysicsBody2D metalObject) {
+
+							// Sprite2D originalSprite = (Sprite2D) children[i];
+							Sprite2D duplicateSprite = (Sprite2D) children[i].Duplicate();
+							duplicateSprite.Position = metalObject.Position;
+
+							bodyCopy.AddChild(duplicateSprite);
+						}
+					}
 				}
 			}
 		}
