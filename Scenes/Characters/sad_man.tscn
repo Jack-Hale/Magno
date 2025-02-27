@@ -19,7 +19,7 @@ height = 256.0
 [node name="SadMan" type="Node2D"]
 
 [node name="MagneticCharacterComponent" parent="." instance=ExtResource("1_k23hm")]
-exitCondition = 2
+exitCondition = 1
 exitTimer = 5.0
 largeCharacter = true
 
