@@ -100,7 +100,7 @@ public partial class Magnet : Area2D
 
 	public override void _Draw()
     {
-        DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
+        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
         // DrawLine(ToLocal(draw3), ToLocal(draw4), Colors.Blue, 4.0f);
         // DrawLine(ToLocal(draw5), ToLocal(draw6), Colors.Blue, 3.0f);
 	}

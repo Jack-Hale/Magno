@@ -74,7 +74,7 @@ public partial class Player : CharacterBody2D
 
 	public override void _Draw()
     {
-        DrawLine(drawVector1, drawVector2, Colors.Green, 1.0f);
+        // DrawLine(drawVector1, drawVector2, Colors.Green, 1.0f);
     }
 
     public override void _Process(double delta)

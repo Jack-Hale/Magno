@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using System;
 
 public partial class MagneticComponent : Node2D
@@ -145,13 +146,11 @@ public partial class MagneticComponent : Node2D
 	}
 
 	public override void _Draw() {
-        DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 4.0f);
+        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 4.0f);
 	}
 
     public override void _Process(double delta) {
-		if (Input.IsActionJustPressed("ToggleGodmode")) {
-			EnableRigidObject();
-		}
+
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -214,7 +213,14 @@ public partial class MagneticComponent : Node2D
 			rigidObject.Visible = true;
 			rigidObject.Sleeping = false;
 
-			Sprite2D characterSprite = (Sprite2D) characterObject.GetNode("Sprite2D");
+			Sprite2D characterSprite = null;
+			Array<Node> characterChildren = characterObject.GetChildren();
+			for (int i = 0; i < characterChildren.Count; i++) {
+				if (characterChildren[i] is Sprite2D sprite) {
+					characterSprite = sprite;
+				}
+			}
+
 			float width = characterSprite.Texture.GetWidth();
 			float height = characterSprite.Texture.GetHeight();
 			double characterSize = Math.Sqrt(Math.Pow(width/2, 2) + Math.Pow(height/2, 2));

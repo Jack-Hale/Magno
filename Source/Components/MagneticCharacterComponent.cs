@@ -104,8 +104,8 @@ public partial class MagneticCharacterComponent : Node2D {
 		}
 	}
 	public override void _Draw() {
-        DrawLine(ToLocal(draw2 + new Vector2(2,0)), ToLocal(draw2 - new Vector2(2,0)), Colors.Red, 4.0f);
-        DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
+        // DrawLine(ToLocal(draw2 + new Vector2(2,0)), ToLocal(draw2 - new Vector2(2,0)), Colors.Red, 4.0f);
+        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

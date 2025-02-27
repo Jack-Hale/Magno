@@ -23,10 +23,16 @@ public const float speed = 300.0f;
 	// Position on the enemy the force is being applied
 	private Vector2 magnetForcePosition = Vector2.Zero;  
 
+	private Sprite2D _Happy;
+	private Sprite2D _Sad;
+
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 
 	public override void _Ready() {
+		_Happy = GetNode<Sprite2D>("Sprite2D");
+		_Sad = GetNode<Sprite2D>("Sad");
+
 		foreach (var child in GetParent().GetChildren()) {
 			if (child is MagneticCharacterComponent) {
 				magCharComp = (MagneticCharacterComponent) child;
@@ -58,6 +64,8 @@ public const float speed = 300.0f;
 				magnetAttractionPoint = Vector2.Zero;
 			}
 		} else {
+			_Sad.Visible = true;
+			_Happy.Visible = false;
 			affected = false;
 			magCharComp = null;
 		}
