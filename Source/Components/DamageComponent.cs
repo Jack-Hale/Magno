@@ -27,6 +27,8 @@ public partial class DamageComponent : Node {
 	private Vector2 previousPosition;
     private float deltaTime;
 	private float parentSpeed;
+
+	private float impactSpeed;
 	private Dictionary<PhysicsBody2D, HealthComponent> damageArray = new Dictionary<PhysicsBody2D, HealthComponent>();
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -51,24 +53,22 @@ public partial class DamageComponent : Node {
 			GD.PushError($"DamageComponent {this}, does not have parent of type CollisionObject2D. Parent is, {GetParent().GetType()}, {GetParent().Name}");
 		}
 	}
-    public override void _Process(double delta)
-    {
-		
-
+    public override void _Process(double delta) {
+		// Calculating the speed of damage object based on position rather than velocity
+		// This prevents it from damaging things when it has high velocity but is not moving (up against a wall, etc)
+        float distance = parent.Position.DistanceTo(previousPosition);
+        parentSpeed = distance / (float) delta;
+        previousPosition = parent.Position;
     }
 
     public override void _PhysicsProcess(double delta) {
-		deltaTime += (float) delta;  // Accumulate time
-        float distance = parent.Position.DistanceTo(previousPosition);
-        parentSpeed = distance / deltaTime;
-        previousPosition = parent.Position;
-
 		if (canDamage) {
 			if (damageArray.Keys.Count > 0) {
 				float damageAmountCalc = damageAmount;
 				if (velocityScaling) {
-					if (parentSpeed >= velocityScalingThreshold) {
-						damageAmountCalc += velocityScalingAmount * parentSpeed;
+					// Parent speed must exceed threshold to do damage
+					if (impactSpeed >= velocityScalingThreshold) {
+						damageAmountCalc += velocityScalingAmount * impactSpeed;
 
 						if (damageAmountCalc > scaledDamageMax) {
 							damageAmountCalc = scaledDamageMax;
@@ -78,9 +78,11 @@ public partial class DamageComponent : Node {
 						damageAmountCalc = 0;
 					}
 				}
-				foreach (var body in damageArray.Keys) {
-					HealthComponent healthComponent = damageArray[body];
-					healthComponent.TakeDamage(damageAmountCalc, damageCooldown, parent.GetInstanceId());
+				if (damageAmountCalc > 0) {
+					foreach (var body in damageArray.Keys) {
+						HealthComponent healthComponent = damageArray[body];
+						healthComponent.TakeDamage(damageAmountCalc, damageCooldown, parent.GetInstanceId());
+					}
 				}
 			}
 		}
@@ -91,12 +93,11 @@ public partial class DamageComponent : Node {
 			Array<Node> bodyChildren = physicsBody.GetChildren();
 			for (int i = 0; i < bodyChildren.Count; i++) {
 				if (bodyChildren[i] is HealthComponent healthComponent && !damageArray.ContainsKey(physicsBody)) {
+					impactSpeed = parentSpeed / 100;
 					damageArray.Add(physicsBody, healthComponent);
 				}
 			}
 		}
-		
-
 	}
 
 	public void OnBodyExited(Node body) {

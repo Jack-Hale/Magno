@@ -13,6 +13,16 @@ public struct DamageCooldown {
     }
 }
 
+public struct DamageNumber {
+    public ulong LabelID;
+    public float Timer;
+
+    public DamageNumber(ulong labelID, float timer) {
+        LabelID = labelID;
+        Timer = timer;
+    }
+}
+
 // [Tool]
 public partial class HealthComponent : Node2D {
 	[Export]
@@ -28,7 +38,8 @@ public partial class HealthComponent : Node2D {
 	HealthComponent passThroughHC;
 	bool sceneClass = false;
 
-	List<DamageCooldown> activeCooldowns = new List<DamageCooldown>();
+	List<DamageCooldown> activeCooldowns = new();
+	Queue<DamageNumber> activeDamageNumbers = new Queue<DamageNumber>(20);
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -85,6 +96,7 @@ public partial class HealthComponent : Node2D {
 	public override void _PhysicsProcess(double delta) {
 		if (!sceneClass) {
 
+			UpdateDamageNumbers((float) delta);
 			UpdateCooldowns((float) delta);
 
 			if (requirePassThrough) {
@@ -93,7 +105,7 @@ public partial class HealthComponent : Node2D {
 				}
 			}
 
-			if (health <= 0 && !requirePassThrough) {
+			if (health <= 0) {
 				RunDeathSequence();
 			}
 		}
@@ -103,7 +115,7 @@ public partial class HealthComponent : Node2D {
 		if (!sceneClass) {
 			if (requirePassThrough) {
 				passThroughHC.TakeDamage(amount, cooldown, source);
-			} else {
+			} else if (amount != 0) {
 				_progressBar.Value = health;
 
 				for (int i = 0; i < activeCooldowns.Count; i++) {
@@ -117,6 +129,8 @@ public partial class HealthComponent : Node2D {
 				if (activeCooldowns.Count < 30) {
 					activeCooldowns.Add(new DamageCooldown(source, cooldown));
 				}
+
+				CreateDamageNumber(amount);
 			}
 		}
 	}
@@ -142,6 +156,50 @@ public partial class HealthComponent : Node2D {
 				passThroughHC.RunDeathSequence();
 			} else {
 				character.GlobalPosition = Vector2.Inf;
+			}
+		}
+	}
+
+	// Generates a damage number that appears above the enemy that was hurt
+	public void CreateDamageNumber(float damageAmount) {
+		if (requirePassThrough) {
+			passThroughHC.CreateDamageNumber(damageAmount);
+		} else {
+			Label damageNumber = new();
+			damageNumber.Text = ((int)damageAmount).ToString();
+
+			damageNumber.SetPosition(new Vector2((_progressBar.GetRect().Size.X / 2) - (damageNumber.GetMinimumSize().X / 2), _progressBar.GetRect().Size.Y - 30));
+			AddChild(damageNumber);
+			
+			activeDamageNumbers.Enqueue(new DamageNumber(damageNumber.GetInstanceId(), 3));
+		}
+	}
+
+	public void UpdateDamageNumbers(float delta) {
+		if (!sceneClass) {
+			if (requirePassThrough) {
+				passThroughHC.UpdateDamageNumbers(delta);
+			} else {
+				if (activeDamageNumbers.Count > 0) {
+					if (activeDamageNumbers.Peek().Timer <= 0) {
+						RemoveChild((Label) InstanceFromId(activeDamageNumbers.Dequeue().LabelID));
+					}
+
+					Queue<DamageNumber> queue = activeDamageNumbers;
+
+					for (int i = 0; i < activeDamageNumbers.Count; i++) {
+
+						DamageNumber damageNumber = queue.Dequeue();
+
+						Label label = (Label) InstanceFromId(damageNumber.LabelID);
+						label.SetPosition(new Vector2(label.Position.X, label.Position.Y - delta * 30f));
+
+						damageNumber.Timer = damageNumber.Timer - delta;
+
+						queue.Enqueue(damageNumber);
+					}
+					activeDamageNumbers = queue;
+				}
 			}
 		}
 	}
