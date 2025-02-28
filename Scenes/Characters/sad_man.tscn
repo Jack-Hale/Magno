@@ -58,4 +58,3 @@ position = Vector2(11, 36)
 position = Vector2(-88, -165)
 scale = Vector2(2.96, 2.345)
 script = ExtResource("6_18a6b")
-maxHealth = 400.0
