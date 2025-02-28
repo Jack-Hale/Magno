@@ -46,6 +46,14 @@ public partial class MagneticCharacterComponent : Node2D {
 	private float ragdollTimer = 0;
 	private bool ragdoll = false;
 
+	// Variables for calculating swap rotation
+	private float lastAngularVelocity = 0f;
+	private float rotationDuration = 1.5f;
+	private float rotationTime = 0f;
+	private float startRotation;
+	private float targetRotation;
+	private bool isRotatingPostSwap = false;
+
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
 
@@ -138,6 +146,40 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	public override void _PhysicsProcess(double delta)	{
 
+		// Rotates the character back to 0 gradually once switched to character from rigid
+		if (isRotatingPostSwap) {
+			rotationTime += (float) delta;
+
+			float t = Mathf.Clamp(rotationTime / rotationDuration, 0, 1);
+
+			character.Rotation = Mathf.LerpAngle(startRotation, targetRotation, t);
+
+			// Stop rotation when finished
+			if (t >= 1)
+			{
+				character.Rotation = 0;
+				isRotatingPostSwap = false;
+			}
+		}
+
+
+
+		// float normalizedCurrent = NormalizeAngle0To2Pi(character.Rotation);
+    	// float normalizedLast = NormalizeAngle0To2Pi(lastCharacterRotation);
+
+		// GD.Print(normalizedCurrent, " : ", normalizedLast, " : ", bodyCopy.AngularVelocity);
+
+		// if (isCharacter && MathF.Abs(normalizedCurrent - normalizedLast) > MathF.PI && lastBodyCopyAngularVelocity != float.MaxValue) {
+		// 	lastCharacterRotation = character.Rotation;
+		// 	character.Rotation = character.Rotation + (lastBodyCopyAngularVelocity >= 0 ? 1 : -1) * 4 * (float)delta;
+		// } else {
+		// 	character.Rotation = 0;
+		// 	// GD.Print(character.Rotation, " : ", lastBodyCopyAngularVelocity);
+		// }
+	}
+
+	float NormalizeAngle0To2Pi(float angle) {
+		return (angle % (2 * MathF.PI) + (2 * MathF.PI)) % (2 * MathF.PI);
 	}
 
 	private void OnBodyEntered(Node body) {
@@ -183,7 +225,22 @@ public partial class MagneticCharacterComponent : Node2D {
 
 			bodyCopy.ProcessMode = ProcessModeEnum.Disabled;
 
-			character.Rotation = 0;
+			lastAngularVelocity = bodyCopy.AngularVelocity;
+			startRotation = bodyCopy.Rotation;
+			character.Rotation = startRotation;
+			rotationTime = 0f;
+			isRotatingPostSwap = true;
+
+			// Determine the target rotation based on the direction of spin
+			if (lastAngularVelocity > 0) {
+				// Counterclockwise
+				targetRotation = (startRotation > 0) ? 0f : Mathf.Tau;
+			} else {
+				// Clockwise
+				targetRotation = (startRotation < 0) ? 0f : -Mathf.Tau; 
+			}
+
+			rotationDuration = 0.1f;
 		}
 	}
 

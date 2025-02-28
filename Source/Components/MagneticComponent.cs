@@ -226,7 +226,6 @@ public partial class MagneticComponent : Node2D
 			float width = characterSprite.Texture.GetWidth();
 			float height = characterSprite.Texture.GetHeight();
 			double characterSize = Math.Sqrt(Math.Pow(width/2, 2) + Math.Pow(height/2, 2));
-			GD.Print($"width {width/2} heigh {height/2} angle {characterSize}");
 
 			// Ensures the rigidObject spawns in the direction of the magnet force when exiting character
 			var direction = (magCharComp.GetBodyCopyMagnetData().Item2 - characterObject.GlobalPosition).Normalized();
