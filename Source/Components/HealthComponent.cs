@@ -23,7 +23,7 @@ public struct DamageNumber {
     }
 }
 
-// [Tool]
+[Tool]
 public partial class HealthComponent : Node2D {
 	[Export]
 	float maxHealth = 100;
@@ -155,6 +155,9 @@ public partial class HealthComponent : Node2D {
 			if (requirePassThrough) {
 				passThroughHC.RunDeathSequence();
 			} else {
+				if (character.IsInGroup("MagneticCharacter")) {
+					
+				}
 				character.GlobalPosition = Vector2.Inf;
 			}
 		}

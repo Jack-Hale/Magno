@@ -28,5 +28,5 @@ text = "Killing Sphere"
 
 [node name="DamageComponent" type="Node2D" parent="."]
 script = ExtResource("3_0w6rd")
-damageAmount = 200.0
+damageAmount = 1.0
 damageCooldown = 0.01

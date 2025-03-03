@@ -16,18 +16,15 @@ public partial class MagneticComponent : Node2D
 	private Magnet magnetParent;
 	private MagneticCharacterComponent magCharComp;
 
-	private RigidBody2D bodyCopy;
-
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
 	private float exitTimer = 0;
 	private bool inExitSequence = false;
-	private bool noRigidPhysics;
+	private bool isRigidPhysics;
 	private float exitTimerDefault;
 
 
 	private Node rigidObjectParent;
-	private Sprite2D magnetSprite = null;
 
 	private RigidBody2D objectCollisionL = new RigidBody2D();
 	private RigidBody2D objectCollisionM = new RigidBody2D();
@@ -44,11 +41,12 @@ public partial class MagneticComponent : Node2D
 		magCharComp = magneticCharacterComponent;
 		Name = "MagneticComponent";
 		AddToGroup("MagneticComponent");
-		noRigidPhysics = magCharComp.GetLargeCharacter();
+		isRigidPhysics = magCharComp.GetIsRigidPhysics();
 	}
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
+
 		Node parent = GetParent();
 
 		if (parent is RigidBody2D) {
@@ -57,23 +55,9 @@ public partial class MagneticComponent : Node2D
 
 			rigidObject.AddToGroup("Magnetic");
 
-			// Checks if the magnetic object is a part of a larger body that it needs to
-			// impart its magneticism onto
 			if (objectParent is PhysicsBody2D) {
-				objectParent = (PhysicsBody2D) objectParent;
-								
-				// Getting a copy of the sprite to add to the parent
-				foreach (var child in rigidObject.GetChildren()) {
-					if (child is Sprite2D) {
-						magnetSprite = (Sprite2D) child.Duplicate();
-						break;
-					}
-				}
 
-				if (magnetSprite != null) {
-					magnetSprite.Position = rigidObject.Position;
-					objectParent.CallDeferred("add_child", magnetSprite);
-				}
+				objectParent = (PhysicsBody2D) objectParent;
 
 				// Disabling the rigid object while it is within the larger object
 				for (int i = 1; i <= 32; i++) {
@@ -86,11 +70,9 @@ public partial class MagneticComponent : Node2D
 				
 				rigidObject.Visible = false;
 				rigidObject.Sleeping = true;
-				// Object.ProcessMode = ProcessModeEnum.Disabled;
-
 			}
 
-			// Handling if parent object is a CharacterBody2D
+			// Character contains a magnetic object that imparts its magneticism onto the character
 			if (objectParent is CharacterBody2D) {
 				foreach (var child in objectParent.GetParent().GetChildren()) {
 					if (child is MagneticCharacterComponent) {
@@ -105,12 +87,8 @@ public partial class MagneticComponent : Node2D
 				}
 
 				exitTimerDefault = magCharComp.GetExitTimerDefault();
-				noRigidPhysics = magCharComp.GetLargeCharacter();
-
+				isRigidPhysics = magCharComp.GetIsRigidPhysics();
 				rigidObjectParent = magCharComp.GetParent().GetParent();
-
-				// Generates the RigidBody2D copy of the character
-				bodyCopy = magCharComp.InitialiseBodyCopy();
 
 				characterObject = (CharacterBody2D) objectParent;
 				characterObject.AddToGroup("Magnetic");
@@ -120,6 +98,7 @@ public partial class MagneticComponent : Node2D
 				rigid.ContinuousCd = RigidBody2D.CcdMode.CastShape;
 			}
 
+		// Character doesnt contain a magnetic object and is magnetic itself
 		} else if (parent is CharacterBody2D objectParent) {
 
 			foreach (var child in objectParent.GetParent().GetChildren()) {
@@ -134,9 +113,6 @@ public partial class MagneticComponent : Node2D
 				GD.PushError(objectParent, " requires MagneticCharacterComponent");
 			}
 
-			// Generates the RigidBody2D copy of the character
-			bodyCopy = magCharComp.InitialiseBodyCopy();
-
 			characterObject = objectParent;
 			characterObject.AddToGroup("Magnetic");
 		} else {
@@ -148,10 +124,6 @@ public partial class MagneticComponent : Node2D
 	public override void _Draw() {
         // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 4.0f);
 	}
-
-    public override void _Process(double delta) {
-
-    }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(double delta) {
@@ -210,13 +182,13 @@ public partial class MagneticComponent : Node2D
 				rigidObject.SetCollisionLayerValue(i, objectCollisionL.GetCollisionLayerValue(i));
 				rigidObject.SetCollisionMaskValue(i, objectCollisionM.GetCollisionMaskValue(i));
 			}
-			characterObject.RemoveChild(magnetSprite);
 
 			rigidObject.Visible = true;
 			rigidObject.Sleeping = false;
 
 			Sprite2D characterSprite = null;
 			Array<Node> characterChildren = characterObject.GetChildren();
+
 			for (int i = 0; i < characterChildren.Count; i++) {
 				if (characterChildren[i] is Sprite2D sprite) {
 					characterSprite = sprite;
@@ -235,7 +207,7 @@ public partial class MagneticComponent : Node2D
 			rigidObject.LinearVelocity = Vector2.Zero;
 
 			characterObject = null;
-			noRigidPhysics = false;
+			isRigidPhysics = true;
 			magCharComp.DettachMetalObject();
 			magCharComp = null;
 		}
@@ -253,7 +225,7 @@ public partial class MagneticComponent : Node2D
 	}
 
 	// Applies the Magnetic force onto the parent object
-	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta, bool largeCharacter) {
+	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta, bool isRigidPhysics) {
 		
 
 		// Vector that is positive or negative depending on what pull mode the magnet is in
@@ -270,8 +242,8 @@ public partial class MagneticComponent : Node2D
 		magnetData = new Tuple<bool, Vector2>(pull, attractionPoint);
 		forceData = new Tuple<Vector2, Vector2>(force, position);
 		strengthData = new Tuple<bool, bool>(blast, strongMagnet);
-
-		if (!largeCharacter) {
+		
+		if (!isRigidPhysics) {
 			if (rigidObject != null) {
 				rigidObject.ApplyForce(force, position);
 			}
@@ -306,7 +278,7 @@ public partial class MagneticComponent : Node2D
 		return rigidObject;
 	}
 
-	public bool GetLargeCharacter() {
-		return noRigidPhysics;
+	public bool GetIsRigidPhysics() {
+		return isRigidPhysics;
 	}
 }

@@ -23,6 +23,3 @@ script = ExtResource("2_y434g")
 [node name="DamageComponent" type="Node2D" parent="."]
 script = ExtResource("3_4gmbd")
 velocityScaling = true
-velocityScalingAmount = 0.5
-velocityScalingThreshold = 6.0
-scaledDamageMax = 40.0

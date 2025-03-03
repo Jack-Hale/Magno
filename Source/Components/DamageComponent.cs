@@ -13,13 +13,13 @@ public partial class DamageComponent : Node {
 	public bool velocityScaling = false;
 
 	[Export]
-	public float velocityScalingAmount = 1;
+	public float velocityScalingAmount = 0.5f;
 
 	[Export]
-	public float velocityScalingThreshold = 1;
+	public float velocityScalingThreshold = 6;
 
 	[Export]
-	public float scaledDamageMax = 20;
+	public float scaledDamageMax = 40;
 	private bool canDamage = true;
 	private CollisionObject2D parent = null;
 	private CharacterBody2D characterParent = null;
@@ -68,6 +68,7 @@ public partial class DamageComponent : Node {
 				if (velocityScaling) {
 					// Parent speed must exceed threshold to do damage
 					if (impactSpeed >= velocityScalingThreshold) {
+
 						damageAmountCalc += velocityScalingAmount * impactSpeed;
 
 						if (damageAmountCalc > scaledDamageMax) {

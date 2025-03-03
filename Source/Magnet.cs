@@ -185,9 +185,10 @@ public partial class Magnet : Area2D
 			// Iterate through all attracted objects to process attraction physics
 			if (activated) {
 				foreach (PhysicsBody2D body in attractedObjects.Keys) {
-
+					
 					// Attach object that reaches the magnet
 					MagneticComponent magComp = attractedObjects[body];
+					
 					if (EnteredBody == body && attachedObject != body && canJoin) {
 						// Dettaching object from any magnet that is already holding it
 						if (magComp.IsBeingHeld()) {
@@ -196,7 +197,7 @@ public partial class Magnet : Area2D
 						magComp.SetMagnetParent(this);
 						AttachObject(body, magComp);
 					}
-					if (!magComp.GetLargeCharacter()) {
+					if (magComp.GetIsRigidPhysics()) {
 
 						// Fire two raycasts along both edges of the magnet beam
 						var spaceState = GetWorld2D().DirectSpaceState;
@@ -300,7 +301,6 @@ public partial class Magnet : Area2D
 							Vector2 position2 = (Vector2)finalResult2["position"];
 							collisionPoint = position1.Lerp(position2, 0.5f);
 						}
-						
 						magComp.ForceObject(collisionPoint, GlobalPosition, beamLength, pullMode, strongMagnet, false, delta, false);
 					} else {
 						// No forces applied if object is part of a large character, only magnet data is shared
@@ -343,7 +343,6 @@ public partial class Magnet : Area2D
 						RigidBody2D bodyCopy = magCharComp.GetBodyCopy();
 						body.AddToGroup("Affected");
 						MagneticComponent newObject = (MagneticComponent) bodyCopy.GetNode("MagneticComponent");
-
 						if (!attractedObjects.ContainsKey(bodyCopy)) {
 							magCharComp.SwapToRigid();
 
@@ -354,7 +353,7 @@ public partial class Magnet : Area2D
 				} else {
 					// Just adds the rigidbody and its magnetic component to the list
 					MagneticComponent newObject = (MagneticComponent) body.GetNode("MagneticComponent");
-
+					
 					if (!attractedObjects.ContainsKey((PhysicsBody2D)body)) {
 						attractedObjects.Add((PhysicsBody2D)body, newObject);
 					}

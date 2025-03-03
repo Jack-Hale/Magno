@@ -1,27 +1,39 @@
-[gd_scene load_steps=7 format=3 uid="uid://3rk5mpt6d7p3"]
+[gd_scene load_steps=8 format=3 uid="uid://3rk5mpt6d7p3"]
 
 [ext_resource type="Script" path="res://Source/Components/MagneticCharacterParent.cs" id="1_0f4vy"]
 [ext_resource type="Script" path="res://Source/LargeSlime.cs" id="2_7ule6"]
-[ext_resource type="PackedScene" uid="uid://bhbmgmno8rorh" path="res://Scenes/Objects/metal_box.tscn" id="2_iovpo"]
-[ext_resource type="Script" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_o64rr"]
+[ext_resource type="Script" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_f2f13"]
 [ext_resource type="Texture2D" uid="uid://cbh8vvcauj08h" path="res://Assets/Sprites/LargeSlime.png" id="3_i2cb4"]
+[ext_resource type="Script" path="res://Source/Components/HealthComponent.cs" id="4_grpv0"]
+[ext_resource type="PackedScene" uid="uid://dnj20y18w3snv" path="res://Scenes/Objects/big_box.tscn" id="4_wqdky"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2vr4u"]
 radius = 54.0093
 
 [node name="LargeSlime" type="Node2D"]
 script = ExtResource("1_0f4vy")
+exitCondition = 2
 metadata/_edit_horizontal_guides_ = [-64.0]
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]
-script = ExtResource("2_o64rr")
+script = ExtResource("2_f2f13")
+exitCondition = 1
+exitTimer = 0.1
+isRigidPhysics = false
 
 [node name="LargeSlime" type="CharacterBody2D" parent="."]
 collision_layer = 32
 collision_mask = 45
 script = ExtResource("2_7ule6")
 
-[node name="MetalBox" parent="LargeSlime" instance=ExtResource("2_iovpo")]
+[node name="HealthComponent" type="Node2D" parent="LargeSlime"]
+position = Vector2(-59, -65)
+scale = Vector2(1.85, 1.14)
+script = ExtResource("4_grpv0")
+
+[node name="BigBox" parent="LargeSlime" instance=ExtResource("4_wqdky")]
+position = Vector2(-7.62939e-06, 7)
+rotation = 0.214452
 
 [node name="Sprite2D" type="Sprite2D" parent="LargeSlime"]
 texture = ExtResource("3_i2cb4")
