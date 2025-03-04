@@ -31,12 +31,12 @@ public partial class HealthComponent : Node2D {
 	float health;
 
 	ProgressBar _progressBar;
-	ProgressBar progressBarPassThrough;
+	ProgressBar progressBarPassThrough; // Original character progress bar
 
 	CharacterBody2D character;
-	bool requirePassThrough = false;
-	HealthComponent passThroughHC;
-	bool sceneClass = false;
+	bool requirePassThrough = false; // If healthcomp is on a bodycopy it will parse the data to the original character
+	HealthComponent passThroughHC; // Original character healthcomp
+	bool sceneClass = false; // Prevents the scene in the tscn file from running code since it is [Tool]
 
 	List<DamageCooldown> activeCooldowns = new();
 	Queue<DamageNumber> activeDamageNumbers = new Queue<DamageNumber>(20);
@@ -116,7 +116,6 @@ public partial class HealthComponent : Node2D {
 			if (requirePassThrough) {
 				passThroughHC.TakeDamage(amount, cooldown, source);
 			} else if (amount != 0) {
-				_progressBar.Value = health;
 
 				for (int i = 0; i < activeCooldowns.Count; i++) {
 					if (activeCooldowns[i].DamageSource == source) {
@@ -130,6 +129,7 @@ public partial class HealthComponent : Node2D {
 					activeCooldowns.Add(new DamageCooldown(source, cooldown));
 				}
 
+				_progressBar.Value = health;
 				CreateDamageNumber(amount);
 			}
 		}

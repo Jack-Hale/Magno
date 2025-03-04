@@ -26,6 +26,10 @@ public partial class ComponentPlugin : EditorPlugin
         script = GD.Load<Script>("res://Source/Components/DamageComponent.cs");
         icon = GD.Load<Texture2D>("res://Assets/CustomNodeIcons/DamageComponentIcon.png");
         AddCustomType("DamageComponent", "Node2D", script, icon);
+
+        script = GD.Load<Script>("res://Source/Components/ProjectileComponent.cs");
+        icon = GD.Load<Texture2D>("res://Assets/CustomNodeIcons/ProjectileComponentIcon.png");
+        AddCustomType("ProjectileComponent", "Node2D", script, icon);
     }
 
     public override void _ExitTree()
@@ -35,6 +39,7 @@ public partial class ComponentPlugin : EditorPlugin
         RemoveCustomType("MagneticCharacterComponent");
         RemoveCustomType("MagneticCharacterParent");
         RemoveCustomType("DamageComponent");
+        RemoveCustomType("ProjectileComponent");
     }
 }
 #endif

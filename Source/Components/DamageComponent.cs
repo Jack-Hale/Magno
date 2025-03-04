@@ -112,4 +112,8 @@ public partial class DamageComponent : Node {
 	public void SetCanDamage(bool canDamage) {
 		this.canDamage = canDamage;
 	}
+
+	public void SetDamage(float damage) {
+		damageAmount = damage;
+	}
 }
