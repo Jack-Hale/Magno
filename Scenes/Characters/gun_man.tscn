@@ -17,24 +17,34 @@ script = ExtResource("1_a0o8j")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("1_aupy1")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -1)
-shape = SubResource("CapsuleShape2D_ode40")
-
 [node name="Gun" type="Node2D" parent="."]
-position = Vector2(32, -5)
+
+[node name="ProjectileComponent" type="Node2D" parent="Gun"]
+position = Vector2(37, -5)
+script = ExtResource("3_2uqyx")
+
+[node name="Projectile" parent="Gun/ProjectileComponent" instance=ExtResource("5_7mfjt")]
+
+[node name="Sprite2D" type="Sprite2D" parent="Gun/ProjectileComponent/Projectile"]
+scale = Vector2(0.28125, 0.28125)
+texture = ExtResource("5_11i2t")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Gun/ProjectileComponent/Projectile"]
 
 [node name="Sprite2D" type="Sprite2D" parent="Gun"]
 texture = ExtResource("2_k0tne")
 
-[node name="ProjectileComponent" type="Node2D" parent="."]
-position = Vector2(39, -7)
-script = ExtResource("3_2uqyx")
-
-[node name="Projectile" parent="ProjectileComponent" instance=ExtResource("5_7mfjt")]
-
-[node name="Sprite2D" type="Sprite2D" parent="ProjectileComponent/Projectile"]
-scale = Vector2(0.28125, 0.28125)
+[node name="Sprite2D2" type="Sprite2D" parent="Gun"]
+visible = false
+position = Vector2(37, -5)
+scale = Vector2(0.38, 0.38)
 texture = ExtResource("5_11i2t")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ProjectileComponent/Projectile"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -1)
+shape = SubResource("CapsuleShape2D_ode40")
+
+[node name="RayCast2D" type="RayCast2D" parent="."]
+position = Vector2(0, 15)
+target_position = Vector2(212, 0)
+collision_mask = 38

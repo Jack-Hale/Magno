@@ -1,3 +1,7 @@
+using Godot;
+using System;
+
+public partial class MagneticEnemyComponent : CharacterBody2D {
 	public const float speed = 300.0f;
 	public const float jumpVelocity = -400.0f;
 
@@ -72,3 +76,4 @@
 		Velocity = velocity;
 		MoveAndSlide();
 	}
+}

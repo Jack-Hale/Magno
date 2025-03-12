@@ -9,18 +9,19 @@ public partial class GunMan : CharacterBody2D
 	private Sprite2D _gunSprite;
 	private Node2D _gun;
 	private Vector2 gunPosition;
-	private Vector2 projectilePosition;
-	private float projectileRotation;
+	private float gunRotation;
 	private ProjectileComponent _projectileComponent;
+	private RayCast2D _rayCast2D;
+	private bool hasTarget = false;
 
 	public override void _Ready() {
 		_sprite2D = GetNode<Sprite2D>("Sprite2D");
 		_gun = GetNode<Node2D>("Gun");
 		_gunSprite = _gun.GetNode<Sprite2D>("Sprite2D");
-		_projectileComponent = GetNode<ProjectileComponent>("ProjectileComponent");
+		_projectileComponent = _gun.GetNode<ProjectileComponent>("ProjectileComponent");
 		gunPosition = _gun.Position;
-		projectilePosition = _projectileComponent.Position;
-		projectileRotation = _projectileComponent.Rotation;
+		gunRotation = _gun.Rotation;
+		_rayCast2D = GetNode<RayCast2D>("RayCast2D");
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -34,7 +35,7 @@ public partial class GunMan : CharacterBody2D
 		}
 
 		// Handle Jump.
-		if (Input.IsActionJustPressed("ui_accept") && IsOnFloor())
+		if (Input.IsActionJustPressed("ui_up") && IsOnFloor())
 		{
 			velocity.Y = JumpVelocity;
 		}
@@ -55,11 +56,29 @@ public partial class GunMan : CharacterBody2D
 		{
 			bool flip = Velocity.X < 0;
 			_sprite2D.FlipH = flip;
-			_gunSprite.FlipH = flip;
-			_gun.Position = new Vector2(flip ? -gunPosition.X : gunPosition.X, _gun.Position.Y);
-			_projectileComponent.Position = new Vector2(flip ? -projectilePosition.X : projectilePosition.X, _projectileComponent.Position.Y);
-			_projectileComponent.Rotation = flip ? Mathf.Pi - projectileRotation : projectileRotation;
+			_gunSprite.FlipV = flip;
+			// _gun.Position = new Vector2(flip ? -gunPosition.X : gunPosition.X, _gun.Position.Y);
+			float rayCastX = flip ? -Math.Abs(_rayCast2D.TargetPosition.X) : Math.Abs(_rayCast2D.TargetPosition.X);
+			_rayCast2D.TargetPosition = new Vector2(rayCastX, _rayCast2D.TargetPosition.Y);
+			// _projectileComponent.Position = new Vector2(flip ? -projectilePosition.X : projectilePosition.X, _projectileComponent.Position.Y);
+			if (!hasTarget) {
+				_gun.Rotation = flip ? Mathf.Pi - gunRotation : gunRotation;
+				GD.Print(_gun.Rotation,"first");
+			}
 		}
+
+		if (_rayCast2D.IsColliding()) {
+			if (_rayCast2D.GetCollider() is PhysicsBody2D collider) {
+				hasTarget = true;
+				_gun.Rotation = _gun.GetAngleTo(collider.GlobalPosition); 
+				GD.Print(collider.GlobalPosition);
+			} else {
+				hasTarget = false;
+			}
+		} else {
+			hasTarget = false;
+		}
+
 
 		Velocity = velocity;
 		MoveAndSlide();

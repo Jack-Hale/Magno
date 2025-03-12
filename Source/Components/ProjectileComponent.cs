@@ -40,9 +40,9 @@ public partial class ProjectileComponent : Node2D {
 	}
 
 	public override void _Process(double delta)	{
-		// if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
-		// 	Shoot();
-		// }
+		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
+			Shoot();
+		}
 	}
 
 	public void Shoot() {
@@ -52,7 +52,7 @@ public partial class ProjectileComponent : Node2D {
 		} else {
 			projectile = (Projectile) projectileScene.Instantiate();	
 		}
-		projectile.SetVariables(speed, Rotation, GlobalPosition, parent.Rotation, damage, projectileTimeout);
+		projectile.SetVariables(speed, parent.Rotation, GlobalPosition, Rotation, damage, projectileTimeout);
 		scene.AddChild(projectile);
 	}
 }

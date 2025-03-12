@@ -58,6 +58,8 @@ public partial class Player : CharacterBody2D
 
 	private bool mnkControl = true;
 
+	private bool jumpAnimation = false;
+
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
@@ -267,6 +269,7 @@ public partial class Player : CharacterBody2D
 
 	public void UpdateAnimations() {
 		if (IsOnFloor())  {
+			jumpAnimation = true;
 			if (Velocity.X == 0) {
 				_animationPlayer.Play("idle");
 			}
@@ -282,8 +285,9 @@ public partial class Player : CharacterBody2D
 				}
 			}
 		}
-		else {				
+		else if (jumpAnimation) {
 			_animationPlayer.Play("jump");
+			jumpAnimation = false;
 		}
 	}
 }
