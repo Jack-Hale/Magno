@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://dfwswh5q6qwot"]
 
 [ext_resource type="Texture2D" uid="uid://bndpu71fqofpt" path="res://Assets/Sprites/DamageBall.png" id="1_rkiut"]
-[ext_resource type="Script" path="res://Source/DamageBall.cs" id="1_t1hfr"]
-[ext_resource type="Script" path="res://Source/Components/DamageComponent.cs" id="3_0w6rd"]
+[ext_resource type="Script" uid="uid://bu85ervkjr0eu" path="res://Source/DamageBall.cs" id="1_t1hfr"]
+[ext_resource type="Script" uid="uid://bs7evxlj3ifeb" path="res://Source/Components/DamageComponent.cs" id="3_0w6rd"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_umkrl"]
 radius = 16.0

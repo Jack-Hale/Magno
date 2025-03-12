@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://b145p5mykonho"]
 
 [ext_resource type="Texture2D" uid="uid://dkstplgq1c6qx" path="res://Assets/Sprites/bruh.png" id="1_fwmbw"]
-[ext_resource type="Script" path="res://Source/Components/MagneticComponent.cs" id="2_7amqe"]
-[ext_resource type="Script" path="res://Source/Components/DamageComponent.cs" id="3_t38s3"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="2_7amqe"]
+[ext_resource type="Script" uid="uid://bs7evxlj3ifeb" path="res://Source/Components/DamageComponent.cs" id="3_t38s3"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_kicfi"]
 radius = 33.0

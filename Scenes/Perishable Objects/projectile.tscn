@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://cw68htgtmsams"]
 
 [ext_resource type="Texture2D" uid="uid://dlrnocduybvj0" path="res://Assets/Sprites/MetalBall.png" id="1_o6dci"]
-[ext_resource type="Script" path="res://Source/Projectile.cs" id="1_vcoj7"]
-[ext_resource type="Script" path="res://Source/Components/DamageComponent.cs" id="3_0mls6"]
+[ext_resource type="Script" uid="uid://cqjwvkwvrx7ha" path="res://Source/Projectile.cs" id="1_vcoj7"]
+[ext_resource type="Script" uid="uid://bs7evxlj3ifeb" path="res://Source/Components/DamageComponent.cs" id="3_0mls6"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_xa1l6"]
 radius = 4.47214

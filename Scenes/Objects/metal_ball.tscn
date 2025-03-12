@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://d2x7fg2yui813"]
 
 [ext_resource type="Texture2D" uid="uid://dlrnocduybvj0" path="res://Assets/Sprites/MetalBall.png" id="1_hvdk3"]
-[ext_resource type="Script" path="res://Source/Components/MagneticComponent.cs" id="2_tb3h6"]
-[ext_resource type="Script" path="res://Source/Components/DamageComponent.cs" id="3_jxmyk"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="2_tb3h6"]
+[ext_resource type="Script" uid="uid://bs7evxlj3ifeb" path="res://Source/Components/DamageComponent.cs" id="3_jxmyk"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_f3lc0"]
 radius = 4.0

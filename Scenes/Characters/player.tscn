@@ -1,12 +1,12 @@
 [gd_scene load_steps=14 format=3 uid="uid://dfdg8yipq3ya0"]
 
 [ext_resource type="Texture2D" uid="uid://dmiecbveok1ib" path="res://Assets/Sprites/Magnoman.png" id="1_a4gl4"]
-[ext_resource type="Script" path="res://Source/Player.cs" id="1_fhg01"]
+[ext_resource type="Script" uid="uid://d1esv4i4t2w5x" path="res://Source/Player.cs" id="1_fhg01"]
 [ext_resource type="Texture2D" uid="uid://ta6ko1f2f7pv" path="res://Assets/Sprites/MagnoManSpriteRun.png" id="4_d5gik"]
 [ext_resource type="PackedScene" uid="uid://cv122wmaloumx" path="res://Scenes/Items/magnet.tscn" id="4_m1cei"]
 [ext_resource type="Texture2D" uid="uid://d2fvqunkc2t4v" path="res://Assets/Sprites/MagnoManJump.png" id="5_8kxh1"]
 [ext_resource type="Texture2D" uid="uid://dxmfvllypcvbw" path="res://Assets/Sprites/MagnoManIdle.png" id="5_wh4iq"]
-[ext_resource type="Script" path="res://Source/Components/HealthComponent.cs" id="7_bgp4g"]
+[ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="7_bgp4g"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_cwh6n"]
 radius = 16.0
@@ -224,10 +224,10 @@ tracks/3/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_b3ugo"]
 _data = {
-"RESET": SubResource("Animation_fqx4f"),
-"idle": SubResource("Animation_f8d1a"),
-"jump": SubResource("Animation_edgsc"),
-"run": SubResource("Animation_u6dye")
+&"RESET": SubResource("Animation_fqx4f"),
+&"idle": SubResource("Animation_f8d1a"),
+&"jump": SubResource("Animation_edgsc"),
+&"run": SubResource("Animation_u6dye")
 }
 
 [node name="Player" type="CharacterBody2D"]
@@ -252,7 +252,7 @@ parent = NodePath("..")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-"": SubResource("AnimationLibrary_b3ugo")
+&"": SubResource("AnimationLibrary_b3ugo")
 }
 
 [node name="Label" type="Label" parent="."]

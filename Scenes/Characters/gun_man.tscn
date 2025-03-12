@@ -1,9 +1,9 @@
 [gd_scene load_steps=8 format=3 uid="uid://u1fa4q8o6k8j"]
 
-[ext_resource type="Script" path="res://Source/GunMan.cs" id="1_a0o8j"]
+[ext_resource type="Script" uid="uid://dnubm8fub163u" path="res://Source/GunMan.cs" id="1_a0o8j"]
 [ext_resource type="Texture2D" uid="uid://blou1m5hu4wkf" path="res://Assets/Sprites/Gunman.png" id="1_aupy1"]
 [ext_resource type="Texture2D" uid="uid://bs0tlmwc641ta" path="res://Assets/Sprites/gun.png" id="2_k0tne"]
-[ext_resource type="Script" path="res://Source/Components/ProjectileComponent.cs" id="3_2uqyx"]
+[ext_resource type="Script" uid="uid://5wibdv2faylk" path="res://Source/Components/ProjectileComponent.cs" id="3_2uqyx"]
 [ext_resource type="PackedScene" uid="uid://cw68htgtmsams" path="res://Scenes/Perishable Objects/projectile.tscn" id="5_7mfjt"]
 [ext_resource type="Texture2D" uid="uid://bndpu71fqofpt" path="res://Assets/Sprites/DamageBall.png" id="5_11i2t"]
 

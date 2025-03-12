@@ -63,7 +63,6 @@ public partial class GunMan : CharacterBody2D
 			// _projectileComponent.Position = new Vector2(flip ? -projectilePosition.X : projectilePosition.X, _projectileComponent.Position.Y);
 			if (!hasTarget) {
 				_gun.Rotation = flip ? Mathf.Pi - gunRotation : gunRotation;
-				GD.Print(_gun.Rotation,"first");
 			}
 		}
 
@@ -71,7 +70,6 @@ public partial class GunMan : CharacterBody2D
 			if (_rayCast2D.GetCollider() is PhysicsBody2D collider) {
 				hasTarget = true;
 				_gun.Rotation = _gun.GetAngleTo(collider.GlobalPosition); 
-				GD.Print(collider.GlobalPosition);
 			} else {
 				hasTarget = false;
 			}

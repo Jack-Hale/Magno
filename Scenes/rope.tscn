@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://bcihnfuok4wil"]
 
 [ext_resource type="Texture2D" uid="uid://bepk745x8b6ky" path="res://Assets/Sprites/SmallBox.png" id="1_avexx"]
-[ext_resource type="Script" path="res://Source/Components/DamageComponent.cs" id="2_actyu"]
+[ext_resource type="Script" uid="uid://bs7evxlj3ifeb" path="res://Source/Components/DamageComponent.cs" id="2_actyu"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_df51j"]
 size = Vector2(4, 44)
