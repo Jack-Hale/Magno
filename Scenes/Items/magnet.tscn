@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://cv122wmaloumx"]
 
-[ext_resource type="Script" path="res://Source/Magnet.cs" id="1_iodp0"]
+[ext_resource type="Script" uid="uid://dqg85agxw4gwp" path="res://Source/Magnet.cs" id="1_iodp0"]
 [ext_resource type="Texture2D" uid="uid://qca1diyg3tg1" path="res://Assets/Sprites/magnet.png" id="2_i74f3"]
 [ext_resource type="Texture2D" uid="uid://bytruga3qtq5u" path="res://Assets/Sprites/MagnetBeam.png" id="3_cnjx5"]
 [ext_resource type="Texture2D" uid="uid://3gaaxyg3ybh3" path="res://Assets/Sprites/MagnetBeamStrong.png" id="3_j5meh"]

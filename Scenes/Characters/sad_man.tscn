@@ -1,12 +1,12 @@
 [gd_scene load_steps=11 format=3 uid="uid://dfb1yy2rehbyp"]
 
-[ext_resource type="Script" path="res://Source/Components/MagneticCharacterParent.cs" id="1_3jsrk"]
+[ext_resource type="Script" uid="uid://cyfe7n8vtr5xk" path="res://Source/Components/MagneticCharacterParent.cs" id="1_3jsrk"]
 [ext_resource type="Texture2D" uid="uid://buecc67mwix1c" path="res://Assets/Sprites/SadMan.png" id="2_1ul4k"]
-[ext_resource type="Script" path="res://Source/SadMan.cs" id="2_ncm33"]
-[ext_resource type="Script" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_xktru"]
+[ext_resource type="Script" uid="uid://btvo2oydj00rw" path="res://Source/SadMan.cs" id="2_ncm33"]
+[ext_resource type="Script" uid="uid://bv76e8qnymuee" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_xktru"]
 [ext_resource type="PackedScene" uid="uid://b145p5mykonho" path="res://Scenes/Objects/ball.tscn" id="3_riyyy"]
 [ext_resource type="Texture2D" uid="uid://pf3jj8kvknsc" path="res://Assets/Sprites/SadMan1.png" id="5_2wvmy"]
-[ext_resource type="Script" path="res://Source/Components/HealthComponent.cs" id="6_18a6b"]
+[ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="6_18a6b"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_sg3ei"]
 radius = 64.0

@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://bhbmgmno8rorh"]
 
 [ext_resource type="Texture2D" uid="uid://bepk745x8b6ky" path="res://Assets/Sprites/SmallBox.png" id="1_ebsbd"]
-[ext_resource type="Script" path="res://Source/Components/MagneticComponent.cs" id="2_l6ej7"]
-[ext_resource type="Script" path="res://Source/Components/DamageComponent.cs" id="3_60vjt"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="2_l6ej7"]
+[ext_resource type="Script" uid="uid://bs7evxlj3ifeb" path="res://Source/Components/DamageComponent.cs" id="3_60vjt"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kn41h"]
 size = Vector2(16, 16)

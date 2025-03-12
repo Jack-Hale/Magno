@@ -1,11 +1,11 @@
 [gd_scene load_steps=8 format=3 uid="uid://4btydsdp2bk7"]
 
 [ext_resource type="Texture2D" uid="uid://dmiecbveok1ib" path="res://Assets/Sprites/Magnoman.png" id="1_0tl6n"]
-[ext_resource type="Script" path="res://Source/Components/MagneticCharacterParent.cs" id="1_0uaom"]
-[ext_resource type="Script" path="res://Source/Guy.cs" id="1_8uvnm"]
-[ext_resource type="Script" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_1sim3"]
-[ext_resource type="Script" path="res://Source/Components/HealthComponent.cs" id="6_ekw1g"]
-[ext_resource type="Script" path="res://Source/Components/MagneticComponent.cs" id="6_i70jt"]
+[ext_resource type="Script" uid="uid://cyfe7n8vtr5xk" path="res://Source/Components/MagneticCharacterParent.cs" id="1_0uaom"]
+[ext_resource type="Script" uid="uid://celxsis3b0atd" path="res://Source/Guy.cs" id="1_8uvnm"]
+[ext_resource type="Script" uid="uid://bv76e8qnymuee" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_1sim3"]
+[ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="6_ekw1g"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="6_i70jt"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_hbdjf"]
 radius = 16.0312
