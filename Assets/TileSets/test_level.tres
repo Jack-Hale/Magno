@@ -52,7 +52,7 @@ texture = ExtResource("1_1x8y1")
 
 [resource]
 physics_layer_0/collision_layer = 129
-physics_layer_0/collision_mask = 31
+physics_layer_0/collision_mask = 127
 custom_data_layer_0/name = "Magnetic"
 custom_data_layer_0/type = 1
 sources/4 = SubResource("TileSetAtlasSource_pyv7o")

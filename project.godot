@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 project/assembly_name="magno"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/componentplugin/plugin.cfg")
+
 [input]
 
 MoveLeft={
@@ -112,7 +116,7 @@ AimRight={
 2d_physics/layer_4="heldItems"
 2d_physics/layer_5="heldObjects"
 2d_physics/layer_6="characters"
-2d_physics/layer_7="magnetHoldRegion"
+2d_physics/layer_7="projectiles"
 2d_physics/layer_8="magneticTerrain"
 
 [physics]

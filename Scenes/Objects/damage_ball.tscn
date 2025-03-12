@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://dfwswh5q6qwot"]
+
+[ext_resource type="Texture2D" uid="uid://bndpu71fqofpt" path="res://Assets/Sprites/DamageBall.png" id="1_rkiut"]
+[ext_resource type="Script" path="res://Source/DamageBall.cs" id="1_t1hfr"]
+[ext_resource type="Script" path="res://Source/Components/DamageComponent.cs" id="3_0w6rd"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_umkrl"]
+radius = 16.0
+
+[node name="DamageBall" type="Area2D"]
+collision_layer = 4
+collision_mask = 54
+script = ExtResource("1_t1hfr")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_rkiut")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_umkrl")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -53.0
+offset_top = -41.0
+offset_right = 53.0
+offset_bottom = -18.0
+pivot_offset = Vector2(53, 12)
+text = "Killing Sphere"
+
+[node name="DamageComponent" type="Node2D" parent="."]
+script = ExtResource("3_0w6rd")
+damageAmount = 1.0
+damageCooldown = 0.01

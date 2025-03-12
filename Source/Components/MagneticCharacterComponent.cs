@@ -1,6 +1,8 @@
 using Godot;
+using Godot.Collections;
 using System;
 using System.IO;
+using System.Security.Principal;
 
 public enum SwapCondition {
 	SwapWhenHitSurface,
@@ -29,7 +31,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	public float swapTimeLimit = 0.5f;
 
 	[Export]
-	public bool largeCharacter = false;
+	public bool isRigidPhysics = true;
 
 	private Node2D parent;
 	private CharacterBody2D character;
@@ -44,62 +46,31 @@ public partial class MagneticCharacterComponent : Node2D {
 	private float ragdollTimer = 0;
 	private bool ragdoll = false;
 
+	// Variables for calculating swap rotation
+	private float lastAngularVelocity = 0f;
+	private float rotationDuration = 1.5f;
+	private float rotationTime = 0f;
+	private float startRotation;
+	private float targetRotation;
+	private bool isRotatingPostSwap = false;
+
+	private Sprite2D magnetSprite = null;
+
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
-
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
 		parent = (Node2D)GetParent();
 
-		foreach (var child in parent.GetChildren()) {
-			if (child is CharacterBody2D) {
-				character = (CharacterBody2D)child;
-				break;
-			}
-		}
-
-		character.AddToGroup("MagneticCharacter");
-
-		// Intialising a copy of the characterBody2D as a rigidBody2D
-		bodyCopy = new RigidBody2D();
-		parent.CallDeferred("add_child", bodyCopy);
-
-		collisionL = new RigidBody2D();
-		collisionM = new RigidBody2D();
-
-		if (character != null) {
-			
-			// Creating a copy the collision mask and layer of character
-			for (int i = 1; i <= 32; i++) {
-				collisionL.SetCollisionLayerValue(i, character.GetCollisionLayerValue(i));
-				collisionM.SetCollisionMaskValue(i, character.GetCollisionMaskValue(i));
-			}
-
-			bodyCopy.MaxContactsReported = 1;
-
-			ReplaceCollisions(bodyCopy, true);
-
-			bodyCopy.AddToGroup("Magnetic");
-			bodyCopy.AddToGroup("BodyCopy");
-			bodyCopy.Name = "BODYCOPY";
-
-			bodyCopy.Connect("body_entered", new Callable(this, MethodName.OnBodyEntered));
-
-			// Disabling BodyCopy
-			bodyCopy.Visible = false;
-        	bodyCopy.Sleeping = true;
-        	character.Visible = true;
-
-			bodyCopy.ProcessMode = ProcessModeEnum.Disabled;
-		} else {
-			GD.PrintErr("MagneticCharacteComponent ", this, ", does not have a CharacterBody2D next to it in Scene Tree", GetParent());
-			GD.PushError("MagneticCharacteComponent ", this, ", does not have a CharacterBody2D next to it in Scene Tree", GetParent());
+		if (parent is not MagneticCharacterParent) {
+			GD.PrintErr($"MagneticCharacteComponent {this}, does not have a parent of type MagneticCharacterParent {GetParent()}");
+			GD.PushError($"MagneticCharacteComponent {this}, does not have a parent of type MagneticCharacterParent {GetParent()}");
 		}
 	}
 	public override void _Draw() {
-        DrawLine(ToLocal(draw2 + new Vector2(2,0)), ToLocal(draw2 - new Vector2(2,0)), Colors.Red, 4.0f);
-        DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
+        // DrawLine(ToLocal(draw2 + new Vector2(2,0)), ToLocal(draw2 - new Vector2(2,0)), Colors.Red, 4.0f);
+        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -130,6 +101,21 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	public override void _PhysicsProcess(double delta)	{
 
+		// Rotates the character back to 0 gradually once switched to character from rigid
+		if (isRotatingPostSwap) {
+			rotationTime += (float) delta;
+
+			float t = Mathf.Clamp(rotationTime / rotationDuration, 0, 1);
+
+			character.Rotation = Mathf.LerpAngle(startRotation, targetRotation, t);
+
+			// Stop rotation when finished
+			if (t >= 1)
+			{
+				character.Rotation = 0;
+				isRotatingPostSwap = false;
+			}
+		}
 	}
 
 	private void OnBodyEntered(Node body) {
@@ -138,7 +124,7 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	// Swaps the CharacterBody2D with the Rigidbody2D bodyCopy
 	public void SwapToRigid() {
-		if (isCharacter && !largeCharacter) {
+		if (isCharacter && isRigidPhysics) {
 			isCharacter = false;
 
 			bodyCopy.ProcessMode = ProcessModeEnum.Inherit;
@@ -152,18 +138,15 @@ public partial class MagneticCharacterComponent : Node2D {
         	bodyCopy.Sleeping = false;
         	character.Visible = false;
 			ReplaceCollisions(bodyCopy, false);
-
-			// character.ProcessMode = ProcessModeEnum.Disabled;
 		}
 	}
 
 	// Swaps back to the character from the bodycopy
 	public void SwapToCharacter() {
-		if (!isCharacter && !ragdoll && !largeCharacter) {
+		if (!isCharacter && !ragdoll && isRigidPhysics) {
 
 			character.Velocity = bodyCopy.LinearVelocity;
 			isCharacter = true;
-			// character.ProcessMode = ProcessModeEnum.Inherit;
 			character.GlobalPosition = bodyCopy.GlobalPosition;
 			character.Velocity = bodyCopy.LinearVelocity;
 
@@ -175,7 +158,22 @@ public partial class MagneticCharacterComponent : Node2D {
 
 			bodyCopy.ProcessMode = ProcessModeEnum.Disabled;
 
-			character.Rotation = 0;
+			lastAngularVelocity = bodyCopy.AngularVelocity;
+			startRotation = bodyCopy.Rotation;
+			character.Rotation = startRotation;
+			rotationTime = 0f;
+			isRotatingPostSwap = true;
+
+			// Determine the target rotation based on the direction of spin
+			if (lastAngularVelocity > 0) {
+				// Counterclockwise
+				targetRotation = (startRotation > 0) ? 0f : Mathf.Tau;
+			} else {
+				// Clockwise
+				targetRotation = (startRotation < 0) ? 0f : -Mathf.Tau; 
+			}
+
+			rotationDuration = 0.1f;
 		}
 	}
 
@@ -186,6 +184,8 @@ public partial class MagneticCharacterComponent : Node2D {
 		SwapToCharacter();
 		Vector2 position = character.GlobalPosition;
 
+		character.RemoveChild(magnetSprite);
+
 		parent.RemoveChild(character);
 		parent.GetParent().AddChild(character);
 
@@ -195,7 +195,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	}
 
 	public bool IsLargeCharacter() {
-		return largeCharacter;
+		return isRigidPhysics;
 	}
 
 	// Sets the rag doll timer to the corresponding value for the swap condition
@@ -219,8 +219,30 @@ public partial class MagneticCharacterComponent : Node2D {
 		return bodyCopy;
 	}
 
+	public void SetBodyCopy(RigidBody2D body) {
+		bodyCopy = body;
+		parent.AddChild(bodyCopy);
+		bodyCopy.Connect("body_entered", new Callable(this, MethodName.OnBodyEntered));
+
+		bodyCopyMagComp = bodyCopy.GetNode<MagneticComponent>("MagneticComponent");
+	}
+
 	public CharacterBody2D GetCharacter() {
 		return character;
+	}
+	public void SetCharacter(CharacterBody2D character, Sprite2D magnetSprite) {
+		this.magnetSprite = magnetSprite;
+		this.character = character;
+		character.AddToGroup("MagneticCharacter");
+
+		collisionL = new RigidBody2D();
+		collisionM = new RigidBody2D();
+
+		// Creating a copy the collision mask and layer of character
+		for (int i = 1; i <= 32; i++) {
+			collisionL.SetCollisionLayerValue(i, character.GetCollisionLayerValue(i));
+			collisionM.SetCollisionMaskValue(i, character.GetCollisionMaskValue(i));
+		}
 	}
 
 	public Vector2 GetCharacterVelocity() {
@@ -231,8 +253,8 @@ public partial class MagneticCharacterComponent : Node2D {
 		return bodyCopy.LinearVelocity;
 	}
 	
-	public bool GetLargeCharacter() {
-		return largeCharacter;
+	public bool GetIsRigidPhysics() {
+		return isRigidPhysics;
 	}
 
 	public float GetExitTimerDefault() {
@@ -252,26 +274,6 @@ public partial class MagneticCharacterComponent : Node2D {
 				body.SetCollisionMaskValue(i, collisionM.GetCollisionMaskValue(i));
 			}
 		}
-	}
-
-	// Has to be in separate method outside of _Ready() in order to ensure it is called
-	// after the MagComp has initialised the actual metal object in the character
-	public RigidBody2D InitialiseBodyCopy() {
-		foreach (var child in character.GetChildren()) {
-			if (!child.IsInGroup("MagneticComponent")) {
-				if (!child.IsInGroup("Magnetic")) {
-					bodyCopy.AddChild(child.Duplicate());
-				} else {
-					bodyCopy.AddChild(child.GetNode("Sprite2D").Duplicate());
-				}
-			}
-		}
-		// Adds a magnetic component to the rigidbody so it can be moved with magnets
-		MagneticComponent magComp = new MagneticComponent(this);
-		bodyCopy.AddChild(magComp);	
-		bodyCopyMagComp = magComp;
-
-		return bodyCopy;
 	}
 
 	public Tuple<bool, Vector2> GetBodyCopyMagnetData() {
