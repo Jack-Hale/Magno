@@ -25,8 +25,12 @@ public partial class Slime : CharacterBody2D
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
+	private PathFindingComponent _pathFinding;
+	private CharacterBody2D player;
 
 	public override void _Ready() {
+		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
+		player = _pathFinding.GetPlayer();
 		foreach (var child in GetParent().GetChildren()) {
 			if (child is MagneticCharacterComponent) {
 				magCharComp = (MagneticCharacterComponent) child;
@@ -66,12 +70,21 @@ public partial class Slime : CharacterBody2D
 		if (!IsOnFloor())
 			velocity.Y += gravity * (float)delta;
 
+		if (IsOnFloor())
+			velocity.Y = jumpVelocity;
+
 		if (affected) {
 			// Handle behaviour when affected by a magnet
 			
 		} else {
 			// Handle behaviour when unaffected by a magnet
 			
+		}
+
+		if (IsInGroup("CanSeePlayer")) {
+			velocity.X = 10000 * (GlobalPosition.X > player.GlobalPosition.X ? -1 : 1) * (float)delta;
+		} else {
+			velocity.X = 0;
 		}
 
 		Velocity = velocity;

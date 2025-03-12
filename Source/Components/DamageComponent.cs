@@ -2,7 +2,7 @@ using Godot;
 using Godot.Collections;
 using System;
 
-public partial class DamageComponent : Node {
+public partial class DamageComponent : Node2D {
 	[Export]
 	public float damageAmount = 10;
 

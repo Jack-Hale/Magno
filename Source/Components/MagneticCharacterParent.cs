@@ -66,7 +66,9 @@ public partial class MagneticCharacterParent : Node2D {
 
 				// Duplicating all children of character into bodyCopy except the metal object
 				if (!child.IsInGroup("Magnetic")) {
-					bodyCopy.AddChild(child.Duplicate());
+					if (child is not PathFindingComponent) {
+						bodyCopy.AddChild(child.Duplicate());
+					}
 				} else {
 					// Extracting just the sprite from the metal object to put in bodyCopy
 					Array<Node> children = child.GetChildren();
