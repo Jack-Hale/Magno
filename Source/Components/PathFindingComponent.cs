@@ -18,9 +18,18 @@ public partial class PathFindingComponent : Node2D {
     ];
     private float rayOffset = 0;
 
+    private Vector2 lastDetectionPoint;
+
+    private float parentShapeSize;
+    private RigidBody2D collision = new();
+
     public override void _Ready() {
         if (GetParent() is CharacterBody2D parent) {
             this.parent = parent;
+
+            CollisionShape2D parentCollision = parent.GetNode<CollisionShape2D>("CollisionShape2D");
+            Vector2 t = GetShapeSize(parentCollision);
+            parentShapeSize = t.X >= t.Y ? t.X : t.Y;
 
             Array<Node> array = GetTree().Root.GetChildren();
             for (int i = 0; i < array.Count; i++) {
@@ -37,10 +46,12 @@ public partial class PathFindingComponent : Node2D {
             // }
             // AddChild(rayDefault);
 
+            collision.SetCollisionMaskValue(1, true);
+            collision.SetCollisionMaskValue(2, true);
+            collision.SetCollisionMaskValue(8, true);
+
             foreach (RayCast2D ray in rays) {
-                ray.SetCollisionMaskValue(1, true);
-                ray.SetCollisionMaskValue(2, true);
-                ray.SetCollisionMaskValue(8, true);
+                ray.CollisionMask = collision.CollisionMask;
                
                 ray.AddException(parent);
 
@@ -56,28 +67,92 @@ public partial class PathFindingComponent : Node2D {
     public override void _PhysicsProcess(double delta) {
         Vector2 playerPosition = ToLocal(player.GlobalPosition);
         bool isDetected = false;
+        bool isLooking = false;
+        bool foundWall = false;
         foreach (RayCast2D ray in rays) {
             if (ray.GetCollider() == player) {
                 isDetected = true;
+                lastDetectionPoint = ToGlobal(ray.TargetPosition);
+            }
+
+            // if (!(ray.GetCollider() is TileMapLayer)) {
+            //     foundWall = false;
+            // }
+
+            // Ensures the enemy still considers the players last location it saw
+            if (GlobalPosition.DistanceTo(lastDetectionPoint) > parentShapeSize) {
+                isLooking = true;
             }
         }
+
         if (isDetected) {
             parent.AddToGroup("CanSeePlayer");
         } else {
-            parent.RemoveFromGroup("CanSeePlayer");
+            if (isLooking) {
+                
+                // If can't see player directly, run a query to see if last detected position is through a wall
+                var result = FireRayCast(GlobalPosition, lastDetectionPoint);
+
+                if (result.Count > 0) {
+                    Node2D collider = (Node2D) result["collider"];
+                    if (collider is TileMapLayer) {
+                        foundWall = true;
+
+                        // Following code checks up and down from the targets last location to see if
+                        // there is an empty space it could potentially look for the player. I found that
+                        // this never actually happened but there are potentially times where this could
+                        // be needed in the future so I'll leave the code in case this happens.
+
+                        /*
+                        float angleOffset = Mathf.DegToRad(10);
+                        Vector2 direction = GlobalPosition.DirectionTo(lastDetectionPoint);
+                        float distance = GlobalPosition.DistanceTo(lastDetectionPoint);
+
+                        Vector2 directionUp = direction.Rotated(angleOffset);
+                        Vector2 directionDown = direction.Rotated(-angleOffset);
+
+                        var upCheck = FireRayCast(GlobalPosition, directionUp * distance);
+                        var downCheck = FireRayCast(GlobalPosition, directionDown * distance);
+
+                        if (upCheck.Count > 0) {
+                            Node2D colliderUp = (Node2D) upCheck["collider"];
+                            if (!(colliderUp is TileMapLayer)) {
+                                GD.Print(upCheck["collider"]);
+                            }
+                        }
+
+                        if (downCheck.Count > 0) {
+                            Node2D colliderDown = (Node2D) downCheck["collider"];
+                            if (!(colliderDown is TileMapLayer)) {
+                                GD.Print(downCheck["collider"]);
+                            }
+                        }
+                        */
+                    }
+                }
+
+                parent.AddToGroup("LookingForPlayer");
+                parent.RemoveFromGroup("CanSeePlayer");
+            } else {
+                parent.RemoveFromGroup("CanSeePlayer");
+                parent.RemoveFromGroup("LookingForPlayer");
+            }
         }
 
-        // Base direction
+        // Stop from looking if wall is between enemy and target location
+        if (foundWall) {
+            parent.RemoveFromGroup("CanSeePlayer");
+            parent.RemoveFromGroup("LookingForPlayer");
+        }
+
         Vector2 baseDirection = (playerPosition - Position).Normalized();
 
-        // Get perpendicular vector
         Vector2 perpendicular = new Vector2(-baseDirection.Y, baseDirection.X);
 
-        // Offsets
         Vector2 offset1 = perpendicular * rayOffset;
         Vector2 offset2 = perpendicular * (rayOffset * 2);
 
-        // Generate Ray Directions
+        // Creates 5 raycast directions that point to the player but fan out from the centre by offset
         Vector2[] rayDirections = [
             (playerPosition + offset2 - Position).Normalized(), // Left far
             (playerPosition + offset1 - Position).Normalized(), // Left close
@@ -86,7 +161,7 @@ public partial class PathFindingComponent : Node2D {
             (playerPosition - offset2 - Position).Normalized()  // Right far
         ];
 
-
+        // Setting all the target positions of the rays to the directions
         for (int i = 0; i < 5; i++) {
             if (Position.DistanceTo(playerPosition) < veiwRadius) {
                 rays[i].TargetPosition = Position + rayDirections[i] * Position.DistanceTo(playerPosition);
@@ -96,8 +171,19 @@ public partial class PathFindingComponent : Node2D {
         }
     }
 
+    public Dictionary FireRayCast(Vector2 from, Vector2 to) {
+        PhysicsDirectSpaceState2D spaceState = GetWorld2D().DirectSpaceState;
+        PhysicsRayQueryParameters2D query = PhysicsRayQueryParameters2D.Create(from, to, collision.CollisionMask);
+        Dictionary result = spaceState.IntersectRay(query);
+        return result;
+    }
+
     public CharacterBody2D GetPlayer() {
         return player;
+    }
+
+    public Vector2 GetLastDetectionPoint() {
+        return lastDetectionPoint;
     }
 
     public Vector2 GetShapeSize(CollisionShape2D collisionShape) {

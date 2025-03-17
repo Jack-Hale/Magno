@@ -84,6 +84,9 @@ public partial class Slime : CharacterBody2D
 		if (IsInGroup("CanSeePlayer")) {
 			velocity.X = 10000 * (GlobalPosition.X > player.GlobalPosition.X ? -1 : 1) * (float)delta;
 		} else {
+			if (GlobalPosition != _pathFinding.GetLastDetectionPoint()) {
+				velocity.X = 10000 * (GlobalPosition.X > player.GlobalPosition.X ? -1 : 1) * (float)delta;
+			}
 			velocity.X = 0;
 		}
 

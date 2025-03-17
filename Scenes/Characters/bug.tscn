@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3 uid="uid://b6b1shl25d3hr"]
+
+[ext_resource type="Texture2D" uid="uid://li4v4hr8pfrh" path="res://Assets/Sprites/bug.png" id="1_fq1bu"]
+[ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="1_io7u0"]
+[ext_resource type="Script" uid="uid://bpkvgvqd7t01h" path="res://Scenes/Characters/Bug.cs" id="1_mcwyp"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mcwyp"]
+radius = 12.0
+
+[node name="Bug" type="CharacterBody2D"]
+script = ExtResource("1_mcwyp")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_fq1bu")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_mcwyp")
+
+[node name="PathFindingComponent" type="Node2D" parent="."]
+script = ExtResource("1_io7u0")
+veiwRadius = 1000.0
+metadata/_custom_type_script = "uid://dfgsiwyixd82h"
