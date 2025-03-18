@@ -1,10 +1,12 @@
 using Godot;
 using System;
-
 public partial class GunMan : CharacterBody2D
 {
-	public const float Speed = 300.0f;
-	public const float JumpVelocity = -400.0f;
+	public float maxSpeed = 300.0f;
+	public float jumpVelocity = -800.0f;
+	float friction = 2200;
+	float acceleration = 2200;
+	float airAcceleration = 1800;
 	private Sprite2D _sprite2D;
 	private Sprite2D _gunSprite;
 	private Node2D _gun;
@@ -34,19 +36,45 @@ public partial class GunMan : CharacterBody2D
 			velocity += GetGravity() * (float)delta;
 		}
 
-		// Handle Jump.
-		if (Input.IsActionJustPressed("ui_up") && IsOnFloor()) {
-			velocity.Y = JumpVelocity;
+		// if (Input.IsActionJustPressed("ui_up") && IsOnFloor()) {
+		// 	velocity = Jump(velocity);
+		// }
+		// Vector2 direction = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down");
+
+		Vector2 direction = Vector2.Zero;
+
+
+		if (IsOnFloor() && _pathFinding.CheckNoFloor(velocity, 10, 5)) {
+			if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
+				velocity = Jump(velocity);
+			}
 		}
 
-		// Get the input direction and handle the movement/deceleration.
-		// As good practice, you should replace UI actions with custom gameplay actions.
-		Vector2 direction = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down");
-		if (direction != Vector2.Zero) {
-			velocity.X = direction.X * Speed;
-		} else {
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
+		if (IsOnFloor() && _pathFinding.AvoidWallsGround(velocity, 60, 30)) {
+			if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
+				velocity = Jump(velocity);
+			}
 		}
+
+		if (IsOnFloor() && _pathFinding.CheckGroundAbove(velocity, 40, 30)) {
+			if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
+				velocity = Jump(velocity);
+			}
+		}
+
+		if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
+			hasTarget = true;
+			_projectileComponent.Shoot();
+			if (IsInGroup("CanSeePlayer")) {
+				_gun.LookAt(player.GlobalPosition);
+			} else {
+				_gun.LookAt(_pathFinding.GetLastDetectionPoint());
+			}
+			direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
+		} else {
+			hasTarget = false;
+		}
+		velocity.X = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, friction, acceleration, airAcceleration, delta).X;
 
 
 		bool flip = false;
@@ -72,15 +100,12 @@ public partial class GunMan : CharacterBody2D
 			_sprite2D.FlipH = Velocity.X < 0;
 		}
 
-		if (IsInGroup("CanSeePlayer")) {
-			hasTarget = true;
-			_gun.LookAt(player.GlobalPosition);
-			_projectileComponent.Shoot();
-		} else {
-			hasTarget = false;
-		}
-
 		Velocity = velocity;
 		MoveAndSlide();
+	}
+
+	private Vector2 Jump(Vector2 velocity) {
+		velocity.Y = jumpVelocity;
+		return velocity;
 	}
 }

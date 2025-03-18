@@ -114,8 +114,7 @@ public partial class Player : CharacterBody2D
 		}
 
 		// Flipping the sprite to face the way its moving
-		if (Velocity.X != 0) 
-		{
+		if (Velocity.X != 0) {
 			_sprite2D.FlipH = Velocity.X < 0;
 		}
 
@@ -188,9 +187,9 @@ public partial class Player : CharacterBody2D
 
 	public Vector2 GetInput() {
 		// Only X input is read because jump is handled separately
-		Vector2 Input = this.Input;
-		Input = Godot.Input.GetVector("MoveLeft", "MoveRight", "MoveUp", "MoveDown");
-		return Input.Normalized();
+		Vector2 input = Input;
+		input = Godot.Input.GetVector("MoveLeft", "MoveRight", "MoveUp", "MoveDown");
+		return input.Normalized();
 	}
 
 	public void HandleMagnet() {

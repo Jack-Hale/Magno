@@ -20,16 +20,36 @@ public partial class PathFindingComponent : Node2D {
 
     private Vector2 lastDetectionPoint;
 
-    private float parentShapeSize;
-    private RigidBody2D collision = new();
+    private float parentGreaterSize;
+    private Vector2 parentShapeSize;
+    private uint collision = (1u << 0) | (1u << 1) | (1u << 7);
+    
+	private float storedDistance = float.PositiveInfinity;
+    private bool stopLooking = false;
+
+    private Vector2 draw1 = Vector2.Zero;
+	private Vector2 draw2 = Vector2.Zero;
+    private Vector2 draw3 = Vector2.Zero;
+	private Vector2 draw4 = Vector2.Zero;
+	private Vector2 draw5 = Vector2.Zero;
+	private Vector2 draw6 = Vector2.Zero;
+	private Vector2 draw7 = Vector2.Zero;
+	private Vector2 draw8 = Vector2.Zero;
+
+    public override void _Draw() {
+		DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green);
+		DrawLine(ToLocal(draw3), ToLocal(draw4), Colors.Green);
+		DrawLine(ToLocal(draw5), ToLocal(draw6), Colors.Green);
+		DrawLine(ToLocal(draw7), ToLocal(draw8), Colors.Green);
+    }
 
     public override void _Ready() {
         if (GetParent() is CharacterBody2D parent) {
             this.parent = parent;
 
             CollisionShape2D parentCollision = parent.GetNode<CollisionShape2D>("CollisionShape2D");
-            Vector2 t = GetShapeSize(parentCollision);
-            parentShapeSize = t.X >= t.Y ? t.X : t.Y;
+            parentShapeSize = GetShapeSize(parentCollision);
+            parentGreaterSize = parentShapeSize.X >= parentShapeSize.Y ? parentShapeSize.X : parentShapeSize.Y;
 
             Array<Node> array = GetTree().Root.GetChildren();
             for (int i = 0; i < array.Count; i++) {
@@ -41,17 +61,8 @@ public partial class PathFindingComponent : Node2D {
             rayOffset = (shapeSize.X >= shapeSize.Y ? shapeSize.X : shapeSize.Y)/4;
 
 
-            // for (int i = 1; i <= 8; i++) {
-            //     rayDefault.SetCollisionMaskValue(i, true);
-            // }
-            // AddChild(rayDefault);
-
-            collision.SetCollisionMaskValue(1, true);
-            collision.SetCollisionMaskValue(2, true);
-            collision.SetCollisionMaskValue(8, true);
-
             foreach (RayCast2D ray in rays) {
-                ray.CollisionMask = collision.CollisionMask;
+                ray.CollisionMask = collision;
                
                 ray.AddException(parent);
 
@@ -68,19 +79,17 @@ public partial class PathFindingComponent : Node2D {
         Vector2 playerPosition = ToLocal(player.GlobalPosition);
         bool isDetected = false;
         bool isLooking = false;
-        bool foundWall = false;
         foreach (RayCast2D ray in rays) {
             if (ray.GetCollider() == player) {
+                // GD.Print(ray.GetCollider());
                 isDetected = true;
                 lastDetectionPoint = ToGlobal(ray.TargetPosition);
+                stopLooking = false;
+                storedDistance = GlobalPosition.DistanceTo(lastDetectionPoint);
             }
 
-            // if (!(ray.GetCollider() is TileMapLayer)) {
-            //     foundWall = false;
-            // }
-
             // Ensures the enemy still considers the players last location it saw
-            if (GlobalPosition.DistanceTo(lastDetectionPoint) > parentShapeSize) {
+            if (GlobalPosition.DistanceTo(lastDetectionPoint) > parentGreaterSize && !stopLooking) {
                 isLooking = true;
             }
         }
@@ -89,14 +98,22 @@ public partial class PathFindingComponent : Node2D {
             parent.AddToGroup("CanSeePlayer");
         } else {
             if (isLooking) {
+                float currentDistance = GlobalPosition.DistanceTo(lastDetectionPoint);
+
+                // If distance from last detection gets larger, stop looking
+                if (currentDistance > storedDistance) {
+                    stopLooking = true;
+                }
+
+                storedDistance = GlobalPosition.DistanceTo(lastDetectionPoint);
                 
                 // If can't see player directly, run a query to see if last detected position is through a wall
-                var result = FireRayCast(GlobalPosition, lastDetectionPoint);
+                var result = FireRayCast(GlobalPosition, lastDetectionPoint, collision);
 
                 if (result.Count > 0) {
                     Node2D collider = (Node2D) result["collider"];
                     if (collider is TileMapLayer) {
-                        foundWall = true;
+                        // stopLooking = true;
 
                         // Following code checks up and down from the targets last location to see if
                         // there is an empty space it could potentially look for the player. I found that
@@ -140,7 +157,7 @@ public partial class PathFindingComponent : Node2D {
         }
 
         // Stop from looking if wall is between enemy and target location
-        if (foundWall) {
+        if (stopLooking) {
             parent.RemoveFromGroup("CanSeePlayer");
             parent.RemoveFromGroup("LookingForPlayer");
         }
@@ -169,11 +186,190 @@ public partial class PathFindingComponent : Node2D {
                 rays[i].TargetPosition = Position + rayDirections[i] * veiwRadius;
             }
         }
+        QueueRedraw();
     }
 
-    public Dictionary FireRayCast(Vector2 from, Vector2 to) {
+    public Vector2 MoveCharacter(bool justX, Vector2 velocity, Vector2 direction, float maxSpeed, float friction, float acceleration, float airAcceleration, double delta) {
+		Vector2 NewVelocity = Vector2.Zero;
+
+		if (justX) {
+			NewVelocity.X = velocity.X;
+		} else {
+			NewVelocity = velocity;
+		}
+		
+		if (direction == Vector2.Zero) {
+			// Apply friction to reduce speed
+			if (Math.Abs(NewVelocity.Length()) > (friction * (float)delta)) {
+				NewVelocity -= NewVelocity.Normalized() * (justX ? (parent.IsOnFloor() ? friction : 1) : friction) * (float)delta;
+            }
+
+			else {
+				NewVelocity = Vector2.Zero;
+			}
+		}
+
+		// Input, Add acceleration
+		else {
+			NewVelocity += direction * (parent.IsOnFloor() ? acceleration : airAcceleration) * (float)delta;
+			NewVelocity = NewVelocity.LimitLength(maxSpeed);
+		}
+
+		return NewVelocity;
+	}
+
+    // When moving, if character would brush up against a wall, it instead moves along it by a distance
+	public Vector2 AvoidWallsAir(Vector2 velocity, float avoidDistance, float checkAngle, float angleToTurn) {
+
+		Vector2 start = GlobalPosition;
+		Vector2 end = GlobalPosition + velocity.Normalized() * avoidDistance;
+
+		float angleOffset = Mathf.DegToRad(checkAngle);
+		Vector2 direction = start.DirectionTo(end);
+		float distance = start.DistanceTo(end);
+
+		Vector2 posDir = direction.Rotated(angleOffset);
+		Vector2 negDir = direction.Rotated(-angleOffset);
+
+		var posCheck = FireRayCast(start, start + posDir * distance, collision);
+		var negCheck = FireRayCast(start, start + negDir * distance, collision);
+
+		bool posTileFound = false;
+		bool negTileFound = false;
+
+		if (posCheck.Count > 0) {
+			Node2D colliderPos = (Node2D) posCheck["collider"];
+			if (colliderPos is TileMapLayer) {
+				posTileFound = true;
+			}
+		} 
+
+		if (negCheck.Count > 0) {
+			Node2D colliderNeg = (Node2D) negCheck["collider"];
+			if (colliderNeg is TileMapLayer) {
+				negTileFound = true;
+			}
+		}
+
+		if (posTileFound != negTileFound) {
+			if (posTileFound) {
+				velocity = velocity.Rotated(Mathf.DegToRad(-angleToTurn));
+			}
+			if (negTileFound) {
+				velocity = velocity.Rotated(Mathf.DegToRad(angleToTurn));
+
+			}
+		}
+
+		return velocity;
+	}
+
+    public bool AvoidWallsGround(Vector2 velocity, float avoidDistance, float checkAngle) {
+
+        float movementDir = Position.DirectionTo(velocity).X;
+        if (true) {
+
+            movementDir = movementDir >= 0 ? 1 : -1;
+
+
+            Vector2 start = parent.GlobalPosition;
+            Vector2 end = new Vector2(parent.GlobalPosition.X + (avoidDistance * movementDir), parent.GlobalPosition.Y);
+
+            float angleOffset = Mathf.DegToRad(checkAngle);
+            Vector2 direction = start.DirectionTo(end);
+            float distance = start.DistanceTo(end);
+
+            Vector2 posDir = direction.Rotated(angleOffset);
+            Vector2 negDir = direction.Rotated(-angleOffset);
+
+            var posCheck = FireRayCast(start, start + posDir * distance, collision);
+            var negCheck = FireRayCast(start, start + negDir * distance, collision);
+
+            // draw1 = start;
+            // draw2 = start + posDir * distance;
+            // draw3 = start;
+            // draw4 = start + negDir * distance;
+
+            bool posTileFound = false;
+            bool negTileFound = false;
+
+            if (posCheck.Count > 0) {
+                Node2D colliderPos = (Node2D) posCheck["collider"];
+                if (colliderPos is TileMapLayer) {
+                    posTileFound = true;
+                }
+            } 
+
+            if (negCheck.Count > 0) {
+                Node2D colliderNeg = (Node2D) negCheck["collider"];
+                if (colliderNeg is TileMapLayer) {
+                    negTileFound = true;
+                }
+            }
+
+            if (posTileFound || negTileFound) {
+                return true;
+            }
+
+        }
+		return false;
+    }
+
+    public bool CheckNoFloor(Vector2 velocity, float distanceAcross, float distanceBelow) {
+        if (velocity != Vector2.Zero) {
+            float sizeX = parentShapeSize.X;
+            float sizeY = parentShapeSize.Y;
+
+            Vector2 checkFrom = parent.GlobalPosition;
+            checkFrom.X = checkFrom.X + (sizeX/2 + distanceAcross) * (velocity.X >= 0 ? 1 : -1);
+            
+            Vector2 checkTo = checkFrom;
+            checkTo.Y = checkTo.Y + (sizeY/2) + distanceBelow;
+
+            // draw5 = checkFrom;
+            // draw6 = checkTo;
+
+            uint tileCollisions = (1u << 0) | (1u << 7);
+
+            var check = FireRayCast(checkFrom, checkTo, tileCollisions);
+			if (check.Count > 0) {
+				return false;
+			}
+            return true;
+
+        }
+        return false;
+    }
+    
+    public bool CheckGroundAbove(Vector2 velocity, float distanceAbove, float distanceInFront) {
+        if (lastDetectionPoint.Y < parent.GlobalPosition.Y - parentShapeSize.Y) {
+
+            float movementDir = parent.Position.DirectionTo(velocity).X;
+            movementDir = movementDir >= 0 ? 1 : -1;
+            uint tileCollisions = (1u << 0) | (1u << 7);
+
+            float toX = parent.GlobalPosition.X + ((parentShapeSize.X/2) + distanceInFront) * movementDir;
+            float toY = parent.GlobalPosition.Y - (parentShapeSize.Y/2) - distanceAbove;
+
+            Vector2 checkFrom = parent.GlobalPosition;
+            Vector2 checkTo = new Vector2(toX, toY);
+            
+            // draw7 = checkFrom;
+            // draw8 = checkTo;
+            
+            var check = FireRayCast(checkFrom, checkTo, tileCollisions);
+
+			if (check.Count > 0) {
+				return true;
+			}
+            return false;
+        }
+        return false;
+    }
+
+    private Dictionary FireRayCast(Vector2 from, Vector2 to, uint collisions) {
         PhysicsDirectSpaceState2D spaceState = GetWorld2D().DirectSpaceState;
-        PhysicsRayQueryParameters2D query = PhysicsRayQueryParameters2D.Create(from, to, collision.CollisionMask);
+        PhysicsRayQueryParameters2D query = PhysicsRayQueryParameters2D.Create(from, to, collisions);
         Dictionary result = spaceState.IntersectRay(query);
         return result;
     }
@@ -203,7 +399,7 @@ public partial class PathFindingComponent : Node2D {
         else if (collisionShape.Shape is CapsuleShape2D capsuleShape) {
             float height = capsuleShape.Height;
             float width = capsuleShape.Radius * 2;
-			Vector2 size = new Vector2(height, width);
+			Vector2 size = new Vector2(width, height);
             // GD.Print($"Capsule Size: Width = {width}, Height = {height}");
 			return size;
         }
