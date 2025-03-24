@@ -3,20 +3,20 @@ using Godot.Collections;
 using System;
 
 public partial class MagneticCharacterParent : Node2D {
-	[Export]
-	public ExitCondition exitCondition;
+	// [Export]
+	// public ExitCondition exitCondition;
 
-	[Export]
-	public float exitTimer = 2;
+	// [Export]
+	// public float exitTimer = 2;
 
-	[Export]
-	public SwapCondition swapCondition;
+	// [Export]
+	// public SwapCondition swapCondition;
 
-	[Export]
-	public float swapTimeLimit = 0.5f;
+	// [Export]
+	// public float swapTimeLimit = 0.5f;
 
-	[Export]
-	public bool noRigidPhysics = false;
+	// [Export]
+	// public bool noRigidPhysics = false;
 
 	CharacterBody2D character;
 	MagneticCharacterComponent component;
