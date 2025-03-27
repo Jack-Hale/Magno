@@ -36,6 +36,7 @@ public partial class Slime : CharacterBody2D
 	private float jumpTimerDefault = 1;
 
 	private bool wasOnFloor = false;
+	private float randomDirection = 0;
 
 	public override void _Ready() {
 		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
@@ -81,8 +82,10 @@ public partial class Slime : CharacterBody2D
 		if (!IsOnFloor())
 			velocity.Y += gravity * (float)delta;
 
+		Random random = new();
 		if (IsOnFloor()) {
-			Random random = new();
+			
+			randomDirection = random.NextSingle() - 0.5f;
 			if (wasOnFloor != IsOnFloor()) {
 				jumpTimer = jumpTimerDefault + random.NextSingle();
 			}
@@ -105,6 +108,10 @@ public partial class Slime : CharacterBody2D
 		if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
 			if (!IsOnFloor()) {
 				direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
+			}
+		} else {
+			if (!IsOnFloor()) {
+				direction = new Vector2(randomDirection >= 0 ? 1 : -1, 0);
 			}
 		}
 
