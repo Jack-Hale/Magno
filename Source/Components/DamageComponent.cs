@@ -54,14 +54,16 @@ public partial class DamageComponent : Node2D {
 		}
 	}
     public override void _Process(double delta) {
+
+    }
+
+    public override void _PhysicsProcess(double delta) {
 		// Calculating the speed of damage object based on position rather than velocity
 		// This prevents it from damaging things when it has high velocity but is not moving (up against a wall, etc)
         float distance = parent.Position.DistanceTo(previousPosition);
         parentSpeed = distance / (float) delta;
         previousPosition = parent.Position;
-    }
 
-    public override void _PhysicsProcess(double delta) {
 		if (canDamage) {
 			if (damageArray.Keys.Count > 0) {
 				float damageAmountCalc = damageAmount;

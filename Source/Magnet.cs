@@ -197,7 +197,7 @@ public partial class Magnet : Area2D
 						magComp.SetMagnetParent(this);
 						AttachObject(body, magComp);
 					}
-					if (magComp.GetIsRigidPhysics()) {
+					if (magComp.GetMagneticCharacterComponent() == null || magComp.GetIsRigidPhysics()) {
 
 						// Fire two raycasts along both edges of the magnet beam
 						var spaceState = GetWorld2D().DirectSpaceState;
