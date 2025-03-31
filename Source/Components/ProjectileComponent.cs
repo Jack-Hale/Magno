@@ -63,7 +63,7 @@ public partial class ProjectileComponent : Node2D {
 			} else {
 				projectile = (Projectile) projectileScene.Instantiate();	
 			}
-			projectile.SetVariables(speed, GlobalRotation, GlobalPosition, GlobalRotation, damage, projectileTimeout);
+			projectile.SetVariables(speed, GlobalRotation, GlobalPosition, GlobalRotation, damage, projectileTimeout, parent);
 			scene.AddChild(projectile);
 
 			cooldownTimer = shootCooldown;

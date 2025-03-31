@@ -12,6 +12,8 @@ public partial class Magnet : Area2D
 	private bool strongMagnet = false;
 	[Export]
 	private PhysicsBody2D parent;
+	[Export]
+	private bool dropItemOnDeactivate = true;
 
 	private RigidBody2D parentRigid;
 	private CharacterBody2D parentCharacter;
@@ -45,6 +47,9 @@ public partial class Magnet : Area2D
 	private Node objectParent;
 
 	private bool blast;
+	private bool isItem = false;
+
+	private uint objectCollision = 0;
 	
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
@@ -151,7 +156,9 @@ public partial class Magnet : Area2D
 				_beamSpriteWeak.Visible = false;
 			}
 			if (!activated || !canJoin) {
-				Dettach();
+				if (dropItemOnDeactivate || !isItem) {
+					Dettach();
+				}
 			}
 		}
 
@@ -336,7 +343,6 @@ public partial class Magnet : Area2D
 						}
 					}
 
-
 					// Uses the magcharcomp to get the bodycopy of the character before switching to rigid
 					if (magCharComp != null) {
 						
@@ -348,7 +354,6 @@ public partial class Magnet : Area2D
 
 							attractedObjects.Add(bodyCopy, newObject);
 						}
-						
 					}
 				} else {
 					// Just adds the rigidbody and its magnetic component to the list
@@ -414,6 +419,10 @@ public partial class Magnet : Area2D
 		if (body.GetParent() != this && body is PhysicsBody2D) {
 			isObjectAttached = true;	
 			attachedObject = body;
+
+			isItem = attachedObject.IsInGroup("Item");
+			objectCollision = attachedObject.CollisionLayer;
+			attachedObject.CollisionLayer = 1u << 3;
 			
 			// Remove object from original parent and add to this
 			objectParent = attachedObject.GetParent();
@@ -461,6 +470,8 @@ public partial class Magnet : Area2D
 			_anchor.RemoveChild(attachedObject);
 			objectParent.AddChild(attachedObject);
 
+			attachedObject.CollisionLayer = objectCollision;
+
 			if (attachedObject is RigidBody2D rigidBody) {
 				// Reenable physics on the attached object
 				rigidBody.Sleeping = false;
@@ -504,6 +515,26 @@ public partial class Magnet : Area2D
 	// so that the beam entered signal retriggers
 	private void RetriggerBeamDetection() {
 		_magnetBeam.Position = new Vector2(99999, 0);
+	}
+
+	public void DropItem() {
+		if (isObjectAttached && isItem) {
+			Dettach();
+		}
+	}
+
+	public bool HasItem() {
+		if (isItem && isObjectAttached) {
+			return true;
+		}
+		return false;
+	}
+
+	public RigidBody2D GetItem() {
+		if (isItem && isObjectAttached) {
+			return (RigidBody2D)attachedObject;
+		} 
+		return null;
 	}
 
 	public void SetActivation(bool weak, bool strong) {

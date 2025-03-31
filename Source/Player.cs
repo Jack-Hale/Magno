@@ -42,8 +42,6 @@ public partial class Player : CharacterBody2D
 
 	private bool godMode = false;
 
-	private Magnet magnet;
-
 	private MagneticComponent attachedObject;
 
 	private bool pullMode;
@@ -61,13 +59,13 @@ public partial class Player : CharacterBody2D
 	private bool jumpAnimation = false;
 
 	private RigidBody2D heldItem = null;
+	private ItemComponent itemComponent = null;
 
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 
 	public override void _Ready() {
-		
 		_magnet = GetNode<Magnet>("Magnet");
 		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
 		_sprite2D = GetNode<Sprite2D>("Sprite2D");
@@ -76,13 +74,11 @@ public partial class Player : CharacterBody2D
 		pullMode = _magnet.GetPullMode();
 	}
 
-	public override void _Draw()
-    {
+	public override void _Draw() {
         // DrawLine(drawVector1, drawVector2, Colors.Green, 1.0f);
     }
 
-    public override void _Process(double delta)
-    {
+    public override void _Process(double delta) {
 		// Activates Coyote timer if the player walks off an edge without jumping
 		if (wasOnFloor && !IsOnFloor() && !jumping) {
 			coyoteTimer = coyoteTimerMax;
@@ -120,6 +116,19 @@ public partial class Player : CharacterBody2D
 			_sprite2D.FlipH = Velocity.X < 0;
 		}
 
+		if (_magnet.HasItem()) {
+			RigidBody2D item = _magnet.GetItem();
+			if (heldItem != item) {
+				heldItem = item;
+				itemComponent = heldItem.GetNode<ItemComponent>("ItemComponent");
+			}
+		} else {
+			if (heldItem != null) {
+				heldItem = null;
+				itemComponent = null;
+			}
+		}
+
 		UpdateAnimations();
 
 		Vector2 newAimVector = Godot.Input.GetVector("AimLeft", "AimRight", "AimUp", "AimDown");
@@ -140,6 +149,16 @@ public partial class Player : CharacterBody2D
 			_magnet.Rotation = stickAimVector.Angle();
 		}
 	
+		if (Godot.Input.IsActionJustPressed("UseItem")) {
+			if (itemComponent != null) {
+				itemComponent.UseItem();
+			}
+		}
+
+		if (Godot.Input.IsActionJustPressed("DropItem")) {
+			_magnet.DropItem();
+		}
+
 		if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
 			pullMode = !pullMode;
 			_magnet.SetPullMode(pullMode);
@@ -172,8 +191,7 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
-    public override void _Input(InputEvent @event)
-    {
+    public override void _Input(InputEvent @event) {
 		// If any mouse movement is detected, switch the aim control to mouse
         if (@event is InputEventMouseMotion) {
 			mnkControl = true;
