@@ -20,6 +20,9 @@ public partial class Magnet : Area2D
 	private bool canJoin;
 	private PhysicsBody2D EnteredBody;
 
+	CollisionShape2D collision = null;
+	CollisionShape2D heldObjectCollision = null;
+
 	private Area2D _magnetBeam;
 
 	CollisionPolygon2D _beamArea;
@@ -76,11 +79,19 @@ public partial class Magnet : Area2D
 		_magnetBeam.Connect("body_entered", new Callable(this, MethodName.OnBodyEnteredBeam));
 		_magnetBeam.Connect("body_exited", new Callable(this, MethodName.OnBodyExitedBeam));
 
+		Connect("body_entered", new Callable(this, MethodName.OnBodyEntered));
+		Connect("body_exited", new Callable(this, MethodName.OnBodyExited));
+
 		if (parent != null) {
+			GD.Print("Here");
 			if (parent is RigidBody2D rigidBody) parentRigid = rigidBody;
 			if (parent is CharacterBody2D characterBody) parentCharacter = characterBody;
-			_physicsObject.AddCollisionExceptionWith(GetParent());
+			_physicsObject.AddCollisionExceptionWith(parent);
 		}
+
+		collision = (CollisionShape2D)_physicsObject.GetNode<CollisionShape2D>("CollisionShape2D").Duplicate();
+		parent.CallDeferred("add_child", collision);
+		collision.Position = _physicsObject.Position;
 
 		
 		_beamArea = _magnetBeam.GetNode<CollisionPolygon2D>("BeamArea");
@@ -104,10 +115,10 @@ public partial class Magnet : Area2D
 	}
 
 	public override void _Draw()
-    {
-        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
-        // DrawLine(ToLocal(draw3), ToLocal(draw4), Colors.Blue, 4.0f);
-        // DrawLine(ToLocal(draw5), ToLocal(draw6), Colors.Blue, 3.0f);
+	{
+		// DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
+		// DrawLine(ToLocal(draw3), ToLocal(draw4), Colors.Blue, 4.0f);
+		// DrawLine(ToLocal(draw5), ToLocal(draw6), Colors.Blue, 3.0f);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -146,7 +157,14 @@ public partial class Magnet : Area2D
 		}
 	}
 
-    public override void _PhysicsProcess(double delta) {
+	public override void _PhysicsProcess(double delta) {
+		
+		collision.Rotation = Rotation;
+		collision.GlobalPosition = _physicsObject.GlobalPosition;
+		if (heldObjectCollision != null) {
+			heldObjectCollision.Rotation = Rotation;
+			heldObjectCollision.GlobalPosition = attachedObject.GlobalPosition;
+		}
 
 		if (attachedObject != null) {
 			// Disabling beam sprite if object attached
@@ -323,13 +341,13 @@ public partial class Magnet : Area2D
 			DettachAll();
 		}
 		QueueRedraw();
-    }
+	}
 
 	// Called when object touches the magnet beam
 	// Adds object to dict of attracted objects
 	private void OnBodyEnteredBeam(Node body) {
 		if (!isObjectAttached) {
-            // Only adds objects with Magnetic group
+			// Only adds objects with Magnetic group
 			if (body.IsInGroup("Magnetic")) {
 				
 				// Magnetic rigidbodies and characterbodies are treated differently
@@ -401,7 +419,7 @@ public partial class Magnet : Area2D
 	}
 	
 	// Called when object touches the magnet itself
-    private void OnBodyEntered(Node2D body) {
+	private void OnBodyEntered(Node2D body) {
 		// Store body if it is magnetic, the magnet is activated and there is no other object attached
 		if (body.IsInGroup("Magnetic") && activated && !isObjectAttached) {
 			EnteredBody = (PhysicsBody2D) body;
@@ -421,7 +439,7 @@ public partial class Magnet : Area2D
 			attachedObject = body;
 
 			isItem = attachedObject.IsInGroup("Item");
-			objectCollision = attachedObject.CollisionLayer;
+			this.objectCollision = attachedObject.CollisionLayer;
 			attachedObject.CollisionLayer = 1u << 3;
 			
 			// Remove object from original parent and add to this
@@ -430,17 +448,20 @@ public partial class Magnet : Area2D
 			_anchor.AddChild(attachedObject);
 
 			// Get the collision shape from the attracted object
-			CollisionShape2D ObjectCollision = null;
+			CollisionShape2D objectCollision = null;
 			foreach (Node node in attachedObject.GetChildren()) {
 				if (node is CollisionShape2D shape) {
-					ObjectCollision = shape;
+					objectCollision = shape;
 				}
 			}
 
+			heldObjectCollision = (CollisionShape2D) objectCollision.Duplicate();
+			parent.AddChild(heldObjectCollision);
+
 			// Get the size of the object to offset the anchor point
 			// This keeps the object sitting next to the magnet without overlapping
-			if (ObjectCollision != null) {
-				Vector2 shapeSize = GetShapeSize(ObjectCollision);
+			if (objectCollision != null) {
+				Vector2 shapeSize = GetShapeSize(objectCollision);
 				anchorOffset = shapeSize.X >= shapeSize.Y ? shapeSize.X : shapeSize.Y;
 			}
 			
@@ -449,7 +470,7 @@ public partial class Magnet : Area2D
 
 			if (attachedObject is RigidBody2D rigidBody) {
 				// Temporarily stop physics on the attached object
-        		rigidBody.Freeze = true;
+				rigidBody.Freeze = true;
 				rigidBody.Sleeping = true;
 			}
 
@@ -465,6 +486,9 @@ public partial class Magnet : Area2D
 			float objectRotation = attachedObject.GlobalRotation;
 
 			attachedObject.Position = new Vector2(0, 0);
+
+			parent.RemoveChild(heldObjectCollision);
+			heldObjectCollision = null;
 
 			// Return the child to it's original parent
 			_anchor.RemoveChild(attachedObject);
@@ -598,43 +622,43 @@ public partial class Magnet : Area2D
 	*/
 	public Vector2 GetShapeSize(CollisionShape2D collisionShape) {
 		// Rectangle
-        if (collisionShape.Shape is RectangleShape2D rectangleShape) {
-            Vector2 size = rectangleShape.Size;
-            // GD.Print($"Rectangle Size: {size}");
+		if (collisionShape.Shape is RectangleShape2D rectangleShape) {
+			Vector2 size = rectangleShape.Size;
+			// GD.Print($"Rectangle Size: {size}");
 			return size;
-        }
+		}
 		// Circle
-        else if (collisionShape.Shape is CircleShape2D circleShape) {
-            Vector2 diameter = new Vector2(circleShape.Radius * 2, 0);
-            // GD.Print($"Circle Diameter: {diameter}");
+		else if (collisionShape.Shape is CircleShape2D circleShape) {
+			Vector2 diameter = new Vector2(circleShape.Radius * 2, 0);
+			// GD.Print($"Circle Diameter: {diameter}");
 			return diameter;
-        }
+		}
 		// Capsule
-        else if (collisionShape.Shape is CapsuleShape2D capsuleShape) {
-            float height = capsuleShape.Height;
-            float width = capsuleShape.Radius * 2;
+		else if (collisionShape.Shape is CapsuleShape2D capsuleShape) {
+			float height = capsuleShape.Height;
+			float width = capsuleShape.Radius * 2;
 			Vector2 size = new Vector2(height, width);
-            // GD.Print($"Capsule Size: Width = {width}, Height = {height}");
+			// GD.Print($"Capsule Size: Width = {width}, Height = {height}");
 			return size;
-        }
+		}
 		// Polygon
-        else if (collisionShape.Shape is ConvexPolygonShape2D polygonShape) {
-            Vector2[] points = polygonShape.Points;
-            if (points.Length > 0) {
-                // Calculate the size by finding the bounds of the polygon
-                Rect2 bounds = new Rect2(points[0], Vector2.Zero);
-                for (int i = 1; i < points.Length; i++) {
-                    bounds = bounds.Merge(new Rect2(points[i], Vector2.Zero));
-                }
-                // GD.Print($"Polygon Size: {bounds.Size}");
+		else if (collisionShape.Shape is ConvexPolygonShape2D polygonShape) {
+			Vector2[] points = polygonShape.Points;
+			if (points.Length > 0) {
+				// Calculate the size by finding the bounds of the polygon
+				Rect2 bounds = new Rect2(points[0], Vector2.Zero);
+				for (int i = 1; i < points.Length; i++) {
+					bounds = bounds.Merge(new Rect2(points[i], Vector2.Zero));
+				}
+				// GD.Print($"Polygon Size: {bounds.Size}");
 				return bounds.Size; 
-            }
+			}
 			return Vector2.Zero;
-        }
+		}
 		// Any other shape
-        if (true) {
-            GD.PushError(collisionShape, " ", collisionShape.GetPath(), " Shape type not supported for size retrieval");
+		if (true) {
+			GD.PushError(collisionShape, " ", collisionShape.GetPath(), " Shape type not supported for size retrieval");
 			return Vector2.Zero;
-        }
-    }
+		}
+	}
 }
