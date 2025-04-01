@@ -8,6 +8,8 @@ public partial class ItemComponent : Node
 
 	public event Action OnUseItem;
 	private CharacterBody2D player;
+
+	private bool IsBeingHeld = false;
 	public override void _Ready() {
 		Array<Node> array = GetTree().Root.GetChildren();
 		for (int i = 0; i < array.Count; i++) {
@@ -26,6 +28,14 @@ public partial class ItemComponent : Node
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)	{
 
+	}
+
+	public void SetIsBeingHeld(bool IsBeingHeld) {
+		this.IsBeingHeld = IsBeingHeld;
+	}
+
+	public bool GetIsBeingHeld() {
+		return IsBeingHeld;
 	}
 
 	public void UseItem() {

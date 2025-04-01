@@ -15,8 +15,10 @@ public partial class Spring : RigidBody2D
 	}
 
 	public override void _PhysicsProcess(double delta)	{
-		if (player.IsOnFloor() && !player.GetCharacter().IsOnFloor()) {
-			player.ApplyForce(Vector2.Up, player.GetPreFloorVelocity().Y);
+		if (_itemComponent.GetIsBeingHeld()) {
+			if (player.IsOnFloor() && !player.GetCharacter().IsOnFloor()) {
+				player.ApplyForce(Vector2.Up, player.GetPreFloorVelocity().Y);
+			}
 		}
 	}
 

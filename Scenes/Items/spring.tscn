@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://cloao57600f4"]
 
-[ext_resource type="Script" uid="uid://cmg48y4p8xffq" path="res://Scenes/Items/Spring.cs" id="1_vi0m8"]
+[ext_resource type="Script" uid="uid://cmg48y4p8xffq" path="res://Source/Spring.cs" id="1_vi0m8"]
 [ext_resource type="Texture2D" uid="uid://x0crn0js4s2g" path="res://Assets/Sprites/Spring.png" id="1_w5xd3"]
 [ext_resource type="Script" uid="uid://dn3abb2bdasda" path="res://Source/Components/ItemComponent.cs" id="2_bkda1"]
 [ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="3_bkda1"]
