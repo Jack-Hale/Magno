@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=4 uid="uid://l55oyjoo6cul"]
+[gd_scene load_steps=8 format=4 uid="uid://l55oyjoo6cul"]
 
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_0rdck"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/Characters/player.tscn" id="2_5mf3d"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://dyx83ev3whehn" path="res://Scenes/Characters/turret.tscn" id="4_db73o"]
 [ext_resource type="PackedScene" uid="uid://dygatxmfwnt3i" path="res://Scenes/Items/sword.tscn" id="6_k8g1k"]
 [ext_resource type="PackedScene" uid="uid://c4cdcu4q84oud" path="res://Scenes/Characters/slime.tscn" id="6_x4x4f"]
+[ext_resource type="PackedScene" uid="uid://cloao57600f4" path="res://Scenes/Items/spring.tscn" id="7_x4x4f"]
 
 [node name="TestLevel" type="Node2D"]
 
@@ -20,10 +21,13 @@ position = Vector2(231, 261)
 position = Vector2(13, 347)
 
 [node name="Turret" parent="." instance=ExtResource("4_db73o")]
-position = Vector2(-478, 352)
+position = Vector2(-756, 324)
 
 [node name="Gun" parent="." instance=ExtResource("3_2ytpj")]
 position = Vector2(1842, 340)
 
 [node name="Slime" parent="." instance=ExtResource("6_x4x4f")]
-position = Vector2(-246, 347)
+position = Vector2(-477, 338)
+
+[node name="RigidBody2D" parent="." instance=ExtResource("7_x4x4f")]
+position = Vector2(-274, 340)

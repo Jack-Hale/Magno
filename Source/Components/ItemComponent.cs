@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using System;
 
 public partial class ItemComponent : Node
@@ -6,8 +7,12 @@ public partial class ItemComponent : Node
 	private RigidBody2D parent;
 
 	public event Action OnUseItem;
-	// Called when the node enters the scene tree for the first time.
+	private CharacterBody2D player;
 	public override void _Ready() {
+		Array<Node> array = GetTree().Root.GetChildren();
+		for (int i = 0; i < array.Count; i++) {
+			player = array[i].GetNodeOrNull<CharacterBody2D>("Player");
+		}
 		if (GetParent() is RigidBody2D node) {
 			parent = node;
 
@@ -25,5 +30,9 @@ public partial class ItemComponent : Node
 
 	public void UseItem() {
 		OnUseItem?.Invoke();
+	}
+
+	public Player GetPlayer() {
+		return (Player) player;
 	}
 }

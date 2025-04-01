@@ -160,7 +160,6 @@ public partial class DamageComponent : Node2D {
 
 	public void AddException(Node2D node) {
 		exceptions.Add(node);
-		GD.Print(node.Name, " Exclude");
 	}
 
 	public void RemoveException(Node2D node) {

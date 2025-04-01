@@ -57,10 +57,13 @@ public partial class Player : CharacterBody2D
 	private bool mnkControl = true;
 
 	private bool jumpAnimation = false;
+	private Vector2 preFloorVelocity = Vector2.Zero;
 
 	private RigidBody2D heldItem = null;
 	private ItemComponent itemComponent = null;
 	private CharacterBody2D character = new();
+
+	private Vector2 force = Vector2.Zero;
 
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
@@ -99,6 +102,9 @@ public partial class Player : CharacterBody2D
 		if (jumpBufferTimer > 0) {
 			jumpBufferTimer -= (float)delta;
 		}
+		if (!character.IsOnFloor()) {
+			preFloorVelocity = Velocity;
+		}
 
         wasOnFloor = character.IsOnFloor();
     }
@@ -119,6 +125,7 @@ public partial class Player : CharacterBody2D
 		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
 			godMode = !godMode;
 		}
+
 
 		// Flipping the sprite to face the way its moving
 		if (Velocity.X != 0) {
@@ -183,6 +190,10 @@ public partial class Player : CharacterBody2D
 			NewVelocity.X = MovePlayer(delta);
 		} else {
 			NewVelocity = GodmodeMove(delta);
+		}
+		if (force != Vector2.Zero) {
+			NewVelocity += force;
+			force = Vector2.Zero;
 		}
 
 		Velocity = NewVelocity;
@@ -255,6 +266,18 @@ public partial class Player : CharacterBody2D
 
 		if (Godot.Input.IsActionJustPressed("Jump") && character.IsOnFloor()) return currentJumpVelocity - 60f;
 		else return currentJumpVelocity;
+	}
+
+	public void ApplyForce(Vector2 direction, float force) {
+		this.force = direction.Normalized() * force;
+	}
+
+	public CharacterBody2D GetCharacter() {
+		return character;
+	}
+
+	public Vector2 GetPreFloorVelocity() {
+		return preFloorVelocity;
 	}
 
 	public float MovePlayer(double delta) {
