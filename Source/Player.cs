@@ -36,7 +36,7 @@ public partial class Player : CharacterBody2D
 	Vector2 Input = Vector2.Zero;
 
 	private Magnet _magnet;
-
+	private CollisionShape2D _collisionShape;
 	private Vector2 drawVector1 = Vector2.Zero;
 	private Vector2 drawVector2 = Vector2.Zero;
 
@@ -60,6 +60,7 @@ public partial class Player : CharacterBody2D
 
 	private RigidBody2D heldItem = null;
 	private ItemComponent itemComponent = null;
+	private CharacterBody2D character = new();
 
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
@@ -70,6 +71,14 @@ public partial class Player : CharacterBody2D
 		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
 		_sprite2D = GetNode<Sprite2D>("Sprite2D");
 		_label = GetNode<Label>("Label");
+		_collisionShape = GetNode<CollisionShape2D>("CollisionShape2D");
+
+		character.AddChild(_collisionShape.Duplicate());
+		character.CollisionMask = (1u << 0) | (1u << 1) | (1u << 2) | (1u << 4) | (1u << 6) | (1u << 7);
+		character.CollisionLayer = 0;
+		character.GlobalPosition = GlobalPosition;
+		character.AddCollisionExceptionWith(this);
+		AddChild(character);
 
 		pullMode = _magnet.GetPullMode();
 	}
@@ -80,10 +89,9 @@ public partial class Player : CharacterBody2D
 
     public override void _Process(double delta) {
 		// Activates Coyote timer if the player walks off an edge without jumping
-		if (wasOnFloor && !IsOnFloor() && !jumping) {
+		if (wasOnFloor && !character.IsOnFloor() && !jumping) {
 			coyoteTimer = coyoteTimerMax;
 		}
-
 		if (coyoteTimer > 0) {
 			coyoteTimer -= (float)delta;
 		}
@@ -92,11 +100,12 @@ public partial class Player : CharacterBody2D
 			jumpBufferTimer -= (float)delta;
 		}
 
-        wasOnFloor = IsOnFloor();
+        wasOnFloor = character.IsOnFloor();
     }
 
     public override void _PhysicsProcess(double delta) {
-
+		character.GlobalPosition = GlobalPosition;
+		// GD.Print(character.IsOnFloor(), " ", character.GlobalPosition, " ", IsOnFloor(), " ", GlobalPosition);
 		if (pullMode) {
 			_label.Text = "Pull";
 		} else {
@@ -166,7 +175,7 @@ public partial class Player : CharacterBody2D
 
 		if (!godMode) {
 			// Add the gravity.
-			if (!IsOnFloor())
+			if (!character.IsOnFloor())
 				NewVelocity.Y += gravity * (float)delta;
 
 			NewVelocity.Y += HandleJump(delta);
@@ -180,6 +189,7 @@ public partial class Player : CharacterBody2D
 
 		QueueRedraw();
 		MoveAndSlide();
+		character.MoveAndSlide();
 
 		// Push RigidBody2D objects
 		for (int i = 0; i < GetSlideCollisionCount(); i++) {
@@ -219,13 +229,13 @@ public partial class Player : CharacterBody2D
 	public float HandleJump(double delta) {
 
 		// Activates the jump buffer timer if jump is pressed not on the floor
-		if (Godot.Input.IsActionJustPressed("Jump") && !IsOnFloor()) {
+		if (Godot.Input.IsActionJustPressed("Jump") && !character.IsOnFloor()) {
 			jumpBufferTimer = jumpBufferTimerMax;
 		}
 
 		// Jump pressed while on the floor or the coyote timer is active, set jump velocity to max
 		// Will jump when jump key is not pressed if the jump buffer is active
-		if ((IsOnFloor() && jumpBufferTimer > 0) || Godot.Input.IsActionJustPressed("Jump") && (IsOnFloor() || coyoteTimer > 0)) {
+		if ((character.IsOnFloor() && jumpBufferTimer > 0) || Godot.Input.IsActionJustPressed("Jump") && (character.IsOnFloor() || coyoteTimer > 0)) {
 			currentJumpVelocity = jumpVelocity;
 			currentJumpTimer = jumpHoldTime;
 			jumping = true;
@@ -243,7 +253,7 @@ public partial class Player : CharacterBody2D
 			currentJumpVelocity = 0;
 		}
 
-		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor()) return currentJumpVelocity - 60f;
+		if (Godot.Input.IsActionJustPressed("Jump") && character.IsOnFloor()) return currentJumpVelocity - 60f;
 		else return currentJumpVelocity;
 	}
 
@@ -255,25 +265,21 @@ public partial class Player : CharacterBody2D
 		NewVelocity.X = Velocity.X;
 		
 		// No Input
-		if (Input == Vector2.Zero)
-		{
+		if (Input == Vector2.Zero) {
 			// Player is moving, Apply friction to reduce speed
-			if (Math.Abs(NewVelocity.X) > (friction * (float)delta))
-			{
+			if (Math.Abs(NewVelocity.X) > (friction * (float)delta)) {
 				// Friction is set based on land or air
-				NewVelocity -= NewVelocity.Normalized() * (IsOnFloor() ? friction : airFriction) * (float)delta;
+				NewVelocity -= NewVelocity.Normalized() * (character.IsOnFloor() ? friction : airFriction) * (float)delta;
 			}
 
 			// Player is not moving
-			else
-			{
+			else {
 				NewVelocity = Vector2.Zero;
 			}
 		}
 		// Input, Add acceleration
-		else if (!Godot.Input.IsActionPressed("MoveDown") || IsOnFloor())
-		{
-			NewVelocity += Input * (IsOnFloor() ? acceleration : airAcceleration) * (float)delta;
+		else if (!Godot.Input.IsActionPressed("MoveDown") || character.IsOnFloor()) {
+			NewVelocity += Input * (character.IsOnFloor() ? acceleration : airAcceleration) * (float)delta;
 			NewVelocity = NewVelocity.LimitLength(maxSpeed);
 		}
 
@@ -287,7 +293,7 @@ public partial class Player : CharacterBody2D
 	}
 
 	public void UpdateAnimations() {
-		if (IsOnFloor())  {
+		if (character.IsOnFloor())  {
 			jumpAnimation = true;
 			if (Velocity.X == 0) {
 				_animationPlayer.Play("idle");

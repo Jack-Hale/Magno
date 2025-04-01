@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://3rk5mpt6d7p3"]
+[gd_scene load_steps=10 format=3 uid="uid://3rk5mpt6d7p3"]
 
 [ext_resource type="Script" uid="uid://cyfe7n8vtr5xk" path="res://Source/Components/MagneticCharacterParent.cs" id="1_0f4vy"]
 [ext_resource type="Script" uid="uid://bbpt1v5pv3n8l" path="res://Source/LargeSlime.cs" id="2_7ule6"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="4_grpv0"]
 [ext_resource type="PackedScene" uid="uid://dnj20y18w3snv" path="res://Scenes/Objects/big_box.tscn" id="4_wqdky"]
 [ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="7_hu1td"]
+[ext_resource type="Script" uid="uid://bs7evxlj3ifeb" path="res://Source/Components/DamageComponent.cs" id="8_86fjh"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2vr4u"]
 radius = 54.0093
@@ -44,3 +45,7 @@ shape = SubResource("CircleShape2D_2vr4u")
 [node name="PathFindingComponent" type="Node2D" parent="LargeSlime"]
 script = ExtResource("7_hu1td")
 metadata/_custom_type_script = "uid://dfgsiwyixd82h"
+
+[node name="DamageComponent" type="Node2D" parent="LargeSlime"]
+script = ExtResource("8_86fjh")
+metadata/_custom_type_script = "uid://bs7evxlj3ifeb"

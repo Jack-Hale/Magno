@@ -41,6 +41,6 @@ metadata/_custom_type_script = "uid://dga5am8fpoq83"
 [node name="ProjectileComponent" type="Node2D" parent="."]
 position = Vector2(15, -3)
 script = ExtResource("4_a3t6l")
-speed = 500.0
-shootCooldown = 0.5
+speed = 800.0
+shootCooldown = 0.2
 metadata/_custom_type_script = "uid://5wibdv2faylk"

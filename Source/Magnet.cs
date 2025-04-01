@@ -20,8 +20,9 @@ public partial class Magnet : Area2D
 	private bool canJoin;
 	private PhysicsBody2D EnteredBody;
 
-	CollisionShape2D collision = null;
-	CollisionShape2D heldObjectCollision = null;
+	private CollisionShape2D collision = null;
+	private CollisionShape2D heldObjectCollision = null;
+	private float heldObjectInitRotation = 0;
 
 	private Area2D _magnetBeam;
 
@@ -83,13 +84,14 @@ public partial class Magnet : Area2D
 		Connect("body_exited", new Callable(this, MethodName.OnBodyExited));
 
 		if (parent != null) {
-			GD.Print("Here");
 			if (parent is RigidBody2D rigidBody) parentRigid = rigidBody;
 			if (parent is CharacterBody2D characterBody) parentCharacter = characterBody;
 			_physicsObject.AddCollisionExceptionWith(parent);
 		}
 
 		collision = (CollisionShape2D)_physicsObject.GetNode<CollisionShape2D>("CollisionShape2D").Duplicate();
+		collision.SetMeta("IgnoreCollision", true);
+		collision.Name = "MagnetCollision";
 		parent.CallDeferred("add_child", collision);
 		collision.Position = _physicsObject.Position;
 
@@ -162,7 +164,7 @@ public partial class Magnet : Area2D
 		collision.Rotation = Rotation;
 		collision.GlobalPosition = _physicsObject.GlobalPosition;
 		if (heldObjectCollision != null) {
-			heldObjectCollision.Rotation = Rotation;
+			heldObjectCollision.Rotation = Rotation + heldObjectInitRotation;
 			heldObjectCollision.GlobalPosition = attachedObject.GlobalPosition;
 		}
 
@@ -447,6 +449,19 @@ public partial class Magnet : Area2D
 			objectParent.RemoveChild(attachedObject);
 			_anchor.AddChild(attachedObject);
 
+			DamageComponent damageComponent = attachedObject.GetNodeOrNull<DamageComponent>("DamageComponent");
+
+			if (damageComponent == null) {
+				Array<Node> children = attachedObject.GetChildren();
+				for (int i = 0; i < children.Count; i++) {
+					damageComponent = children[i].GetNodeOrNull<DamageComponent>("DamageComponent");
+				}
+			}
+
+			if (damageComponent != null) {
+				damageComponent.AddException(parent);
+			}
+
 			// Get the collision shape from the attracted object
 			CollisionShape2D objectCollision = null;
 			foreach (Node node in attachedObject.GetChildren()) {
@@ -456,6 +471,10 @@ public partial class Magnet : Area2D
 			}
 
 			heldObjectCollision = (CollisionShape2D) objectCollision.Duplicate();
+			heldObjectCollision.SetMeta("IgnoreCollision", true);
+			heldObjectCollision.Name = $"{attachedObject.Name}Collision";
+			
+			heldObjectInitRotation = heldObjectCollision.Rotation;
 			parent.AddChild(heldObjectCollision);
 
 			// Get the size of the object to offset the anchor point
@@ -486,9 +505,10 @@ public partial class Magnet : Area2D
 			float objectRotation = attachedObject.GlobalRotation;
 
 			attachedObject.Position = new Vector2(0, 0);
-
+			heldObjectCollision.SetMeta("IgnoreCollision", false);
 			parent.RemoveChild(heldObjectCollision);
 			heldObjectCollision = null;
+			heldObjectInitRotation = 0;
 
 			// Return the child to it's original parent
 			_anchor.RemoveChild(attachedObject);

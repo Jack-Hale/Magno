@@ -232,7 +232,7 @@ _data = {
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
-collision_mask = 247
+collision_mask = 215
 platform_floor_layers = 4294967293
 script = ExtResource("1_fhg01")
 
@@ -268,3 +268,4 @@ metadata/_edit_use_anchors_ = true
 [node name="HealthComponent" type="Node2D" parent="."]
 position = Vector2(-31, -27)
 script = ExtResource("7_bgp4g")
+maxHealth = 1e+07
