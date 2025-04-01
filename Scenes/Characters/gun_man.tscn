@@ -51,5 +51,5 @@ shape = SubResource("CapsuleShape2D_ode40")
 [node name="PathFindingComponent" type="Node2D" parent="."]
 position = Vector2(0, -23)
 script = ExtResource("7_axe18")
-veiwRadius = 500.0
+veiwRadius = 1000.0
 metadata/_custom_type_script = "uid://dfgsiwyixd82h"

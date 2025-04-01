@@ -268,4 +268,3 @@ metadata/_edit_use_anchors_ = true
 [node name="HealthComponent" type="Node2D" parent="."]
 position = Vector2(-31, -27)
 script = ExtResource("7_bgp4g")
-maxHealth = 1e+07
