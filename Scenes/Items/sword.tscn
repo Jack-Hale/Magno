@@ -11,7 +11,7 @@ height = 306.0
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_x2u2t"]
 radius = 3.0
-height = 112.0
+height = 262.0
 
 [node name="Sword" type="RigidBody2D"]
 collision_layer = 4
@@ -43,6 +43,6 @@ damageAmount = 5.0
 metadata/_custom_type_script = "uid://bs7evxlj3ifeb"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-position = Vector2(8, 0)
+position = Vector2(22, 0)
 rotation = 1.5708
 shape = SubResource("CapsuleShape2D_x2u2t")

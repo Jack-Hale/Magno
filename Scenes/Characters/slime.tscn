@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://c4cdcu4q84oud"]
+[gd_scene load_steps=10 format=3 uid="uid://c4cdcu4q84oud"]
 
 [ext_resource type="Script" uid="uid://dwjsivukhl1fg" path="res://Source/Slime.cs" id="1_gh7n1"]
 [ext_resource type="Texture2D" uid="uid://0t3we2jv6272" path="res://Assets/Sprites/Slime.png" id="1_lteqa"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://d2x7fg2yui813" path="res://Scenes/Objects/metal_ball.tscn" id="3_cfl5u"]
 [ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="6_3uymh"]
 [ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="7_uly65"]
+[ext_resource type="Script" uid="uid://bs7evxlj3ifeb" path="res://Source/Components/DamageComponent.cs" id="8_dvwxt"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_o1h5e"]
 radius = 14.0
@@ -19,7 +20,7 @@ script = ExtResource("2_l4q5u")
 
 [node name="Slime" type="CharacterBody2D" parent="."]
 collision_layer = 32
-collision_mask = 13
+collision_mask = 133
 script = ExtResource("1_gh7n1")
 
 [node name="Sprite2D" type="Sprite2D" parent="Slime"]
@@ -38,3 +39,7 @@ script = ExtResource("6_3uymh")
 script = ExtResource("7_uly65")
 veiwRadius = 1000.0
 metadata/_custom_type_script = "uid://dfgsiwyixd82h"
+
+[node name="DamageComponent" type="Node2D" parent="Slime"]
+script = ExtResource("8_dvwxt")
+metadata/_custom_type_script = "uid://bs7evxlj3ifeb"

@@ -16,7 +16,8 @@ public partial class Spring : RigidBody2D
 
 	public override void _PhysicsProcess(double delta)	{
 		if (_itemComponent.GetIsBeingHeld()) {
-			if (player.IsOnFloor() && !player.GetCharacter().IsOnFloor()) {
+			// If any part of the player EXCEPT the player itself touches the ground, bounce
+			if (player.GetIsAnyOnFloor() && !player.GetIsOnFloor()) {
 				player.ApplyForce(Vector2.Up, player.GetPreFloorVelocity().Y);
 			}
 		}

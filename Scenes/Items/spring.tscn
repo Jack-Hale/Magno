@@ -1,9 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://cloao57600f4"]
+[gd_scene load_steps=7 format=3 uid="uid://cloao57600f4"]
 
 [ext_resource type="Script" uid="uid://cmg48y4p8xffq" path="res://Source/Spring.cs" id="1_vi0m8"]
 [ext_resource type="Texture2D" uid="uid://x0crn0js4s2g" path="res://Assets/Sprites/Spring.png" id="1_w5xd3"]
 [ext_resource type="Script" uid="uid://dn3abb2bdasda" path="res://Source/Components/ItemComponent.cs" id="2_bkda1"]
 [ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="3_bkda1"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_vi0m8"]
+bounce = 0.9
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vi0m8"]
 size = Vector2(64, 64)
@@ -11,6 +14,7 @@ size = Vector2(64, 64)
 [node name="Spring" type="RigidBody2D"]
 collision_layer = 4
 collision_mask = 255
+physics_material_override = SubResource("PhysicsMaterial_vi0m8")
 script = ExtResource("1_vi0m8")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
