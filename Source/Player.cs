@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using System;
 using System.ComponentModel;
 using System.IO.IsolatedStorage;
@@ -177,7 +178,19 @@ public partial class Player : CharacterBody2D
 
 		// Handles rotating the magnet to whatever input in active
 		if (mnkControl) {
-			_magnet.LookAt(GetGlobalMousePosition());
+			Vector2 direction = (GetGlobalMousePosition() - _magnet.GlobalPosition).Normalized();
+			float turnSpeed = 15f;
+			
+			// Will lower the turn speeed greatly if the item is going to collide with a surface
+			if (heldItem != null) {
+				if (PhysicsTestCollision(_magnet.GetHeldObjectCollisions(), direction, 20f)) {
+					turnSpeed = 1f;
+				}
+			}
+			float targetRotation = direction.Angle();
+			_magnet.Rotation = Mathf.LerpAngle(_magnet.Rotation, targetRotation, turnSpeed * (float)GetPhysicsProcessDeltaTime());
+			
+			// _magnet.LookAt(GetGlobalMousePosition());
 		} else {
 			_magnet.Rotation = stickAimVector.Angle();
 		}
@@ -247,6 +260,25 @@ public partial class Player : CharacterBody2D
 				c.ApplyCentralImpulse(-collision.GetNormal() * pushForce);
 			}
 		}
+	}
+
+	private bool PhysicsTestCollision(Array<CollisionShape2D> collisions, Vector2 direction, float checkDistance) {
+		var spaceState = GetWorld2D().DirectSpaceState;
+		foreach (CollisionShape2D shape in collisions) {
+			PhysicsShapeQueryParameters2D query = new PhysicsShapeQueryParameters2D();
+			query.SetShape(shape.Shape);
+			
+			// Move the query forward in the direction the magnet is rotating
+			Vector2 newPos = shape.GlobalPosition + (direction * checkDistance);
+			
+			query.Transform = new Transform2D(0, newPos);
+			query.CollisionMask = (1u << 0) | (1u << 7);
+
+			if (spaceState.IntersectShape(query).Count > 0)
+				return true; // Collision detected, slow down the rotation
+		}
+
+		return false; // No collision detected
 	}
 
     public override void _Input(InputEvent @event) {

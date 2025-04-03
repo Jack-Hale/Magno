@@ -524,6 +524,7 @@ public partial class Magnet : Area2D
 				// Temporarily stop physics on the attached object
 				rigidBody.Freeze = true;
 				rigidBody.Sleeping = true;
+				rigidBody.ContinuousCd = RigidBody2D.CcdMode.CastRay;
 			}
 
 			attachedObjectMagComp = bodyMagComp;
@@ -612,6 +613,10 @@ public partial class Magnet : Area2D
 			return true;
 		}
 		return false;
+	}
+
+	public Array<CollisionShape2D> GetHeldObjectCollisions() {
+		return heldObjectCollisions;
 	}
 
 	public RigidBody2D GetItem() {

@@ -14,16 +14,16 @@ tile_map_data = PackedByteArray("AAAAABgABAAAAAAAAAAAABkABAAAAAEAAAAAABoABAAAAAI
 tile_set = ExtResource("1_0rdck")
 
 [node name="Player" parent="." instance=ExtResource("2_5mf3d")]
-position = Vector2(770, 317)
+position = Vector2(140, 296)
 
 [node name="Tuna" parent="." instance=ExtResource("6_x4x4f")]
 position = Vector2(-2607, 193)
 
 [node name="PullStick" parent="." instance=ExtResource("7_l7ek2")]
-position = Vector2(573, 259)
+position = Vector2(295, 311)
 
 [node name="BigBox" parent="." instance=ExtResource("6_k8g1k")]
 position = Vector2(923, 589)
 
 [node name="LargeSlime" parent="." instance=ExtResource("6_l7ek2")]
-position = Vector2(169, 277)
+position = Vector2(1277, 492)
