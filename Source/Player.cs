@@ -182,9 +182,15 @@ public partial class Player : CharacterBody2D
 			_magnet.Rotation = stickAimVector.Angle();
 		}
 	
-		if (Godot.Input.IsActionJustPressed("UseItem")) {
+		if (Godot.Input.IsActionJustPressed("UseItemLeft")) {
 			if (itemComponent != null) {
-				itemComponent.UseItem();
+				itemComponent.UseItemLeft();
+			}
+		}
+
+		if (Godot.Input.IsActionJustPressed("UseItemRight")) {
+			if (itemComponent != null) {
+				itemComponent.UseItemRight();
 			}
 		}
 
@@ -300,7 +306,12 @@ public partial class Player : CharacterBody2D
 	}
 
 	public void ApplyForce(Vector2 direction, float force) {
+		GD.Print(direction.Normalized() * force);
 		this.force = direction.Normalized() * force;
+	}
+
+	public float GetMagnetRotation() {
+		return _magnet.Rotation;
 	}
 
 	public bool GetIsOnFloor() {

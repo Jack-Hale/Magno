@@ -9,7 +9,7 @@ public partial class Spring : RigidBody2D
 	public override void _Ready() {
 		_itemComponent = GetNode<ItemComponent>("ItemComponent");
 		
-		_itemComponent.OnUseItem += UseItem;
+		_itemComponent.OnUseItemLeft += UseItem;
 
 		player = _itemComponent.GetPlayer();
 	}

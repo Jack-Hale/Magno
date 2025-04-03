@@ -6,7 +6,8 @@ public partial class ItemComponent : Node
 {
 	private RigidBody2D parent;
 
-	public event Action OnUseItem;
+	public event Action OnUseItemLeft;
+	public event Action OnUseItemRight;
 	private CharacterBody2D player;
 
 	private bool IsBeingHeld = false;
@@ -38,8 +39,11 @@ public partial class ItemComponent : Node
 		return IsBeingHeld;
 	}
 
-	public void UseItem() {
-		OnUseItem?.Invoke();
+	public void UseItemLeft() {
+		OnUseItemLeft?.Invoke();
+	}
+	public void UseItemRight() {
+		OnUseItemRight?.Invoke();
 	}
 
 	public Player GetPlayer() {

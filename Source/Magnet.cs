@@ -165,6 +165,7 @@ public partial class Magnet : Area2D
 		collision.Rotation = Rotation;
 		collision.GlobalPosition = _physicsObject.GlobalPosition;
 
+		// Positioning and rotating the duplicate collisions of held objects
 		if (heldObjectCollisions.Count > 0) {
 			for (int i = 0; i < heldObjectCollisions.Count; i++) {
 				heldObjectCollisions[i].Rotation = Rotation + heldObjectInitRotations[i];
@@ -478,6 +479,8 @@ public partial class Magnet : Area2D
 			// Get the collision shape from the attracted object
 			CollisionShape2D mainObjectCollision = null;
 			objectCollisions = new();
+
+			// If a main collision shape is set, use that to create the anchor offset
 			foreach (Node node in attachedObject.GetChildren()) {
 				if (node is CollisionShape2D shape) {
 					if (shape.IsInGroup("MainCollisionShape")) {
@@ -503,10 +506,10 @@ public partial class Magnet : Area2D
 			attachedObject.Position = new Vector2(anchorOffset / 2, anchorPositionDefault.Y);
 			attachedObject.Rotation = _anchor.Rotation;
 
+			// Adding a copy of the collisions of the object to the player
 			for (int i = 0; i < objectCollisions.Count; i++) {
 				
 				CollisionShape2D currentCollision = (CollisionShape2D) objectCollisions[i].Duplicate();
-
 
 				currentCollision.SetMeta("IgnoreCollision", true);
 				currentCollision.Name = $"{attachedObject.Name}{currentCollision.Name}";

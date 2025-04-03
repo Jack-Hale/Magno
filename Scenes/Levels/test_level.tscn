@@ -1,12 +1,10 @@
-[gd_scene load_steps=8 format=4 uid="uid://l55oyjoo6cul"]
+[gd_scene load_steps=6 format=4 uid="uid://l55oyjoo6cul"]
 
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_0rdck"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/Characters/player.tscn" id="2_5mf3d"]
 [ext_resource type="PackedScene" uid="uid://c02ortdkcmv7x" path="res://Scenes/Items/gun.tscn" id="3_2ytpj"]
-[ext_resource type="PackedScene" uid="uid://dygatxmfwnt3i" path="res://Scenes/Items/sword.tscn" id="6_k8g1k"]
 [ext_resource type="PackedScene" uid="uid://luhhf7rx12k6" path="res://Scenes/Objects/tuna.tscn" id="6_x4x4f"]
 [ext_resource type="PackedScene" uid="uid://kccam2l1gfcs" path="res://Scenes/Items/pull_stick.tscn" id="7_l7ek2"]
-[ext_resource type="PackedScene" uid="uid://cloao57600f4" path="res://Scenes/Items/spring.tscn" id="7_x4x4f"]
 
 [node name="TestLevel" type="Node2D"]
 
@@ -15,20 +13,13 @@ tile_map_data = PackedByteArray("AAAAABgABAAAAAAAAAAAABkABAAAAAEAAAAAABoABAAAAAI
 tile_set = ExtResource("1_0rdck")
 
 [node name="Player" parent="." instance=ExtResource("2_5mf3d")]
-position = Vector2(-36, 267)
-
-[node name="sword" parent="." instance=ExtResource("6_k8g1k")]
-position = Vector2(977, 155)
+position = Vector2(770, 317)
 
 [node name="Gun" parent="." instance=ExtResource("3_2ytpj")]
 position = Vector2(1842, 340)
-
-[node name="Spring" parent="." instance=ExtResource("7_x4x4f")]
-position = Vector2(880, 321)
-rotation = 1.58119
 
 [node name="Tuna" parent="." instance=ExtResource("6_x4x4f")]
 position = Vector2(-2607, 193)
 
 [node name="PullStick" parent="." instance=ExtResource("7_l7ek2")]
-position = Vector2(-233, 209)
+position = Vector2(573, 259)

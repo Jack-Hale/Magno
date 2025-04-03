@@ -12,7 +12,7 @@ public partial class Gun : RigidBody2D
 		_projectileComponent = GetNode<ProjectileComponent>("ProjectileComponent");
 		_itemComponent = GetNode<ItemComponent>("ItemComponent");
 		
-		_itemComponent.OnUseItem += Shoot;
+		_itemComponent.OnUseItemLeft += Shoot;
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
