@@ -57,3 +57,8 @@ collision_mask = 129
 position = Vector2(58, 15)
 target_position = Vector2(-4, 0)
 collision_mask = 129
+
+[node name="RayCast2D3" type="RayCast2D" parent="."]
+position = Vector2(61, 0)
+target_position = Vector2(63, 0)
+collision_mask = 167

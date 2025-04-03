@@ -306,7 +306,6 @@ public partial class Player : CharacterBody2D
 	}
 
 	public void ApplyForce(Vector2 direction, float force) {
-		GD.Print(direction.Normalized() * force);
 		this.force = direction.Normalized() * force;
 	}
 

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 public partial class PullStick : RigidBody2D
 {
@@ -12,6 +13,7 @@ public partial class PullStick : RigidBody2D
 	private Player player;
 	private RayCast2D rayCast1;
 	private RayCast2D rayCast2;
+	private RayCast2D rayCast3;
 
 	private float moveInTime = 0f;
 	private float moveOutTime = 0f;
@@ -24,6 +26,7 @@ public partial class PullStick : RigidBody2D
 
 	private Vector2 spritePosition;
 	private Vector2 collisionPosition;
+	private bool impulse = false;
 	
 	public override void _Ready() {
 		_itemComponent = GetNode<ItemComponent>("ItemComponent");
@@ -37,6 +40,7 @@ public partial class PullStick : RigidBody2D
 		_sprite2 = GetNode<Sprite2D>("Sprite2D2");
 		rayCast1 = GetNode<RayCast2D>("RayCast2D");
 		rayCast2 = GetNode<RayCast2D>("RayCast2D2");
+		rayCast3 = GetNode<RayCast2D>("RayCast2D3");
 
 		player = _itemComponent.GetPlayer();
 
@@ -72,13 +76,27 @@ public partial class PullStick : RigidBody2D
 		}
 
 		if (moveOutTime > 0) {
+			if (rayCast3.IsColliding() && !impulse && push) {
+				if (rayCast3.GetCollider() is TileMapLayer) {
+					moveOutTime = 0;
+					player.ApplyForce(Vector2.Right.Rotated(player.GetMagnetRotation() + Mathf.DegToRad(180)), 1500);
+					impulse = true;
+				} else if (rayCast3.GetCollider() is RigidBody2D rigid) {
+					rigid.ApplyImpulse(Vector2.Right.Rotated(player.GetMagnetRotation()) * 1000);
+					impulse = true;
+				}
+			}
+
 			movingOut = true;
 			_sprite2.Position += new Vector2(moveSpeed, 0);
 			_collisionShape2.Position += new Vector2(moveSpeed, 0);
 			moveOutTime -= (float)delta;
 
-			if (moveOutTime <= 0 && push) {
-				moveInTime = moveTimeMax;
+			if (moveOutTime <= 0 ) {
+				impulse = false;
+				if (push) {
+					moveInTime = moveTimeMax;
+				}
 			}
 		} else {
 			movingOut = false;

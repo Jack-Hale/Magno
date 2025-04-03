@@ -543,7 +543,6 @@ public partial class Magnet : Area2D
 
 			attachedObject.Position = new Vector2(0, 0);
 			for (int i = 0; i < heldObjectCollisions.Count; i++) {
-				GD.Print(heldObjectCollisions);
 				heldObjectCollisions[i].SetMeta("IgnoreCollision", false);
 				parent.RemoveChild(heldObjectCollisions[i]);
 			}
