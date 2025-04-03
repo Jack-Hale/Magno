@@ -21,8 +21,9 @@ public partial class Magnet : Area2D
 	private PhysicsBody2D EnteredBody;
 
 	private CollisionShape2D collision = null;
-	private CollisionShape2D heldObjectCollision = null;
-	private float heldObjectInitRotation = 0;
+	private Array<CollisionShape2D> heldObjectCollisions = new();
+	private Array<float> heldObjectInitRotations = new();
+	private Array<CollisionShape2D> objectCollisions = new();
 
 	private Area2D _magnetBeam;
 
@@ -53,7 +54,7 @@ public partial class Magnet : Area2D
 	private bool blast;
 	private bool isItem = false;
 
-	private uint objectCollision = 0;
+	private uint objectCollisionLayer = 0;
 	
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
@@ -163,9 +164,12 @@ public partial class Magnet : Area2D
 		
 		collision.Rotation = Rotation;
 		collision.GlobalPosition = _physicsObject.GlobalPosition;
-		if (heldObjectCollision != null) {
-			heldObjectCollision.Rotation = Rotation + heldObjectInitRotation;
-			heldObjectCollision.GlobalPosition = attachedObject.GlobalPosition;
+
+		if (heldObjectCollisions.Count > 0) {
+			for (int i = 0; i < heldObjectCollisions.Count; i++) {
+				heldObjectCollisions[i].Rotation = Rotation + heldObjectInitRotations[i];
+				heldObjectCollisions[i].GlobalPosition = objectCollisions[i].GlobalPosition;
+			}
 		}
 
 		if (attachedObject != null) {
@@ -450,7 +454,7 @@ public partial class Magnet : Area2D
 			if (isItem) {
 				attachedObject.GetNode<ItemComponent>("ItemComponent").SetIsBeingHeld(true);
 			}
-			this.objectCollision = attachedObject.CollisionLayer;
+			objectCollisionLayer = attachedObject.CollisionLayer;
 			attachedObject.CollisionLayer = 1u << 3;
 			
 			// Remove object from original parent and add to this
@@ -472,29 +476,46 @@ public partial class Magnet : Area2D
 			}
 
 			// Get the collision shape from the attracted object
-			CollisionShape2D objectCollision = null;
+			CollisionShape2D mainObjectCollision = null;
+			objectCollisions = new();
 			foreach (Node node in attachedObject.GetChildren()) {
 				if (node is CollisionShape2D shape) {
-					objectCollision = shape;
+					if (shape.IsInGroup("MainCollisionShape")) {
+						mainObjectCollision = shape;
+					}
+					objectCollisions.Add(shape);
 				}
 			}
 
-			heldObjectCollision = (CollisionShape2D) objectCollision.Duplicate();
-			heldObjectCollision.SetMeta("IgnoreCollision", true);
-			heldObjectCollision.Name = $"{attachedObject.Name}Collision";
+			if (mainObjectCollision == null) {
+				mainObjectCollision = objectCollisions[0];
+			}
 			
-			heldObjectInitRotation = heldObjectCollision.Rotation;
-			parent.AddChild(heldObjectCollision);
 
 			// Get the size of the object to offset the anchor point
 			// This keeps the object sitting next to the magnet without overlapping
-			if (objectCollision != null) {
-				Vector2 shapeSize = GetShapeSize(objectCollision);
+			if (mainObjectCollision != null) {
+				Vector2 shapeSize = GetShapeSize(mainObjectCollision);
 				anchorOffset = shapeSize.X >= shapeSize.Y ? shapeSize.X : shapeSize.Y;
 			}
+
 			
 			attachedObject.Position = new Vector2(anchorOffset / 2, anchorPositionDefault.Y);
 			attachedObject.Rotation = _anchor.Rotation;
+
+			for (int i = 0; i < objectCollisions.Count; i++) {
+				
+				CollisionShape2D currentCollision = (CollisionShape2D) objectCollisions[i].Duplicate();
+
+
+				currentCollision.SetMeta("IgnoreCollision", true);
+				currentCollision.Name = $"{attachedObject.Name}{currentCollision.Name}";
+				
+				heldObjectInitRotations.Add(currentCollision.Rotation);
+				heldObjectCollisions.Add(currentCollision);
+
+				parent.AddChild(currentCollision);
+			}
 
 			if (attachedObject is RigidBody2D rigidBody) {
 				// Temporarily stop physics on the attached object
@@ -518,16 +539,20 @@ public partial class Magnet : Area2D
 			}
 
 			attachedObject.Position = new Vector2(0, 0);
-			heldObjectCollision.SetMeta("IgnoreCollision", false);
-			parent.RemoveChild(heldObjectCollision);
-			heldObjectCollision = null;
-			heldObjectInitRotation = 0;
+			for (int i = 0; i < heldObjectCollisions.Count; i++) {
+				GD.Print(heldObjectCollisions);
+				heldObjectCollisions[i].SetMeta("IgnoreCollision", false);
+				parent.RemoveChild(heldObjectCollisions[i]);
+			}
+			heldObjectCollisions = new();
+			heldObjectInitRotations = new();
+			objectCollisions = new();
 
 			// Return the child to it's original parent
 			_anchor.RemoveChild(attachedObject);
 			objectParent.AddChild(attachedObject);
 
-			attachedObject.CollisionLayer = objectCollision;
+			attachedObject.CollisionLayer = objectCollisionLayer;
 
 			if (attachedObject is RigidBody2D rigidBody) {
 				// Reenable physics on the attached object

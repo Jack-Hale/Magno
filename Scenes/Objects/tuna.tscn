@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://luhhf7rx12k6"]
+
+[ext_resource type="Texture2D" uid="uid://dth55xgw6rn55" path="res://Assets/Sprites/Tuna---Southern-Bluefin.png" id="1_1ynbm"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="2_jvisk"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_jvisk"]
+radius = 123.0
+height = 900.0
+
+[node name="Tuna" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 247
+mass = 0.01
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_1ynbm")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_jvisk")
+
+[node name="MagneticComponent" type="Node2D" parent="."]
+script = ExtResource("2_jvisk")
+metadata/_custom_type_script = "uid://dga5am8fpoq83"

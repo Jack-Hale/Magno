@@ -1,0 +1,41 @@
+[gd_scene load_steps=8 format=3 uid="uid://kccam2l1gfcs"]
+
+[ext_resource type="Script" uid="uid://c3e8h755q80rq" path="res://Source/PullStick.cs" id="1_168gt"]
+[ext_resource type="Script" uid="uid://dn3abb2bdasda" path="res://Source/Components/ItemComponent.cs" id="2_bq5te"]
+[ext_resource type="Texture2D" uid="uid://dr2nbwhpsirp7" path="res://Assets/Sprites/Stick.png" id="2_j68jv"]
+[ext_resource type="Texture2D" uid="uid://4ib1si87w2h7" path="res://Assets/Sprites/Pull.png" id="3_0ri8n"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="3_j68jv"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_l6kpy"]
+size = Vector2(128, 8)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mdwxu"]
+size = Vector2(7, 32)
+
+[node name="PullStick" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 247
+script = ExtResource("1_168gt")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-32, 0)
+texture = ExtResource("2_j68jv")
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+position = Vector2(32, 0)
+texture = ExtResource("3_0ri8n")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_l6kpy")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+position = Vector2(60.5, 0)
+shape = SubResource("RectangleShape2D_mdwxu")
+
+[node name="ItemComponent" type="Node2D" parent="."]
+script = ExtResource("2_bq5te")
+metadata/_custom_type_script = "uid://dn3abb2bdasda"
+
+[node name="MagneticComponent" type="Node2D" parent="."]
+script = ExtResource("3_j68jv")
+metadata/_custom_type_script = "uid://dga5am8fpoq83"
