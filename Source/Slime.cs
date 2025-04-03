@@ -115,7 +115,10 @@ public partial class Slime : CharacterBody2D
 			}
 		}
 
-		velocity.X = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, friction, acceleration, airAcceleration, delta).X;
+		velocity.X = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, acceleration, airAcceleration, delta).X;
+		if (direction == Vector2.Zero) {
+			velocity.X = _pathFinding.ApplyFriction(true, velocity, friction, delta).X;
+		}
 
 		Velocity = velocity;
 		wasOnFloor = IsOnFloor();

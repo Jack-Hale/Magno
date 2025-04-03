@@ -189,9 +189,31 @@ public partial class PathFindingComponent : Node2D {
         QueueRedraw();
     }
 
-    public Vector2 MoveCharacter(bool justX, Vector2 velocity, Vector2 direction, float maxSpeed, float friction, float acceleration, float airAcceleration, double delta) {
-		Vector2 NewVelocity = Vector2.Zero;
+    public Vector2 ApplyFriction(bool justX, Vector2 velocity, float friction, double delta) {
+        Vector2 NewVelocity = Vector2.Zero;
 
+		if (justX) {
+			NewVelocity.X = velocity.X;
+		} else {
+			NewVelocity = velocity;
+		}
+
+        // Apply friction to reduce speed
+        if (Math.Abs(NewVelocity.Length()) > (friction * (float)delta)) {
+            NewVelocity -= NewVelocity.Normalized() * (justX ? (parent.IsOnFloor() ? friction : 1) : friction) * (float)delta;
+        }
+
+        else {
+            NewVelocity = Vector2.Zero;
+        }
+		
+
+        return NewVelocity;
+    }
+
+    public Vector2 MoveCharacter(bool justX, Vector2 velocity, Vector2 direction, float maxSpeed, float acceleration, float airAcceleration, double delta) {
+		Vector2 NewVelocity = Vector2.Zero;
+        float friction = 100;
 		if (justX) {
 			NewVelocity.X = velocity.X;
 		} else {
@@ -210,7 +232,8 @@ public partial class PathFindingComponent : Node2D {
 		}
 
 		// Input, Add acceleration
-		else {
+		if (direction != Vector2.Zero) {
+		// 	// Apply friction to reduce ) {
 			NewVelocity += direction * (parent.IsOnFloor() ? acceleration : airAcceleration) * (float)delta;
 			NewVelocity = NewVelocity.LimitLength(maxSpeed);
 		}

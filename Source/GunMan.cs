@@ -74,8 +74,10 @@ public partial class GunMan : CharacterBody2D
 		} else {
 			hasTarget = false;
 		}
-		velocity.X = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, friction, acceleration, airAcceleration, delta).X;
-
+		velocity.X = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, acceleration, airAcceleration, delta).X;
+		if (direction == Vector2.Zero) {
+			velocity.X = _pathFinding.ApplyFriction(true, velocity, friction, delta).X;
+		}
 
 		bool flip = false;
 		float angle = (_gun.Rotation % (2 * Mathf.Pi) + (2 * Mathf.Pi)) % (2 * Mathf.Pi);

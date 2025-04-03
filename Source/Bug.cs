@@ -32,7 +32,10 @@ public partial class Bug : CharacterBody2D
 			direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
 		} 
 
-		velocity = _pathFinding.MoveCharacter(false, velocity, direction, maxSpeed, friction, acceleration, airAcceleration, delta);
+		velocity = _pathFinding.MoveCharacter(false, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
+		if (direction == Vector2.Zero) {
+			velocity = _pathFinding.ApplyFriction(false, velocity, friction, delta);
+		}
 		
 		if (IsInGroup("LookingForPlayer")) {
 

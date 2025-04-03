@@ -9,6 +9,8 @@ public partial class ItemComponent : Node
 	public event Action OnUseItemLeft;
 	public event Action OnUseItemRight;
 	private CharacterBody2D player;
+	private CharacterBody2D itemParentChar;
+	private RigidBody2D itemParentRig;
 
 	private bool IsBeingHeld = false;
 	public override void _Ready() {
@@ -28,7 +30,18 @@ public partial class ItemComponent : Node
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)	{
-
+		if (GetParent() is Magnet magnet) {
+			if (magnet.GetParent() is CharacterBody2D character) {
+				itemParentChar = character;
+				itemParentRig = null;
+			} else if (magnet.GetParent() is RigidBody2D rigid) {
+				itemParentRig = rigid;
+				itemParentChar = null;
+			} else {
+				itemParentRig = null;
+				itemParentChar = null;
+			}
+		}
 	}
 
 	public void SetIsBeingHeld(bool IsBeingHeld) {
@@ -48,5 +61,15 @@ public partial class ItemComponent : Node
 
 	public Player GetPlayer() {
 		return (Player) player;
+	}
+
+	public PhysicsBody2D GetItemOwner() {
+		if (itemParentChar != null) {
+			return itemParentChar;
+		} else if (itemParentRig != null) {
+			return itemParentRig;
+		} else {
+			return null;
+		}
 	}
 }

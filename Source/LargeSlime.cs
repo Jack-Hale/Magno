@@ -4,17 +4,14 @@ using System;
 public partial class LargeSlime : CharacterBody2D {
 	public float maxSpeed = 300.0f;
 	public float jumpVelocity = -400.0f;
-
+	public float jumpForwardVelocity = 300.0f;
 	float friction = 2200;
 	float acceleration = 2200;
 	float airAcceleration = 1800;
 	private float jumpTimer = 0;
 	private float jumpTimerDefault = 1;
-
 	private bool wasOnFloor = false;
-
 	private bool affected = true;
-
 	private MagneticCharacterComponent magCharComp = null;
 
 	// The pull mode of the magnet affecting the enemy
@@ -82,7 +79,13 @@ public partial class LargeSlime : CharacterBody2D {
 			velocity.Y += gravity * (float)delta;
 
 		Random random = new();
-		
+
+		if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
+			direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
+		} else {
+			direction = new Vector2(randomDirection >= 0 ? 1 : -1, 0);
+		}
+
 		if (IsOnFloor()) {
 			randomDirection = random.NextSingle() - 0.5f;
 			if (wasOnFloor != IsOnFloor()) {
@@ -91,22 +94,13 @@ public partial class LargeSlime : CharacterBody2D {
 
 			if (jumpTimer <= 0) {
 				velocity.Y = jumpVelocity * (1 + random.NextSingle());
+				velocity.X += jumpForwardVelocity * direction.X;
 			} else {
 				jumpTimer -= (float)delta;
 			}
 		}
 
-		if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
-			if (!IsOnFloor()) {
-				direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
-			}
-		} else {
-			if (!IsOnFloor()) {
-				direction = new Vector2(randomDirection >= 0 ? 1 : -1, 0);
-			}
-		}
-
-		velocity.X = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, friction, acceleration, airAcceleration, delta).X;
+		velocity.X = _pathFinding.ApplyFriction(true, velocity, friction, delta).X;
 
 		if (affected) {
 			// Handle behaviour when affected by a magnet
