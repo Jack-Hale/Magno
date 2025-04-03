@@ -18,6 +18,11 @@ public partial class PullStick : RigidBody2D
 	private float moveTimeMax = 0.03f;
 	private float moveSpeed = 14f;
 
+	private float pushCharacter = 700f;
+	private float pushRigid = 700f;
+	private float pushThis = 1200f;
+	private float pullThis = 700f;
+
 	private bool push = false;
 	private bool movingOut = false;
 	private bool movingIn = true;
@@ -25,6 +30,8 @@ public partial class PullStick : RigidBody2D
 	private Vector2 spritePosition;
 	private Vector2 collisionPosition;
 	private bool impulse = false;
+	private PhysicsBody2D itemOwner;
+	private Magnet magnet;
 	
 	public override void _Ready() {
 		_itemComponent = GetNode<ItemComponent>("ItemComponent");
@@ -40,6 +47,8 @@ public partial class PullStick : RigidBody2D
 		_rayCast2 = GetNode<RayCast2D>("RayCast2D2");
 		_rayCast3 = GetNode<RayCast2D>("RayCast2D3");
 
+		itemOwner = _itemComponent.GetItemOwner();
+
 		player = _itemComponent.GetPlayer();
 
 		_rayCast1.AddException(player);
@@ -53,6 +62,15 @@ public partial class PullStick : RigidBody2D
 	}
 
 	public override void _PhysicsProcess(double delta)	{
+		PhysicsBody2D itemOwnerGet = _itemComponent.GetItemOwner();
+		if (itemOwnerGet != itemOwner) {
+			itemOwner = itemOwnerGet;
+		}
+
+		Magnet magnetGet = _itemComponent.GetMagnet();
+		if (magnetGet != null) {
+			magnet = magnetGet;
+		}
 
 		if (!movingIn && !movingOut) {
 			_sprite2.Position = spritePosition;
@@ -61,8 +79,16 @@ public partial class PullStick : RigidBody2D
 
 		if (moveInTime > 0) {
 			movingIn = true;
+	
 			if (_rayCast1.IsColliding() || _rayCast2.IsColliding()) {
-				player.AddImpulse(Vector2.Right.Rotated(player.GetMagnetRotation())*1500);
+				// Pull item towards ground on inner raycast
+				if (magnet != null && itemOwner != null) {
+					if (itemOwner is CharacterBody2D character) {
+						character.ApplyImpulse(Vector2.Right.Rotated(magnet.Rotation) * pullThis);
+					} else if (itemOwner is RigidBody2D rigid) {
+						rigid.ApplyImpulse(Vector2.Right.Rotated(magnet.Rotation) * pullThis);
+					}
+				}
 			}
 
 			_sprite2.Position += new Vector2(-moveSpeed, 0);
@@ -80,18 +106,32 @@ public partial class PullStick : RigidBody2D
 		if (moveOutTime > 0) {
 			// impulse boolean prevents force being applied more than once in one firing
 			if (_rayCast3.IsColliding() && !impulse && push) {
+
+				// Pushing item away from tiles
 				if (_rayCast3.GetCollider() is TileMapLayer) {
 					// MoveOutTime must be set to zero to reset the collision. Prevents stick from getting stuck in ground
 					moveOutTime = 0;
-					player.ApplyForce(Vector2.Right.Rotated(player.GetMagnetRotation() + Mathf.DegToRad(180)), 1500);
+					if (magnet != null && itemOwner != null) {
+						if (itemOwner is CharacterBody2D character) {
+							character.ApplyImpulse(Vector2.Right.Rotated(magnet.Rotation + Mathf.DegToRad(180)) * pushThis);
+						} else if (itemOwner is RigidBody2D rigid) {
+							rigid.ApplyImpulse(Vector2.Right.Rotated(magnet.Rotation + Mathf.DegToRad(180)) * pushThis);
+						}
+					} else {
+						ApplyImpulse(Vector2.Right.Rotated(Rotation + Mathf.DegToRad(180)) * pushThis);
+					}
 					impulse = true;
 
+				// Pushing rigid object away from item
 				} else if (_rayCast3.GetCollider() is RigidBody2D rigid) {
-					rigid.ApplyImpulse(Vector2.Right.Rotated(player.GetMagnetRotation()) * 1000);
+					float direction = magnet != null ? magnet.Rotation : Rotation;
+					rigid.ApplyImpulse(Vector2.Right.Rotated(direction) * pushCharacter);
 					impulse = true;
 
+				// Pushing character body away from item
 				} else if (_rayCast3.GetCollider() is CharacterBody2D character) {
-					character.AddImpulse(Vector2.Right.Rotated(player.GetMagnetRotation()) * 1000);
+					float direction = magnet != null ? magnet.Rotation : Rotation;
+					character.ApplyImpulse(Vector2.Right.Rotated(direction) * pushCharacter);
 					impulse = true;
 				}
 			}
