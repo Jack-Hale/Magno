@@ -368,7 +368,7 @@ public partial class Player : CharacterBody2D
 		
 		// No Input
 		if (Input == Vector2.Zero) {
-			float frictionAmount = (isOnFloor ? friction : airFriction) * (float)delta;
+			float frictionAmount = (isAnyOnFloor ? friction : airFriction) * (float)delta;
 
 			if (Math.Abs(currentX) > frictionAmount) {
 				currentX -= Mathf.Sign(currentX) * frictionAmount;

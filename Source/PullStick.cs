@@ -83,7 +83,6 @@ public partial class PullStick : RigidBody2D
 			if (_rayCast1.IsColliding() || _rayCast2.IsColliding()) {
 				// Pull item towards ground on inner raycast
 				if (magnet != null && itemOwner != null && !push) {
-					GD.Print("pull");
 					if (itemOwner is CharacterBody2D character) {
 						character.ApplyImpulse(Vector2.Right.Rotated(magnet.Rotation) * pullThis);
 					} else if (itemOwner is RigidBody2D rigid) {
