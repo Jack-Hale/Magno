@@ -197,16 +197,21 @@ public partial class Magnet : Area2D
 			// Checking if there are tiles in the beam
 			if (_tileBeamCast.IsColliding()) {
 				if (_tileBeamCast.GetCollider() is TileMapLayer tileMap) {
+					Vector2 collisionPoint = _tileBeamCast.GetCollisionPoint();
 
-					Vector2I collisionCoords =  tileMap.LocalToMap(_tileBeamCast.GetCollisionPoint());
+					// Adjust the collision by 1 depending on whether the magnet is above or below the collision point
+					collisionPoint.Y -= GlobalPosition.Y > collisionPoint.Y ? 1 : -1;
 
-					// Offsetting the collision point to account for bad data when converting from float to int
-					if (_tileBeamCast.GetCollisionPoint().X < GlobalPosition.X) collisionCoords.X = collisionCoords.X - 1;
-					if (_tileBeamCast.GetCollisionPoint().Y < GlobalPosition.Y) collisionCoords.Y = collisionCoords.Y - 1;
-					
-					// TileData data = tileMap.GetCellTileData(0, collisionCoords);
+					Vector2 localCollision = tileMap.ToLocal(collisionPoint);
+
+					// Convert local position to map cell coordinates using floor division
+					Vector2 tileSize = tileMap.TileSet.TileSize;
+					int cellX = Mathf.FloorToInt(localCollision.X / tileSize.X);
+					int cellY = Mathf.FloorToInt(localCollision.Y / tileSize.Y);
+					Vector2I collisionCoords = new Vector2I(cellX, cellY);
+
 					TileData data = tileMap.GetCellTileData(collisionCoords);
-
+					
 					// Moving magnet holder if terrain is magnetic
 					if (data != null && (bool) data.GetCustomData("Magnetic")) {
 						ForceObject(_tileBeamCast.GetCollisionPoint(), delta);
