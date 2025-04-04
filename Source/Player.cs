@@ -262,6 +262,7 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
+	// Tests if there is a collision with tilemaps where the magnet is rotating to
 	private bool PhysicsTestCollision(Array<CollisionShape2D> collisions, Vector2 direction, float checkDistance) {
 		var spaceState = GetWorld2D().DirectSpaceState;
 		foreach (CollisionShape2D shape in collisions) {
@@ -275,10 +276,10 @@ public partial class Player : CharacterBody2D
 			query.CollisionMask = (1u << 0) | (1u << 7);
 
 			if (spaceState.IntersectShape(query).Count > 0)
-				return true; // Collision detected, slow down the rotation
+				return true;
 		}
 
-		return false; // No collision detected
+		return false;
 	}
 
     public override void _Input(InputEvent @event) {
@@ -359,31 +360,48 @@ public partial class Player : CharacterBody2D
 
 	public float MovePlayer(double delta) {
 		Input = GetXInput();
-		Vector2 NewVelocity = Vector2.Zero;
 
 		// Needs to be only on X otherwise LimitLength takes falling and jumping into account affecting speed
-		NewVelocity.X = Velocity.X;
+		float currentX = Velocity.X;
+
+		float decelerationRate = 5f;
 		
 		// No Input
 		if (Input == Vector2.Zero) {
-			// Player is moving, Apply friction to reduce speed
-			if (Math.Abs(NewVelocity.X) > (friction * (float)delta)) {
-				// Friction is set based on land or air
-				NewVelocity -= NewVelocity.Normalized() * (isOnFloor ? friction : airFriction) * (float)delta;
-			}
+			float frictionAmount = (isOnFloor ? friction : airFriction) * (float)delta;
 
-			// Player is not moving
-			else {
-				NewVelocity = Vector2.Zero;
+			if (Math.Abs(currentX) > frictionAmount) {
+				currentX -= Mathf.Sign(currentX) * frictionAmount;
+			} else {
+				currentX = 0;
 			}
 		}
 		// Input, Add acceleration
 		else if (!Godot.Input.IsActionPressed("MoveDown") || isOnFloor) {
-			NewVelocity += Input * (isOnFloor ? acceleration : airAcceleration) * (float)delta;
-			NewVelocity = NewVelocity.LimitLength(maxSpeed);
+			// newVelocity += Input * (isOnFloor ? acceleration : airAcceleration) * (float)delta;
+			// newVelocity = new Vector2(newVelocity.LimitLength(maxSpeed).X, 0);
+
+
+			float accel = (isOnFloor ? acceleration : airAcceleration) * (float)delta;
+        
+			// Above max speed and the input is trying to accelerate further in the same direction
+			if (Math.Abs(currentX) > maxSpeed && Mathf.Sign(Input.X) == Mathf.Sign(currentX)) {
+
+				// Gradually reduce speed toward maxSpeed using Lerp
+				currentX = Mathf.Lerp(currentX, Mathf.Sign(currentX) * maxSpeed, decelerationRate * (float)delta);
+
+			} else {
+				// Otherwise, apply normal acceleration
+				currentX += Input.X * accel;
+				
+				// Reduce speed if currentX exceeds maxSpeed after acceleration is applied
+				if (Math.Abs(currentX) > maxSpeed && Mathf.Sign(Input.X) == Mathf.Sign(currentX)) {
+					currentX = Mathf.Lerp(currentX, Mathf.Sign(currentX) * maxSpeed, decelerationRate * (float)delta);
+				}
+			}
 		}
 
-		return NewVelocity.X;
+		return currentX;
 	}
 
 	public Vector2 GodmodeMove(double delta) {
