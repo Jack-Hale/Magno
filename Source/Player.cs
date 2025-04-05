@@ -62,6 +62,7 @@ public partial class Player : CharacterBody2D
 	private Vector2 preFloorVelocity = Vector2.Zero;
 
 	private RigidBody2D heldItem = null;
+	private PhysicsBody2D heldObject = null;
 	private ItemComponent itemComponent = null;
 
 	private Vector2 force = Vector2.Zero;
@@ -150,11 +151,19 @@ public partial class Player : CharacterBody2D
 			_sprite2D.FlipH = Velocity.X < 0;
 		}
 
-		if (_magnet.HasItem()) {
-			RigidBody2D item = _magnet.GetItem();
-			if (heldItem != item) {
-				heldItem = item;
-				itemComponent = heldItem.GetNode<ItemComponent>("ItemComponent");
+		if (_magnet.HasObject()) {
+			if (_magnet.HasItem()) {
+				RigidBody2D item = _magnet.GetItem();
+				if (heldItem != item) {
+					heldItem = item;
+					itemComponent = heldItem.GetNode<ItemComponent>("ItemComponent");
+				}
+			} else {
+				PhysicsBody2D item = _magnet.GetAttachedObject();
+				if (heldObject != item) {
+					heldObject = item;
+					itemComponent = null;
+				}
 			}
 		} else {
 			if (heldItem != null) {
@@ -182,7 +191,7 @@ public partial class Player : CharacterBody2D
 			float turnSpeed = 15f;
 			
 			// Will lower the turn speeed greatly if the item is going to collide with a surface
-			if (heldItem != null) {
+			if (heldItem != null || heldObject != null) {
 				if (PhysicsTestCollision(_magnet.GetHeldObjectCollisions(), direction, 20f)) {
 					turnSpeed = 1f;
 				}

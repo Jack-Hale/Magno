@@ -211,7 +211,7 @@ public partial class Magnet : Area2D
 					Vector2I collisionCoords = new Vector2I(cellX, cellY);
 
 					TileData data = tileMap.GetCellTileData(collisionCoords);
-					
+
 					// Moving magnet holder if terrain is magnetic
 					if (data != null && (bool) data.GetCustomData("Magnetic")) {
 						ForceObject(_tileBeamCast.GetCollisionPoint(), delta);
@@ -620,6 +620,10 @@ public partial class Magnet : Area2D
 		return false;
 	}
 
+	public bool HasObject() {
+		return  isObjectAttached;
+	}
+
 	public Array<CollisionShape2D> GetHeldObjectCollisions() {
 		return heldObjectCollisions;
 	}
@@ -627,6 +631,13 @@ public partial class Magnet : Area2D
 	public RigidBody2D GetItem() {
 		if (isItem && isObjectAttached) {
 			return (RigidBody2D)attachedObject;
+		} 
+		return null;
+	}
+
+	public PhysicsBody2D GetAttachedObject() {
+		if (isObjectAttached) {
+			return attachedObject;
 		} 
 		return null;
 	}

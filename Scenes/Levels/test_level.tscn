@@ -347,13 +347,13 @@ tile_set = ExtResource("1_0rdck")
 position = Vector2(-921, 305)
 
 [node name="Tuna" parent="." instance=ExtResource("6_x4x4f")]
-position = Vector2(498, -1147)
+position = Vector2(1525, 254)
 
 [node name="PullStick" parent="." instance=ExtResource("7_l7ek2")]
-position = Vector2(295, 311)
+position = Vector2(2472, 323)
 
 [node name="BigBox" parent="." instance=ExtResource("6_k8g1k")]
-position = Vector2(953, 285)
+position = Vector2(464, 303)
 
 [node name="Lamps" type="Node" parent="."]
 
