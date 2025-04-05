@@ -3,20 +3,20 @@ using Godot.Collections;
 using System;
 
 public partial class MagneticCharacterParent : Node2D {
-	[Export]
-	public ExitCondition exitCondition;
+	// [Export]
+	// public ExitCondition exitCondition;
 
-	[Export]
-	public float exitTimer = 2;
+	// [Export]
+	// public float exitTimer = 2;
 
-	[Export]
-	public SwapCondition swapCondition;
+	// [Export]
+	// public SwapCondition swapCondition;
 
-	[Export]
-	public float swapTimeLimit = 0.5f;
+	// [Export]
+	// public float swapTimeLimit = 0.5f;
 
-	[Export]
-	public bool noRigidPhysics = false;
+	// [Export]
+	// public bool noRigidPhysics = false;
 
 	CharacterBody2D character;
 	MagneticCharacterComponent component;
@@ -66,7 +66,9 @@ public partial class MagneticCharacterParent : Node2D {
 
 				// Duplicating all children of character into bodyCopy except the metal object
 				if (!child.IsInGroup("Magnetic")) {
-					bodyCopy.AddChild(child.Duplicate());
+					if (child is not PathFindingComponent) {
+						bodyCopy.AddChild(child.Duplicate());
+					}
 				} else {
 					// Extracting just the sprite from the metal object to put in bodyCopy
 					Array<Node> children = child.GetChildren();

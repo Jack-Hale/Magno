@@ -9,7 +9,9 @@ public partial class MagneticComponent : Node2D
 	[Export]
 	private float strongMultiplier = 10;
 	[Export]
-	private float blastMultiplier = 400;
+	private float blastMultiplier = 800;
+	[Export]
+	private bool canJoin = true;
 
 	private RigidBody2D rigidObject;
 	private CharacterBody2D characterObject;
@@ -55,8 +57,8 @@ public partial class MagneticComponent : Node2D
 
 			rigidObject.AddToGroup("Magnetic");
 
-			if (objectParent is PhysicsBody2D) {
-
+			if (objectParent is PhysicsBody2D && objectParent is not StaticBody2D) {
+				GD.Print(objectParent.Name);
 				objectParent = (PhysicsBody2D) objectParent;
 
 				// Disabling the rigid object while it is within the larger object
@@ -227,7 +229,6 @@ public partial class MagneticComponent : Node2D
 	// Applies the Magnetic force onto the parent object
 	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta, bool isRigidPhysics) {
 		
-
 		// Vector that is positive or negative depending on what pull mode the magnet is in
 		Vector2 pushForce = pull ? attractionPoint - rigidObject.GlobalPosition : rigidObject.GlobalPosition - attractionPoint;
 	
@@ -280,5 +281,9 @@ public partial class MagneticComponent : Node2D
 
 	public bool GetIsRigidPhysics() {
 		return isRigidPhysics;
+	}
+
+	public bool GetCanJoin() {
+		return canJoin;
 	}
 }

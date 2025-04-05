@@ -2,11 +2,16 @@ using Godot;
 using System;
 
 public partial class LargeSlime : CharacterBody2D {
-	public const float speed = 300.0f;
-	public const float jumpVelocity = -400.0f;
-
+	public float maxSpeed = 300.0f;
+	public float jumpVelocity = -400.0f;
+	public float jumpForwardVelocity = 300.0f;
+	float friction = 2200;
+	float acceleration = 2200;
+	float airAcceleration = 1800;
+	private float jumpTimer = 0;
+	private float jumpTimerDefault = 1;
+	private bool wasOnFloor = false;
 	private bool affected = true;
-
 	private MagneticCharacterComponent magCharComp = null;
 
 	// The pull mode of the magnet affecting the enemy
@@ -25,7 +30,13 @@ public partial class LargeSlime : CharacterBody2D {
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 
+	private PathFindingComponent _pathFinding;
+	private CharacterBody2D player;
+	private float randomDirection = 0;
+
 	public override void _Ready() {
+		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
+		player = _pathFinding.GetPlayer();
 		foreach (var child in GetParent().GetChildren()) {
 			if (child is MagneticCharacterComponent) {
 				magCharComp = (MagneticCharacterComponent) child;
@@ -61,9 +72,35 @@ public partial class LargeSlime : CharacterBody2D {
 			magCharComp = null;
 		}
 
+		Vector2 direction = Vector2.Zero;
+
 		// Add the gravity.
 		if (!IsOnFloor())
 			velocity.Y += gravity * (float)delta;
+
+		Random random = new();
+
+		if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
+			direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
+		} else {
+			direction = new Vector2(randomDirection >= 0 ? 1 : -1, 0);
+		}
+
+		if (IsOnFloor()) {
+			randomDirection = random.NextSingle() - 0.5f;
+			if (wasOnFloor != IsOnFloor()) {
+				jumpTimer = jumpTimerDefault + random.NextSingle();
+			}
+
+			if (jumpTimer <= 0) {
+				velocity.Y = jumpVelocity * (1 + random.NextSingle());
+				velocity.X += jumpForwardVelocity * direction.X;
+			} else {
+				jumpTimer -= (float)delta;
+			}
+		}
+
+		velocity.X = _pathFinding.ApplyFriction(true, velocity, friction, delta).X;
 
 		if (affected) {
 			// Handle behaviour when affected by a magnet
@@ -73,6 +110,7 @@ public partial class LargeSlime : CharacterBody2D {
 			
 		}
 
+		wasOnFloor = IsOnFloor();
 		Velocity = velocity;
 		MoveAndSlide();
 	}

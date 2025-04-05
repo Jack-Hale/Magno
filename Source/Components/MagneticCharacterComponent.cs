@@ -39,8 +39,8 @@ public partial class MagneticCharacterComponent : Node2D {
 	private RigidBody2D bodyCopy;
 
 	public bool isCharacter = true;
-	private RigidBody2D collisionL;
-	private RigidBody2D collisionM;
+	private uint collisionL;
+	private uint collisionM;
 	private MagneticComponent bodyCopyMagComp;
 
 	private float ragdollTimer = 0;
@@ -235,14 +235,9 @@ public partial class MagneticCharacterComponent : Node2D {
 		this.character = character;
 		character.AddToGroup("MagneticCharacter");
 
-		collisionL = new RigidBody2D();
-		collisionM = new RigidBody2D();
-
 		// Creating a copy the collision mask and layer of character
-		for (int i = 1; i <= 32; i++) {
-			collisionL.SetCollisionLayerValue(i, character.GetCollisionLayerValue(i));
-			collisionM.SetCollisionMaskValue(i, character.GetCollisionMaskValue(i));
-		}
+		collisionL = character.CollisionLayer;
+		collisionM = character.CollisionMask;
 	}
 
 	public Vector2 GetCharacterVelocity() {
@@ -264,15 +259,11 @@ public partial class MagneticCharacterComponent : Node2D {
 	// Replaces collision layer/mask with either no collisions or the original collisions
 	private void ReplaceCollisions(PhysicsBody2D body, bool noCollisions) {
 		if (noCollisions) {
-			for (int i = 1; i <= 32; i++) {
-				body.SetCollisionLayerValue(i, false);
-				body.SetCollisionMaskValue(i, false);
-			}
+			body.CollisionLayer = 0;
+			body.CollisionMask = 0;
 		} else {
-			for (int i = 1; i <= 32; i++) {
-				body.SetCollisionLayerValue(i, collisionL.GetCollisionLayerValue(i));
-				body.SetCollisionMaskValue(i, collisionM.GetCollisionMaskValue(i));
-			}
+			body.CollisionLayer = collisionL;
+			body.CollisionMask = collisionM;
 		}
 	}
 

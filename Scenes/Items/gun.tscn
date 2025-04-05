@@ -1,0 +1,46 @@
+[gd_scene load_steps=8 format=3 uid="uid://c02ortdkcmv7x"]
+
+[ext_resource type="Texture2D" uid="uid://cvqdp7u0bi6ww" path="res://Assets/Sprites/gunItem.png" id="1_ak828"]
+[ext_resource type="Script" uid="uid://drej4upqy6kkw" path="res://Source/Gun.cs" id="1_o2ukw"]
+[ext_resource type="Script" uid="uid://dn3abb2bdasda" path="res://Source/Components/ItemComponent.cs" id="2_pq3s3"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="3_pq3s3"]
+[ext_resource type="Script" uid="uid://5wibdv2faylk" path="res://Source/Components/ProjectileComponent.cs" id="4_a3t6l"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_a3t6l"]
+radius = 7.0
+height = 32.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_o2ukw"]
+radius = 6.0
+height = 18.0
+
+[node name="Gun" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 191
+script = ExtResource("1_o2ukw")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_ak828")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_a3t6l")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+position = Vector2(-10, 7)
+shape = SubResource("CapsuleShape2D_o2ukw")
+
+[node name="ItemComponent" type="Node2D" parent="."]
+script = ExtResource("2_pq3s3")
+metadata/_custom_type_script = "uid://dn3abb2bdasda"
+
+[node name="MagneticComponent" type="Node2D" parent="."]
+script = ExtResource("3_pq3s3")
+metadata/_custom_type_script = "uid://dga5am8fpoq83"
+
+[node name="ProjectileComponent" type="Node2D" parent="."]
+position = Vector2(15, -3)
+script = ExtResource("4_a3t6l")
+speed = 800.0
+shootCooldown = 0.2
+metadata/_custom_type_script = "uid://5wibdv2faylk"

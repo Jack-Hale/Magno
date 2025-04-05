@@ -1,0 +1,48 @@
+[gd_scene load_steps=7 format=3 uid="uid://dygatxmfwnt3i"]
+
+[ext_resource type="Texture2D" uid="uid://b3i0hoeo35mpe" path="res://Assets/Sprites/Sword.png" id="1_kpc47"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="2_d6nal"]
+[ext_resource type="Script" uid="uid://bs7evxlj3ifeb" path="res://Source/Components/DamageComponent.cs" id="3_x2u2t"]
+[ext_resource type="Script" uid="uid://dn3abb2bdasda" path="res://Source/Components/ItemComponent.cs" id="4_x2u2t"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_itn8i"]
+radius = 3.0
+height = 306.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_x2u2t"]
+radius = 3.0
+height = 262.0
+
+[node name="Sword" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 183
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(2.36719, 1)
+texture = ExtResource("1_kpc47")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_itn8i")
+
+[node name="MagneticComponent" type="Node2D" parent="."]
+script = ExtResource("2_d6nal")
+metadata/_custom_type_script = "uid://dga5am8fpoq83"
+
+[node name="ItemComponent" type="Node2D" parent="."]
+script = ExtResource("4_x2u2t")
+metadata/_custom_type_script = "uid://dn3abb2bdasda"
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 54
+
+[node name="DamageComponent" type="Node2D" parent="Area2D"]
+script = ExtResource("3_x2u2t")
+damageAmount = 5.0
+metadata/_custom_type_script = "uid://bs7evxlj3ifeb"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(22, 0)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_x2u2t")

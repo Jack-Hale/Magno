@@ -232,7 +232,7 @@ _data = {
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
-collision_mask = 119
+collision_mask = 215
 platform_floor_layers = 4294967293
 script = ExtResource("1_fhg01")
 
@@ -248,7 +248,9 @@ position_smoothing_enabled = true
 position_smoothing_speed = 15.0
 
 [node name="Magnet" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("4_m1cei")]
+collision_mask = 191
 parent = NodePath("..")
+dropItemOnDeactivate = false
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
@@ -266,4 +268,3 @@ metadata/_edit_use_anchors_ = true
 [node name="HealthComponent" type="Node2D" parent="."]
 position = Vector2(-31, -27)
 script = ExtResource("7_bgp4g")
-maxHealth = 1000.0

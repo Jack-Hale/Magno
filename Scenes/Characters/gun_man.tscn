@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://u1fa4q8o6k8j"]
+[gd_scene load_steps=9 format=3 uid="uid://u1fa4q8o6k8j"]
 
 [ext_resource type="Script" uid="uid://dnubm8fub163u" path="res://Source/GunMan.cs" id="1_a0o8j"]
 [ext_resource type="Texture2D" uid="uid://blou1m5hu4wkf" path="res://Assets/Sprites/Gunman.png" id="1_aupy1"]
@@ -6,12 +6,15 @@
 [ext_resource type="Script" uid="uid://5wibdv2faylk" path="res://Source/Components/ProjectileComponent.cs" id="3_2uqyx"]
 [ext_resource type="PackedScene" uid="uid://cw68htgtmsams" path="res://Scenes/Perishable Objects/projectile.tscn" id="5_7mfjt"]
 [ext_resource type="Texture2D" uid="uid://bndpu71fqofpt" path="res://Assets/Sprites/DamageBall.png" id="5_11i2t"]
+[ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="7_axe18"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ode40"]
 radius = 17.0
 height = 64.0
 
 [node name="GunMan" type="CharacterBody2D"]
+collision_layer = 32
+collision_mask = 231
 script = ExtResource("1_a0o8j")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
@@ -22,6 +25,7 @@ texture = ExtResource("1_aupy1")
 [node name="ProjectileComponent" type="Node2D" parent="Gun"]
 position = Vector2(37, -5)
 script = ExtResource("3_2uqyx")
+speed = 1000.0
 
 [node name="Projectile" parent="Gun/ProjectileComponent" instance=ExtResource("5_7mfjt")]
 
@@ -44,7 +48,8 @@ texture = ExtResource("5_11i2t")
 position = Vector2(0, -1)
 shape = SubResource("CapsuleShape2D_ode40")
 
-[node name="RayCast2D" type="RayCast2D" parent="."]
-position = Vector2(0, 15)
-target_position = Vector2(212, 0)
-collision_mask = 38
+[node name="PathFindingComponent" type="Node2D" parent="."]
+position = Vector2(0, -23)
+script = ExtResource("7_axe18")
+veiwRadius = 1000.0
+metadata/_custom_type_script = "uid://dfgsiwyixd82h"

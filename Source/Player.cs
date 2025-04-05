@@ -1,6 +1,8 @@
 using Godot;
+using Godot.Collections;
 using System;
 using System.ComponentModel;
+using System.IO.IsolatedStorage;
 using System.Linq;
 
 public partial class Player : CharacterBody2D
@@ -36,13 +38,11 @@ public partial class Player : CharacterBody2D
 	Vector2 Input = Vector2.Zero;
 
 	private Magnet _magnet;
-
+	private CollisionShape2D _collisionShape;
 	private Vector2 drawVector1 = Vector2.Zero;
 	private Vector2 drawVector2 = Vector2.Zero;
 
 	private bool godMode = false;
-
-	private Magnet magnet;
 
 	private MagneticComponent attachedObject;
 
@@ -59,33 +59,51 @@ public partial class Player : CharacterBody2D
 	private bool mnkControl = true;
 
 	private bool jumpAnimation = false;
+	private Vector2 preFloorVelocity = Vector2.Zero;
+
+	private RigidBody2D heldItem = null;
+	private PhysicsBody2D heldObject = null;
+	private ItemComponent itemComponent = null;
+
+	private Vector2 force = Vector2.Zero;
+	private float preFloorTimer = 0f;
+	private float preFloorTimerMax = 0.3f;
+	private bool isOnFloor = false;
+	private bool isAnyOnFloor = false;
+	private CapsuleShape2D capsuleCollision;
+	PhysicsShapeQueryParameters2D query = new PhysicsShapeQueryParameters2D();
 
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 
 	public override void _Ready() {
-		
 		_magnet = GetNode<Magnet>("Magnet");
 		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
 		_sprite2D = GetNode<Sprite2D>("Sprite2D");
 		_label = GetNode<Label>("Label");
+		_collisionShape = GetNode<CollisionShape2D>("CollisionShape2D");
+
+		if (_collisionShape.Shape is CapsuleShape2D capsuleShape) {
+			capsuleCollision = capsuleShape;
+		}
 
 		pullMode = _magnet.GetPullMode();
+
+		query.SetShape(capsuleCollision);
+		query.Exclude.Add(GetRid());
+		query.CollisionMask = (1u << 0) | (1u << 2) | (1u << 4) | (1u << 6) | (1u << 7);
 	}
 
-	public override void _Draw()
-    {
+	public override void _Draw() {
         // DrawLine(drawVector1, drawVector2, Colors.Green, 1.0f);
     }
 
-    public override void _Process(double delta)
-    {
+    public override void _Process(double delta) {
 		// Activates Coyote timer if the player walks off an edge without jumping
-		if (wasOnFloor && !IsOnFloor() && !jumping) {
+		if (wasOnFloor && !isOnFloor && !jumping) {
 			coyoteTimer = coyoteTimerMax;
 		}
-
 		if (coyoteTimer > 0) {
 			coyoteTimer -= (float)delta;
 		}
@@ -94,7 +112,21 @@ public partial class Player : CharacterBody2D
 			jumpBufferTimer -= (float)delta;
 		}
 
-        wasOnFloor = IsOnFloor();
+
+		if (preFloorTimer > 0) {
+			preFloorTimer -= (float)delta;
+		}
+
+		// Gets the velocity from the frame before the player hit the ground
+		if (!IsOnFloor()) {
+			preFloorVelocity = Velocity;
+			preFloorTimer = preFloorTimerMax;
+		} else if (preFloorTimer <= 0) {
+			// If player has been on ground for 0.3 seconds, set to Vector.Zero
+			preFloorVelocity = Vector2.Zero;
+		}
+
+        wasOnFloor = isOnFloor;
     }
 
     public override void _PhysicsProcess(double delta) {
@@ -110,13 +142,34 @@ public partial class Player : CharacterBody2D
 		HandleMagnet();
 
 		if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
-			// godMode = !godMode;
+			godMode = !godMode;
 		}
 
+
 		// Flipping the sprite to face the way its moving
-		if (Velocity.X != 0) 
-		{
+		if (Velocity.X != 0) {
 			_sprite2D.FlipH = Velocity.X < 0;
+		}
+
+		if (_magnet.HasObject()) {
+			if (_magnet.HasItem()) {
+				RigidBody2D item = _magnet.GetItem();
+				if (heldItem != item) {
+					heldItem = item;
+					itemComponent = heldItem.GetNode<ItemComponent>("ItemComponent");
+				}
+			} else {
+				PhysicsBody2D item = _magnet.GetAttachedObject();
+				if (heldObject != item) {
+					heldObject = item;
+					itemComponent = null;
+				}
+			}
+		} else {
+			if (heldItem != null) {
+				heldItem = null;
+				itemComponent = null;
+			}
 		}
 
 		UpdateAnimations();
@@ -134,11 +187,39 @@ public partial class Player : CharacterBody2D
 
 		// Handles rotating the magnet to whatever input in active
 		if (mnkControl) {
-			_magnet.LookAt(GetGlobalMousePosition());
+			Vector2 direction = (GetGlobalMousePosition() - _magnet.GlobalPosition).Normalized();
+			float turnSpeed = 15f;
+			
+			// Will lower the turn speeed greatly if the item is going to collide with a surface
+			if (heldItem != null || heldObject != null) {
+				if (PhysicsTestCollision(_magnet.GetHeldObjectCollisions(), direction, 20f)) {
+					turnSpeed = 1f;
+				}
+			}
+			float targetRotation = direction.Angle();
+			_magnet.Rotation = Mathf.LerpAngle(_magnet.Rotation, targetRotation, turnSpeed * (float)GetPhysicsProcessDeltaTime());
+			
+			// _magnet.LookAt(GetGlobalMousePosition());
 		} else {
 			_magnet.Rotation = stickAimVector.Angle();
 		}
 	
+		if (Godot.Input.IsActionJustPressed("UseItemLeft")) {
+			if (itemComponent != null) {
+				itemComponent.UseItemLeft();
+			}
+		}
+
+		if (Godot.Input.IsActionJustPressed("UseItemRight")) {
+			if (itemComponent != null) {
+				itemComponent.UseItemRight();
+			}
+		}
+
+		if (Godot.Input.IsActionJustPressed("DropItem")) {
+			_magnet.DropItem();
+		}
+
 		if (Godot.Input.IsActionJustPressed("ToggleMagnetMode")) {
 			pullMode = !pullMode;
 			_magnet.SetPullMode(pullMode);
@@ -146,7 +227,7 @@ public partial class Player : CharacterBody2D
 
 		if (!godMode) {
 			// Add the gravity.
-			if (!IsOnFloor())
+			if (!isOnFloor)
 				NewVelocity.Y += gravity * (float)delta;
 
 			NewVelocity.Y += HandleJump(delta);
@@ -155,11 +236,30 @@ public partial class Player : CharacterBody2D
 		} else {
 			NewVelocity = GodmodeMove(delta);
 		}
+		if (force != Vector2.Zero) {
+			NewVelocity += force;
+			force = Vector2.Zero;
+		}
 
 		Velocity = NewVelocity;
 
 		QueueRedraw();
 		MoveAndSlide();
+
+		// Replacing IsOnFloor call with a separate query that only checks the players collision
+		Vector2 queryPosition = GlobalPosition + new Vector2(0, 1);
+		query.Transform = new Transform2D(0, queryPosition);
+
+		PhysicsDirectSpaceState2D spaceState = GetWorld2D().DirectSpaceState;
+		var collisions = spaceState.IntersectShape(query);
+
+		isOnFloor = false;
+		if (collisions.Count > 0) {
+			isOnFloor = true;
+		}
+
+		// Will be true if any part of the player is on floor
+		isAnyOnFloor = isOnFloor || IsOnFloor();
 
 		// Push RigidBody2D objects
 		for (int i = 0; i < GetSlideCollisionCount(); i++) {
@@ -171,8 +271,27 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
-    public override void _Input(InputEvent @event)
-    {
+	// Tests if there is a collision with tilemaps where the magnet is rotating to
+	private bool PhysicsTestCollision(Array<CollisionShape2D> collisions, Vector2 direction, float checkDistance) {
+		var spaceState = GetWorld2D().DirectSpaceState;
+		foreach (CollisionShape2D shape in collisions) {
+			PhysicsShapeQueryParameters2D query = new PhysicsShapeQueryParameters2D();
+			query.SetShape(shape.Shape);
+			
+			// Move the query forward in the direction the magnet is rotating
+			Vector2 newPos = shape.GlobalPosition + (direction * checkDistance);
+			
+			query.Transform = new Transform2D(0, newPos);
+			query.CollisionMask = (1u << 0) | (1u << 7);
+
+			if (spaceState.IntersectShape(query).Count > 0)
+				return true;
+		}
+
+		return false;
+	}
+
+    public override void _Input(InputEvent @event) {
 		// If any mouse movement is detected, switch the aim control to mouse
         if (@event is InputEventMouseMotion) {
 			mnkControl = true;
@@ -188,9 +307,9 @@ public partial class Player : CharacterBody2D
 
 	public Vector2 GetInput() {
 		// Only X input is read because jump is handled separately
-		Vector2 Input = this.Input;
-		Input = Godot.Input.GetVector("MoveLeft", "MoveRight", "MoveUp", "MoveDown");
-		return Input.Normalized();
+		Vector2 input = Input;
+		input = Godot.Input.GetVector("MoveLeft", "MoveRight", "MoveUp", "MoveDown");
+		return input.Normalized();
 	}
 
 	public void HandleMagnet() {
@@ -200,13 +319,13 @@ public partial class Player : CharacterBody2D
 	public float HandleJump(double delta) {
 
 		// Activates the jump buffer timer if jump is pressed not on the floor
-		if (Godot.Input.IsActionJustPressed("Jump") && !IsOnFloor()) {
+		if (Godot.Input.IsActionJustPressed("Jump") && !isOnFloor) {
 			jumpBufferTimer = jumpBufferTimerMax;
 		}
 
 		// Jump pressed while on the floor or the coyote timer is active, set jump velocity to max
 		// Will jump when jump key is not pressed if the jump buffer is active
-		if ((IsOnFloor() && jumpBufferTimer > 0) || Godot.Input.IsActionJustPressed("Jump") && (IsOnFloor() || coyoteTimer > 0)) {
+		if ((isOnFloor && jumpBufferTimer > 0) || Godot.Input.IsActionJustPressed("Jump") && (isOnFloor || coyoteTimer > 0)) {
 			currentJumpVelocity = jumpVelocity;
 			currentJumpTimer = jumpHoldTime;
 			jumping = true;
@@ -224,41 +343,74 @@ public partial class Player : CharacterBody2D
 			currentJumpVelocity = 0;
 		}
 
-		if (Godot.Input.IsActionJustPressed("Jump") && IsOnFloor()) return currentJumpVelocity - 60f;
+		if (Godot.Input.IsActionJustPressed("Jump") && isOnFloor) return currentJumpVelocity - 60f;
 		else return currentJumpVelocity;
+	}
+
+	public void ApplyForce(Vector2 direction, float force) {
+		this.force = direction.Normalized() * force;
+	}
+
+	public float GetMagnetRotation() {
+		return _magnet.Rotation;
+	}
+
+	public bool GetIsOnFloor() {
+		return isOnFloor;
+	}
+
+	public bool GetIsAnyOnFloor() {
+		return isAnyOnFloor;
+	}
+
+	public Vector2 GetPreFloorVelocity() {
+		return preFloorVelocity;
 	}
 
 	public float MovePlayer(double delta) {
 		Input = GetXInput();
-		Vector2 NewVelocity = Vector2.Zero;
 
 		// Needs to be only on X otherwise LimitLength takes falling and jumping into account affecting speed
-		NewVelocity.X = Velocity.X;
+		float currentX = Velocity.X;
+
+		float decelerationRate = 5f;
 		
 		// No Input
-		if (Input == Vector2.Zero)
-		{
-			// Player is moving, Apply friction to reduce speed
-			if (Math.Abs(NewVelocity.X) > (friction * (float)delta))
-			{
-				// Friction is set based on land or air
-				NewVelocity -= NewVelocity.Normalized() * (IsOnFloor() ? friction : airFriction) * (float)delta;
-			}
+		if (Input == Vector2.Zero) {
+			float frictionAmount = (isAnyOnFloor ? friction : airFriction) * (float)delta;
 
-			// Player is not moving
-			else
-			{
-				NewVelocity = Vector2.Zero;
+			if (Math.Abs(currentX) > frictionAmount) {
+				currentX -= Mathf.Sign(currentX) * frictionAmount;
+			} else {
+				currentX = 0;
 			}
 		}
 		// Input, Add acceleration
-		else if (!Godot.Input.IsActionPressed("MoveDown") || IsOnFloor())
-		{
-			NewVelocity += Input * (IsOnFloor() ? acceleration : airAcceleration) * (float)delta;
-			NewVelocity = NewVelocity.LimitLength(maxSpeed);
+		else if (!Godot.Input.IsActionPressed("MoveDown") || isOnFloor) {
+			// newVelocity += Input * (isOnFloor ? acceleration : airAcceleration) * (float)delta;
+			// newVelocity = new Vector2(newVelocity.LimitLength(maxSpeed).X, 0);
+
+
+			float accel = (isOnFloor ? acceleration : airAcceleration) * (float)delta;
+        
+			// Above max speed and the input is trying to accelerate further in the same direction
+			if (Math.Abs(currentX) > maxSpeed && Mathf.Sign(Input.X) == Mathf.Sign(currentX)) {
+
+				// Gradually reduce speed toward maxSpeed using Lerp
+				currentX = Mathf.Lerp(currentX, Mathf.Sign(currentX) * maxSpeed, decelerationRate * (float)delta);
+
+			} else {
+				// Otherwise, apply normal acceleration
+				currentX += Input.X * accel;
+				
+				// Reduce speed if currentX exceeds maxSpeed after acceleration is applied
+				if (Math.Abs(currentX) > maxSpeed && Mathf.Sign(Input.X) == Mathf.Sign(currentX)) {
+					currentX = Mathf.Lerp(currentX, Mathf.Sign(currentX) * maxSpeed, decelerationRate * (float)delta);
+				}
+			}
 		}
 
-		return NewVelocity.X;
+		return currentX;
 	}
 
 	public Vector2 GodmodeMove(double delta) {
@@ -268,7 +420,7 @@ public partial class Player : CharacterBody2D
 	}
 
 	public void UpdateAnimations() {
-		if (IsOnFloor())  {
+		if (isOnFloor)  {
 			jumpAnimation = true;
 			if (Velocity.X == 0) {
 				_animationPlayer.Play("idle");
