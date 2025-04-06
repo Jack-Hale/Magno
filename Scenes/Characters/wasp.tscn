@@ -1,0 +1,70 @@
+[gd_scene load_steps=12 format=3 uid="uid://xcrlbcscygw2"]
+
+[ext_resource type="Script" uid="uid://cyfe7n8vtr5xk" path="res://Source/Components/MagneticCharacterParent.cs" id="1_regco"]
+[ext_resource type="Script" uid="uid://bv76e8qnymuee" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_o2sb4"]
+[ext_resource type="Texture2D" uid="uid://cpv8hagmvdwmb" path="res://Assets/Sprites/Wasp.png" id="3_ot3qv"]
+[ext_resource type="Script" uid="uid://30sn5ole8tkl" path="res://Source/Wasp.cs" id="3_sexx5"]
+[ext_resource type="Script" uid="uid://5wibdv2faylk" path="res://Source/Components/ProjectileComponent.cs" id="4_0cir8"]
+[ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="5_ot3qv"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="6_0cir8"]
+[ext_resource type="PackedScene" uid="uid://cw68htgtmsams" path="res://Scenes/Perishable Objects/projectile.tscn" id="6_6mxyh"]
+[ext_resource type="Texture2D" uid="uid://bndpu71fqofpt" path="res://Assets/Sprites/DamageBall.png" id="7_huucs"]
+[ext_resource type="Texture2D" uid="uid://galar4b2b6at" path="res://Assets/Sprites/waspGun.png" id="8_huucs"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_sexx5"]
+radius = 16.0
+height = 46.0
+
+[node name="Wasp" type="Node2D"]
+script = ExtResource("1_regco")
+metadata/_custom_type_script = "uid://cyfe7n8vtr5xk"
+
+[node name="MagneticCharacterComponent" type="Node2D" parent="."]
+script = ExtResource("2_o2sb4")
+metadata/_custom_type_script = "uid://bv76e8qnymuee"
+
+[node name="Wasp" type="CharacterBody2D" parent="."]
+collision_layer = 32
+collision_mask = 255
+script = ExtResource("3_sexx5")
+
+[node name="Sprite2D" type="Sprite2D" parent="Wasp"]
+position = Vector2(0, -7)
+scale = Vector2(2, 2)
+texture = ExtResource("3_ot3qv")
+
+[node name="Gun" type="Node2D" parent="Wasp"]
+position = Vector2(-13, 24)
+rotation = -0.748746
+scale = Vector2(2, 2)
+
+[node name="Sprite2D" type="Sprite2D" parent="Wasp/Gun"]
+texture = ExtResource("8_huucs")
+
+[node name="ProjectileComponent" type="Node2D" parent="Wasp/Gun" node_paths=PackedStringArray("excludeArray")]
+position = Vector2(17.8177, 13.1445)
+script = ExtResource("4_0cir8")
+speed = 1000.0
+shootCooldown = 0.1
+excludeArray = [NodePath("../../.."), NodePath("../..")]
+metadata/_custom_type_script = "uid://5wibdv2faylk"
+
+[node name="Projectile" parent="Wasp/Gun/ProjectileComponent" instance=ExtResource("6_6mxyh")]
+
+[node name="Sprite2D" type="Sprite2D" parent="Wasp/Gun/ProjectileComponent/Projectile"]
+scale = Vector2(0.28125, 0.28125)
+texture = ExtResource("7_huucs")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Wasp/Gun/ProjectileComponent/Projectile"]
+
+[node name="PathFindingComponent" type="Node2D" parent="Wasp"]
+script = ExtResource("5_ot3qv")
+veiwRadius = 1000.0
+metadata/_custom_type_script = "uid://dfgsiwyixd82h"
+
+[node name="MagneticComponent" type="Node2D" parent="Wasp"]
+script = ExtResource("6_0cir8")
+metadata/_custom_type_script = "uid://dga5am8fpoq83"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Wasp"]
+shape = SubResource("CapsuleShape2D_sexx5")

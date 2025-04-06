@@ -2,8 +2,12 @@ using Godot;
 using System;
 
 public partial class MagneticEnemyComponent : CharacterBody2D {
-	public const float speed = 300.0f;
-	public const float jumpVelocity = -400.0f;
+	public float maxSpeed = 100.0f;
+	public float acceleration = 60.0f;
+	float friction = 2200;
+	float airAcceleration = 1800;
+
+	public float jumpVelocity = -400.0f;
 
 	private bool affected = true;
 
@@ -35,6 +39,7 @@ public partial class MagneticEnemyComponent : CharacterBody2D {
 
 	public override void _PhysicsProcess(double delta) {
 		Vector2 velocity = Velocity;
+		Vector2 direction = Vector2.Zero;
 		
 		// Handles magnetic states
 		if (IsInGroup("Magnetic")) {

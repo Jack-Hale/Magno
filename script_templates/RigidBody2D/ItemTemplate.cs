@@ -1,8 +1,7 @@
 using Godot;
 using System;
 
-public partial class Item : RigidBody2D
-{	
+public partial class Item : RigidBody2D {	
 	private ItemComponent _itemComponent;
 	private PhysicsBody2D itemOwner;
 	private CharacterBody2D charOwner = null;

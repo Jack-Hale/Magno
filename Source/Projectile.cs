@@ -14,7 +14,7 @@ public partial class Projectile : CharacterBody2D {
 	private DamageComponent _damageComponent;
 	private bool needsReady = false;
 	private bool hasReady = false;
-	private Node2D exclude = null;
+	private Array<Node2D> exclude = new();
     public override void _Ready() {
 		hasReady = true;
 		_life = GetNode<Timer>("Life");
@@ -25,8 +25,9 @@ public partial class Projectile : CharacterBody2D {
 		_defaultCollisionShape2D = GetNode<CollisionShape2D>("DefaultCollisionShape2D");
 
 		_damageComponent = _area2D.GetNode<DamageComponent>("DamageComponent");
-
-		_damageComponent.AddException(exclude);
+		for (int i = 0; i < exclude.Count; i++) {
+			_damageComponent.AddException(exclude[i]);
+		}
 
 		bool replaceSprite = false;
 		bool replaceCollider = false;
@@ -72,12 +73,18 @@ public partial class Projectile : CharacterBody2D {
 	}
 
 	public void OnBodyEntered(Node2D body) {
-		if (body != exclude) {
+		bool excluded = false;
+		for (int i = 0; i < exclude.Count; i++) {
+			if (body == exclude[i]) {
+				excluded = true;
+			}
+		}
+		if (!excluded) {
 			QueueFree();
 		}
 	}
 
-	public void SetVariables(float speed, float direction, Vector2 spawnPos, float spawnRot, float damage, float projectileTimeout, Node2D exclude) {
+	public void SetVariables(float speed, float direction, Vector2 spawnPos, float spawnRot, float damage, float projectileTimeout, Array<Node2D> exclude) {
 		this.speed = speed;
 		this.direction = direction;
 		GlobalPosition = spawnPos;
@@ -89,7 +96,9 @@ public partial class Projectile : CharacterBody2D {
 		if (hasReady) {
 			_life.WaitTime = projectileTimeout;
 			_damageComponent.SetDamage(damage);
-			_damageComponent.AddException(exclude);
+			for (int i = 0; i < exclude.Count; i++) {
+				_damageComponent.AddException(exclude[i]);
+			}
 		} else {
 			this.damage = damage;
 			waitTime = projectileTimeout;

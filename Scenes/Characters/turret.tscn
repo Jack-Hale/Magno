@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://dyx83ev3whehn"]
 
-[ext_resource type="Script" uid="uid://b17hxhkpo1cf6" path="res://Scenes/Characters/Turret.cs" id="1_tqohv"]
+[ext_resource type="Script" uid="uid://b17hxhkpo1cf6" path="res://Source/Turret.cs" id="1_tqohv"]
 [ext_resource type="Texture2D" uid="uid://batnlmnbghyiu" path="res://Assets/Sprites/Turret.png" id="1_u68hv"]
 [ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="2_tqohv"]
 [ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="3_81h7w"]

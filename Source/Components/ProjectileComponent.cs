@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using System;
 
 public partial class ProjectileComponent : Node2D {
@@ -14,6 +15,9 @@ public partial class ProjectileComponent : Node2D {
 	[Export]
 	public float shootCooldown = 1;
 
+	[Export]
+	public Array<Node2D> excludeArray = new();
+
 	private Node scene;
 	private PackedScene projectileScene;
 	private Node2D parent;
@@ -24,6 +28,11 @@ public partial class ProjectileComponent : Node2D {
 	private bool useTemplate = false;
 
 	private float cooldownTimer = 0;
+	private bool flipH = false;
+	private bool flipping = false;
+
+	private Vector2 originalPosition;
+	private float originalRotation;
 	
 	public override void _Ready() {
 		parent = (Node2D)GetParent();
@@ -31,7 +40,7 @@ public partial class ProjectileComponent : Node2D {
 		projectileScene = (PackedScene)GD.Load("res://Scenes/Perishable Objects/projectile.tscn");
 		
 		_projetile = GetNodeOrNull<Projectile>("Projectile");
-
+		originalPosition = Position;
 		// Found a projectile to use as a template instead of default
 		if (_projetile != null) {
 			_projetile.SetToTemplate();
@@ -42,6 +51,11 @@ public partial class ProjectileComponent : Node2D {
 			projetileTemplate.Visible = true;
 			projetileTemplate.ProcessMode = ProcessModeEnum.Inherit;
 		}
+
+		originalRotation = parent.Rotation;
+		Rotation = -originalRotation;
+
+		excludeArray.Add(parent);
 	}
 
 	public override void _Process(double delta)	{
@@ -50,9 +64,17 @@ public partial class ProjectileComponent : Node2D {
 		} else {
 			cooldownTimer = 0;
 		}
-		// if (Godot.Input.IsActionJustPressed("ToggleGodmode")) {
-		// }
 		
+		if (flipH != flipping) {
+			Position = new Vector2(flipH ? -originalPosition.X : originalPosition.X, Position.Y);
+			Rotation = flipH ? originalRotation : -originalRotation;
+		}
+
+		flipping = flipH;
+	}
+
+	public void SetHFlip(bool flipH) {
+		this.flipH = flipH;
 	}
 
 	public void Shoot() {
@@ -63,7 +85,7 @@ public partial class ProjectileComponent : Node2D {
 			} else {
 				projectile = (Projectile) projectileScene.Instantiate();	
 			}
-			projectile.SetVariables(speed, GlobalRotation, GlobalPosition, GlobalRotation, damage, projectileTimeout, parent);
+			projectile.SetVariables(speed, GlobalRotation, GlobalPosition, GlobalRotation, damage, projectileTimeout, excludeArray);
 			scene.AddChild(projectile);
 
 			cooldownTimer = shootCooldown;

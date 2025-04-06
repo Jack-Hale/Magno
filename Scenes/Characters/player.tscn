@@ -1,8 +1,7 @@
-[gd_scene load_steps=15 format=3 uid="uid://dfdg8yipq3ya0"]
+[gd_scene load_steps=14 format=3 uid="uid://dfdg8yipq3ya0"]
 
 [ext_resource type="Texture2D" uid="uid://dmiecbveok1ib" path="res://Assets/Sprites/Magnoman.png" id="1_a4gl4"]
 [ext_resource type="Script" uid="uid://d1esv4i4t2w5x" path="res://Source/Player.cs" id="1_fhg01"]
-[ext_resource type="PackedScene" uid="uid://b6mkipntuwu4w" path="res://Scenes/Items/wings.tscn" id="2_gdgf0"]
 [ext_resource type="Texture2D" uid="uid://ta6ko1f2f7pv" path="res://Assets/Sprites/MagnoManSpriteRun.png" id="4_d5gik"]
 [ext_resource type="PackedScene" uid="uid://cv122wmaloumx" path="res://Scenes/Items/magnet.tscn" id="4_m1cei"]
 [ext_resource type="Texture2D" uid="uid://d2fvqunkc2t4v" path="res://Assets/Sprites/MagnoManJump.png" id="5_8kxh1"]
@@ -237,9 +236,6 @@ collision_mask = 215
 platform_floor_layers = 4294967293
 script = ExtResource("1_fhg01")
 
-[node name="Wings" parent="." instance=ExtResource("2_gdgf0")]
-position = Vector2(1, -37)
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_cwh6n")
 
@@ -272,3 +268,4 @@ metadata/_edit_use_anchors_ = true
 [node name="HealthComponent" type="Node2D" parent="."]
 position = Vector2(-31, -27)
 script = ExtResource("7_bgp4g")
+maxHealth = 1e+09
