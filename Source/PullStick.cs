@@ -8,7 +8,6 @@ public partial class PullStick : RigidBody2D
 	private CollisionShape2D _collisionShape2;
 	private Sprite2D _sprite1;
 	private Sprite2D _sprite2;
-	private Player player;
 	private RayCast2D _rayCast1;
 	private RayCast2D _rayCast2;
 	private RayCast2D _rayCast3;
@@ -48,12 +47,6 @@ public partial class PullStick : RigidBody2D
 		_rayCast3 = GetNode<RayCast2D>("RayCast2D3");
 
 		itemOwner = _itemComponent.GetItemOwner();
-
-		player = _itemComponent.GetPlayer();
-
-		_rayCast1.AddException(player);
-		_rayCast2.AddException(player);
-		_rayCast3.AddException(player);
 
 		_collisionShape1.AddToGroup("MainCollisionShape");
 

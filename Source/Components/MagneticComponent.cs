@@ -30,6 +30,8 @@ public partial class MagneticComponent : Node2D
 
 	private RigidBody2D objectCollisionL = new RigidBody2D();
 	private RigidBody2D objectCollisionM = new RigidBody2D();
+	private uint collisionL = 0;
+	private uint collisionM = 0;
 
 	private Tuple<bool, Vector2> magnetData = new Tuple<bool, Vector2>(false, Vector2.Inf);
 	private Tuple<Vector2, Vector2> forceData = new Tuple<Vector2, Vector2>(Vector2.Zero, Vector2.Zero);
@@ -51,31 +53,68 @@ public partial class MagneticComponent : Node2D
 
 		Node parent = GetParent();
 
-		if (parent is RigidBody2D) {
-			rigidObject = (RigidBody2D)parent;
-			Node objectParent = rigidObject.GetParent();
+		bool playerParent = false;
 
-			rigidObject.AddToGroup("Magnetic");
+		Array<Node> array = GetTree().Root.GetChildren();
+		for (int i = 0; i < array.Count; i++) {
+			Node node = array[i].GetNodeOrNull<CharacterBody2D>("Player");
 
-			if (objectParent is PhysicsBody2D && objectParent is not StaticBody2D) {
-				GD.Print(objectParent.Name);
-				objectParent = (PhysicsBody2D) objectParent;
-
-				// Disabling the rigid object while it is within the larger object
-				for (int i = 1; i <= 32; i++) {
-					objectCollisionL.SetCollisionLayerValue(i, rigidObject.GetCollisionLayerValue(i));
-					objectCollisionM.SetCollisionMaskValue(i, rigidObject.GetCollisionMaskValue(i));
-
-					rigidObject.SetCollisionLayerValue(i, false);
-					rigidObject.SetCollisionMaskValue(i, false);
-				}
-				
-				rigidObject.Visible = false;
-				rigidObject.Sleeping = true;
+			if (parent.GetParent() == node) {
+				playerParent = true;
 			}
+		}
+		if (!playerParent) {
+			if (parent is RigidBody2D rb) {
+				rigidObject = rb;
+				Node objectParent = rigidObject.GetParent();
 
-			// Character contains a magnetic object that imparts its magneticism onto the character
-			if (objectParent is CharacterBody2D) {
+				rigidObject.AddToGroup("Magnetic");
+
+				if (objectParent is PhysicsBody2D op && objectParent is not StaticBody2D) {
+					GD.Print(objectParent.Name);
+					objectParent = op;
+
+					// Disabling the rigid object while it is within the larger object
+					collisionL = rigidObject.CollisionLayer;
+					collisionM = rigidObject.CollisionMask;
+
+					rigidObject.CollisionLayer = 0;
+					rigidObject.CollisionMask = 0;
+					
+					
+					rigidObject.Visible = false;
+					rigidObject.Sleeping = true;
+				}
+
+				// Character contains a magnetic object that imparts its magneticism onto the character
+				if (objectParent is CharacterBody2D) {
+					foreach (var child in objectParent.GetParent().GetChildren()) {
+						if (child is MagneticCharacterComponent) {
+							magCharComp = (MagneticCharacterComponent)child;
+							break;
+						}
+					}
+
+					if (magCharComp == null) {
+						GD.PrintErr(objectParent, " requires MagneticCharacterComponent");
+						GD.PushError(objectParent, " requires MagneticCharacterComponent");
+					}
+
+					exitTimerDefault = magCharComp.GetExitTimerDefault();
+					isRigidPhysics = magCharComp.GetIsRigidPhysics();
+					rigidObjectParent = magCharComp.GetParent().GetParent();
+
+					characterObject = (CharacterBody2D) objectParent;
+					characterObject.AddToGroup("Magnetic");
+				}
+
+				if (parent != null && parent is RigidBody2D rigid) {
+					rigid.ContinuousCd = RigidBody2D.CcdMode.CastShape;
+				}
+
+			// Character doesnt contain a magnetic object and is magnetic itself
+			} else if (parent is CharacterBody2D objectParent) {
+
 				foreach (var child in objectParent.GetParent().GetChildren()) {
 					if (child is MagneticCharacterComponent) {
 						magCharComp = (MagneticCharacterComponent)child;
@@ -88,38 +127,12 @@ public partial class MagneticComponent : Node2D
 					GD.PushError(objectParent, " requires MagneticCharacterComponent");
 				}
 
-				exitTimerDefault = magCharComp.GetExitTimerDefault();
-				isRigidPhysics = magCharComp.GetIsRigidPhysics();
-				rigidObjectParent = magCharComp.GetParent().GetParent();
-
-				characterObject = (CharacterBody2D) objectParent;
+				characterObject = objectParent;
 				characterObject.AddToGroup("Magnetic");
+			} else {
+				GD.PrintErr($"parent of {Name}:{this} ({parent.Name} {parent}) is not RigidBody2D");
+				GD.PushError($"parent of {Name}:{this} ({parent.Name} {parent}) is not RigidBody2D");
 			}
-
-			if (parent != null && parent is RigidBody2D rigid) {
-				rigid.ContinuousCd = RigidBody2D.CcdMode.CastShape;
-			}
-
-		// Character doesnt contain a magnetic object and is magnetic itself
-		} else if (parent is CharacterBody2D objectParent) {
-
-			foreach (var child in objectParent.GetParent().GetChildren()) {
-				if (child is MagneticCharacterComponent) {
-					magCharComp = (MagneticCharacterComponent)child;
-					break;
-				}
-			}
-
-			if (magCharComp == null) {
-				GD.PrintErr(objectParent, " requires MagneticCharacterComponent");
-				GD.PushError(objectParent, " requires MagneticCharacterComponent");
-			}
-
-			characterObject = objectParent;
-			characterObject.AddToGroup("Magnetic");
-		} else {
-			GD.PrintErr($"parent of {Name}:{this} ({parent.Name} {parent}) is not RigidBody2D");
-			GD.PushError($"parent of {Name}:{this} ({parent.Name} {parent}) is not RigidBody2D");
 		}
 	}
 
@@ -139,7 +152,6 @@ public partial class MagneticComponent : Node2D
 						exitTimer = exitTimerDefault;
 						inExitSequence = true;
 					}
-
 					if (inExitSequence) {
 						if (exitTimer > 0) {
 							exitTimer -= (float) delta;
@@ -179,11 +191,8 @@ public partial class MagneticComponent : Node2D
 			
 			rigidObjectParent.AddChild(rigidObject);
 
-
-			for (int i = 1; i <= 32; i++) {
-				rigidObject.SetCollisionLayerValue(i, objectCollisionL.GetCollisionLayerValue(i));
-				rigidObject.SetCollisionMaskValue(i, objectCollisionM.GetCollisionMaskValue(i));
-			}
+			rigidObject.CollisionLayer = collisionL;
+			rigidObject.CollisionMask = collisionM;
 
 			rigidObject.Visible = true;
 			rigidObject.Sleeping = false;

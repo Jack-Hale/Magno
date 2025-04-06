@@ -4,7 +4,11 @@ using System;
 public partial class Guy : CharacterBody2D
 {	
 public const float speed = 300.0f;
-	public const float jumpVelocity = -400.0f;
+	public float maxSpeed = 300.0f;
+	public float jumpVelocity = -800.0f;
+	float friction = 2200;
+	float acceleration = 2200;
+	float airAcceleration = 1800;
 
 	private bool affected = true;
 
@@ -25,17 +29,19 @@ public const float speed = 300.0f;
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
-
+	private PathFindingComponent _pathFinding;
 	public override void _Ready() {
 		foreach (var child in GetParent().GetChildren()) {
 			if (child is MagneticCharacterComponent) {
 				magCharComp = (MagneticCharacterComponent) child;
 			}
 		}
+		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
 	}
 
 	public override void _PhysicsProcess(double delta) {
 		Vector2 velocity = Velocity;
+		Vector2 direction = Vector2.Zero;
 		
 		// Handles magnetic states
 		if (IsInGroup("Magnetic")) {
@@ -60,6 +66,12 @@ public const float speed = 300.0f;
 		} else {
 			affected = false;
 			magCharComp = null;
+		}
+		direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
+
+		velocity.X = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, acceleration, airAcceleration, delta).X;
+		if (direction == Vector2.Zero) {
+			velocity.X = _pathFinding.ApplyFriction(true, velocity, friction, delta).X;
 		}
 
 		// Add the gravity.

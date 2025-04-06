@@ -347,8 +347,8 @@ public partial class Player : CharacterBody2D
 		else return currentJumpVelocity;
 	}
 
-	public void ApplyForce(Vector2 direction, float force) {
-		this.force = direction.Normalized() * force;
+	public void ApplyForce(Vector2 force) {
+		this.force = force;
 	}
 
 	public float GetMagnetRotation() {

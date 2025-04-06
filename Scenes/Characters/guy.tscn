@@ -1,35 +1,46 @@
-[gd_scene load_steps=8 format=3 uid="uid://4btydsdp2bk7"]
+[gd_scene load_steps=9 format=3 uid="uid://4btydsdp2bk7"]
 
 [ext_resource type="Texture2D" uid="uid://dmiecbveok1ib" path="res://Assets/Sprites/Magnoman.png" id="1_0tl6n"]
 [ext_resource type="Script" uid="uid://cyfe7n8vtr5xk" path="res://Source/Components/MagneticCharacterParent.cs" id="1_0uaom"]
 [ext_resource type="Script" uid="uid://celxsis3b0atd" path="res://Source/Guy.cs" id="1_8uvnm"]
 [ext_resource type="Script" uid="uid://bv76e8qnymuee" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_1sim3"]
+[ext_resource type="PackedScene" uid="uid://b6mkipntuwu4w" path="res://Scenes/Items/wings.tscn" id="5_b2jd5"]
 [ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="6_ekw1g"]
-[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="6_i70jt"]
+[ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="7_fm7on"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_hbdjf"]
-radius = 16.0312
+radius = 58.0086
 
 [node name="Guy" type="Node2D"]
 script = ExtResource("1_0uaom")
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]
 script = ExtResource("2_1sim3")
+exitCondition = 1
+exitTimer = 1.0
+isRigidPhysics = false
 
 [node name="Guy" type="CharacterBody2D" parent="."]
 collision_layer = 32
 collision_mask = 45
 script = ExtResource("1_8uvnm")
 
-[node name="Sprite2D" type="Sprite2D" parent="Guy"]
-texture = ExtResource("1_0tl6n")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Guy"]
-shape = SubResource("CircleShape2D_hbdjf")
+[node name="Wings" parent="Guy" instance=ExtResource("5_b2jd5")]
+position = Vector2(0, -7)
 
 [node name="HealthComponent" type="Node2D" parent="Guy"]
 position = Vector2(-31, -29)
 script = ExtResource("6_ekw1g")
 
-[node name="MagneticComponent" type="Node2D" parent="Guy"]
-script = ExtResource("6_i70jt")
+[node name="Sprite2D" type="Sprite2D" parent="Guy"]
+position = Vector2(1.2219e-06, 7.39098e-06)
+scale = Vector2(3.5625, 3.625)
+texture = ExtResource("1_0tl6n")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Guy"]
+shape = SubResource("CircleShape2D_hbdjf")
+
+[node name="PathFindingComponent" type="Node2D" parent="Guy"]
+script = ExtResource("7_fm7on")
+veiwRadius = 500.0
+metadata/_custom_type_script = "uid://dfgsiwyixd82h"
