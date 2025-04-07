@@ -8,9 +8,7 @@ public partial class GunMan : CharacterBody2D
 	float acceleration = 2200;
 	float airAcceleration = 1800;
 	private Sprite2D _sprite2D;
-	private Sprite2D _gunSprite;
-	private Node2D _gun;
-	private Vector2 projectilePosition;
+	private ProjectileLauncher _projectileLauncher;
 	private ProjectileComponent _projectileComponent;
 	private PathFindingComponent _pathFinding;
 	private bool hasTarget = false;
@@ -18,11 +16,9 @@ public partial class GunMan : CharacterBody2D
 
 	public override void _Ready() {
 		_sprite2D = GetNode<Sprite2D>("Sprite2D");
-		_gun = GetNode<Node2D>("Gun");
-		_gunSprite = _gun.GetNode<Sprite2D>("Sprite2D");
-		_projectileComponent = _gun.GetNode<ProjectileComponent>("ProjectileComponent");
 		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
-		projectilePosition = _projectileComponent.Position;
+		_projectileLauncher = GetNode<ProjectileLauncher>("ProjectileLauncher");
+		_projectileComponent = _projectileLauncher.GetProjectileComponent();
 
 		player = _pathFinding.GetPlayer();
 	}
@@ -35,11 +31,6 @@ public partial class GunMan : CharacterBody2D
 		if (!IsOnFloor()) {
 			velocity += GetGravity() * (float)delta;
 		}
-
-		// if (Input.IsActionJustPressed("ui_up") && IsOnFloor()) {
-		// 	velocity = Jump(velocity);
-		// }
-		// Vector2 direction = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down");
 
 		Vector2 direction = Vector2.Zero;
 
@@ -65,12 +56,11 @@ public partial class GunMan : CharacterBody2D
 		if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
 			hasTarget = true;
 			_projectileComponent.Shoot();
-			if (IsInGroup("CanSeePlayer")) {
-				_gun.LookAt(player.GlobalPosition);
-			} else {
-				_gun.LookAt(_pathFinding.GetLastDetectionPoint());
-			}
+			
+			_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
 			direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
+			_projectileLauncher.SetFlipH(Mathf.Sign(direction.X) < 0);
+			_sprite2D.FlipH = _projectileLauncher.GetFlipH();
 		} else {
 			hasTarget = false;
 		}
@@ -79,24 +69,6 @@ public partial class GunMan : CharacterBody2D
 			velocity.X = _pathFinding.ApplyFriction(true, velocity, friction, delta).X;
 		}
 
-		bool flip = false;
-		float angle = (_gun.Rotation % (2 * Mathf.Pi) + (2 * Mathf.Pi)) % (2 * Mathf.Pi);
-
-		// Testing if the angle of the gun has it pointing on the left side of the character to flip its sprites
-		if (angle >= (3 * Mathf.Pi / 2) || angle <= (Mathf.Pi / 2)) {
-			_gunSprite.FlipV = false;
-			_projectileComponent.Position = projectilePosition;
-		} else {
-			_gunSprite.FlipV = true;
-			_projectileComponent.Position = new Vector2(projectilePosition.X, -projectilePosition.Y);
-			flip = true;
-		}
-
-		if (hasTarget) {
-			_sprite2D.FlipH = flip;
-		} else {
-			_gun.Rotation = _sprite2D.FlipH ? Mathf.Pi : 0;
-		}
 
 		if (Velocity.X != 0 && !hasTarget) {
 			_sprite2D.FlipH = Velocity.X < 0;

@@ -420,20 +420,38 @@ public partial class Player : CharacterBody2D
 	}
 
 	public void UpdateAnimations() {
+        string run = "run";
+
+		float angle = (_magnet.Rotation % (2 * Mathf.Pi) + (2 * Mathf.Pi)) % (2 * Mathf.Pi);
+		bool angleCheck = angle >= (3 * Mathf.Pi / 2) || angle <= (Mathf.Pi / 2);
+		if (Velocity.X > 0) {
+			if (!angleCheck) {
+				run = "run_backwards";
+			}
+		} else if (Velocity.X < 0) {
+			if (angleCheck) {
+				run = "run_backwards";
+			}
+		}
+
+		if (run == "run_backwards") {
+			_sprite2D.FlipH = !_sprite2D.FlipH;
+		}
+		
 		if (isOnFloor)  {
 			jumpAnimation = true;
 			if (Velocity.X == 0) {
 				_animationPlayer.Play("idle");
 			}
 			else if (Mathf.Abs(Velocity.X) > maxSpeed) {
-				_animationPlayer.Play("run");
+				_animationPlayer.Play(run);
 			}
 			else {
 				if (Input.X > 0 && Velocity.X < 0 || Input.X < 0 && Velocity.X > 0) {
-					_animationPlayer.Play("run");
+					_animationPlayer.Play(run);
 				}
 				else {
-					_animationPlayer.Play("run");
+					_animationPlayer.Play(run);
 				}
 			}
 		}

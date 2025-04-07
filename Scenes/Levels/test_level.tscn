@@ -1,9 +1,8 @@
-[gd_scene load_steps=6 format=4 uid="uid://l55oyjoo6cul"]
+[gd_scene load_steps=5 format=4 uid="uid://l55oyjoo6cul"]
 
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_0rdck"]
 [ext_resource type="Texture2D" uid="uid://bucros67cnrfw" path="res://Assets/BackgroundSprites/LabBackground.png" id="1_x4x4f"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/Characters/player.tscn" id="2_5mf3d"]
-[ext_resource type="PackedScene" uid="uid://xcrlbcscygw2" path="res://Scenes/Characters/wasp.tscn" id="5_npfmg"]
 [ext_resource type="PackedScene" uid="uid://drkhjxgguqgtd" path="res://Scenes/Objects/Lamp.tscn" id="8_l7ek2"]
 
 [node name="TestLevel" type="Node2D"]
@@ -414,9 +413,6 @@ position = Vector2(2832, -64.23)
 
 [node name="Lamp24" parent="Lamps" instance=ExtResource("8_l7ek2")]
 position = Vector2(3018, -64.23)
-
-[node name="Wasp" parent="." instance=ExtResource("5_npfmg")]
-position = Vector2(805, 573)
 
 [node name="Player" parent="." instance=ExtResource("2_5mf3d")]
 position = Vector2(1177, 631)

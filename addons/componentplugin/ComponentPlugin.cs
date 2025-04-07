@@ -38,6 +38,10 @@ public partial class ComponentPlugin : EditorPlugin
         script = GD.Load<Script>("res://Source/Components/ItemComponent.cs");
         icon = GD.Load<Texture2D>("res://Assets/CustomNodeIcons/ItemComponentIcon.png");
         AddCustomType("ItemComponent", "Node2D", script, icon);
+
+        script = GD.Load<Script>("res://Source/Components/ProjectileLauncher.cs");
+        icon = GD.Load<Texture2D>("res://Assets/CustomNodeIcons/ProjectileLauncherIcon.png");
+        AddCustomType("ProjectileLauncher", "Node2D", script, icon);
     }
 
     public override void _ExitTree()
@@ -50,6 +54,7 @@ public partial class ComponentPlugin : EditorPlugin
         RemoveCustomType("ProjectileComponent");
         RemoveCustomType("PathFindingComponent");
         RemoveCustomType("ItemComponent");
+        RemoveCustomType("ProjectileLauncher");
     }
 }
 #endif

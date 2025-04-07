@@ -50,8 +50,6 @@ public partial class HealthComponent : Node2D {
 				Array<Node> children = healthComponent.GetChildren();
 
 				for (int i = 0; i < children.Count; i++) {
-					// children[i].Owner = null;
-					// healthComponent.RemoveChild(children[i]);
 					AddChild(children[i].Duplicate());
 				}
 

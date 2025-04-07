@@ -73,7 +73,7 @@ public partial class ProjectileComponent : Node2D {
 		flipping = flipH;
 	}
 
-	public void SetHFlip(bool flipH) {
+	public void SetFlipH(bool flipH) {
 		this.flipH = flipH;
 	}
 

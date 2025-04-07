@@ -38,7 +38,7 @@ public partial class Wasp : CharacterBody2D {
 	private Vector2 projectilePosition;
 	private float gunRotation;
 	private Vector2 gunPosition;
-
+	private ProjectileLauncher _projectileLauncher;
 	public override void _Ready() {
 		foreach (var child in GetParent().GetChildren()) {
 			if (child is MagneticCharacterComponent) {
@@ -47,12 +47,9 @@ public partial class Wasp : CharacterBody2D {
 		}
 		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
 		_sprite = GetNode<Sprite2D>("Sprite2D");
-		_gun = GetNode<Node2D>("Gun");
-		_gunSprite = _gun.GetNode<Sprite2D>("Sprite2D");
-		_projectileComponent = _gun.GetNode<ProjectileComponent>("ProjectileComponent");
-		projectilePosition = _projectileComponent.Position;
-		gunRotation = _gun.Rotation;
-		gunPosition = _gun.Position;
+
+		_projectileLauncher = GetNode<ProjectileLauncher>("ProjectileLauncher");
+		_projectileComponent = _projectileLauncher.GetProjectileComponent();
 	}
 
 	public override void _PhysicsProcess(double delta) {
@@ -88,29 +85,16 @@ public partial class Wasp : CharacterBody2D {
 		if (affected) { // Handle behaviour when affected by a magnet
 			
 		} else { // Handle behaviour when unaffected by a magnet
-			bool flip = false;
-			float angle = (_gun.Rotation % (2 * Mathf.Pi) + (2 * Mathf.Pi)) % (2 * Mathf.Pi);
 
-			// Testing if the angle of the gun has it pointing on the left side of the character to flip its sprites
-			if (angle >= (3 * Mathf.Pi / 2) || angle <= (Mathf.Pi / 2)) {
-				_gunSprite.FlipV = false;
-				_projectileComponent.Position = projectilePosition;
-			} else {
-				_gunSprite.FlipV = true;
-				_projectileComponent.Position = new Vector2(projectilePosition.X, -projectilePosition.Y);
-				flip = true;
-			}
 
 			if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
 				direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint() + Vector2.Up*200);
-				_gun.LookAt(_pathFinding.GetLastDetectionPoint());
-				_gun.Rotate(flip ? -gunRotation : gunRotation);
+				
 				_projectileComponent.Shoot();
-				_gun.Position = new Vector2(flip ? -gunPosition.X : gunPosition.X, gunPosition.Y); 
-				_sprite.FlipH = flip;
-				_projectileComponent.SetHFlip(flip);
-			} else {
-				_gun.Rotation = _sprite.FlipH ? Mathf.Pi : 0 + gunRotation;
+
+				_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
+
+				_projectileLauncher.SetFlipH(Mathf.Sign(direction.X) < 0);
 			}
 
 			velocity = _pathFinding.MoveCharacter(false, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
@@ -119,7 +103,7 @@ public partial class Wasp : CharacterBody2D {
 			}
 
 			velocity = _pathFinding.AvoidWallsAir(velocity, 60, 30, 40);
-			_sprite.FlipH = flip;
+			_sprite.FlipH = _projectileLauncher.GetFlipH();
 		}
 
 		// bool flip = Mathf.Sign(direction.X) < 0;

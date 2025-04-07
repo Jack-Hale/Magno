@@ -356,6 +356,29 @@ public partial class Magnet : Area2D
 		// TODO: Make this never actually occur 
 		if (!_beamCheck1.IsColliding() && !_beamCheck2.IsColliding() && !_beamCheck3.IsColliding() && attractedObjects.Count > 0 && !isObjectAttached) {
 			DettachAll();
+		} 
+
+		// Failsafe for if OnBodyEnteredBeam isnt triggered correctly. Helps the magnet push enemies more consistently.
+		if (_beamCheck1.IsColliding() || _beamCheck2.IsColliding() || _beamCheck3.IsColliding()) {
+			if (_beamCheck1.IsColliding() && _beamCheck1.GetCollider() is PhysicsBody2D body1) {
+				if (body1.IsInGroup("Magnetic")) {
+					if (!attractedObjects.ContainsKey(body1)) {
+						OnBodyEnteredBeam(body1);
+					}
+				}
+			} else if (_beamCheck2.IsColliding() && _beamCheck2.GetCollider() is PhysicsBody2D body2) {
+				if (body2.IsInGroup("Magnetic")) {
+					if (!attractedObjects.ContainsKey(body2)) {
+						OnBodyEnteredBeam(body2);
+					}
+				}
+			} else if (_beamCheck3.IsColliding() && _beamCheck3.GetCollider() is PhysicsBody2D body3) {
+				if (body3.IsInGroup("Magnetic")) {
+					if (!attractedObjects.ContainsKey(body3)) {
+						OnBodyEnteredBeam(body3);
+					}
+				}
+			}
 		}
 
 		QueueRedraw();
@@ -364,6 +387,7 @@ public partial class Magnet : Area2D
 	// Called when object touches the magnet beam
 	// Adds object to dict of attracted objects
 	private void OnBodyEnteredBeam(Node body) {
+		GD.Print(body.Name);
 		if (!isObjectAttached) {
 			// Only adds objects with Magnetic group
 			if (body.IsInGroup("Magnetic")) {
