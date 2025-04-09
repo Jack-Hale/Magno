@@ -3,39 +3,23 @@ using Godot.Collections;
 using System;
 
 public partial class MagneticCharacterParent : Node2D {
-	// [Export]
-	// public ExitCondition exitCondition;
-
-	// [Export]
-	// public float exitTimer = 2;
-
-	// [Export]
-	// public SwapCondition swapCondition;
-
-	// [Export]
-	// public float swapTimeLimit = 0.5f;
-
-	// [Export]
-	// public bool noRigidPhysics = false;
-
 	CharacterBody2D character;
 	MagneticCharacterComponent component;
-
+	Node magnetObject;
 	Sprite2D duplicateSprite;
+	Sprite2D originalSprite;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
 		Array<Node> children = GetChildren();
 
 		for (int i = 0; i < children.Count; i++) {
-			if (children[i] is CharacterBody2D character) {
-				this.character = character;
-			}
-			if (children[i] is MagneticCharacterComponent component) {
-				this.component = component;
+			if (children[i] is MagneticCharacterComponent mcc) {
+				component = mcc;
 			}
 		}
-		
+		character = component.GetCharacter();
+
 		component.SetBodyCopy(InitialiseBodyCopy());
 		component.SetCharacter(InitialiseCharacterSprite(), duplicateSprite);
 	}
@@ -74,12 +58,12 @@ public partial class MagneticCharacterParent : Node2D {
 					Array<Node> children = child.GetChildren();
 					for (int i = 0; i < children.Count; i++) {
 						if (children[i] is Sprite2D && child is PhysicsBody2D metalObject) {
-
-							Sprite2D duplicateSprite = (Sprite2D) children[i].Duplicate();
-							duplicateSprite.Position = metalObject.Position;
+							originalSprite = (Sprite2D) children[i];
+							Sprite2D duplicateSprite = (Sprite2D) originalSprite.Duplicate();
+							duplicateSprite.Position = metalObject.Position + originalSprite.Position;
 							duplicateSprite.Name = "ObjectSprite";
-							duplicateSprite.Rotation = metalObject.Rotation;
-							this.duplicateSprite = (Sprite2D) duplicateSprite.Duplicate();
+							duplicateSprite.Rotation = metalObject.Rotation + originalSprite.Rotation;
+							this.duplicateSprite = duplicateSprite;
 							bodyCopy.AddChild(duplicateSprite);
 						}
 					}
@@ -96,7 +80,7 @@ public partial class MagneticCharacterParent : Node2D {
 
 	public CharacterBody2D InitialiseCharacterSprite() {
 		foreach (var child in character.GetChildren()) {
-			if (child.IsInGroup("Magnetic")) {
+			if (child.IsInGroup("Magnetic") && duplicateSprite != null) {
 				character.AddChild(duplicateSprite);
 				character.MoveChild(duplicateSprite, child.GetIndex());
 			}

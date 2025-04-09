@@ -96,6 +96,7 @@ public partial class PathFindingComponent : Node2D {
 
         if (isDetected) {
             parent.AddToGroup("CanSeePlayer");
+            lastDetectionPoint = player.GlobalPosition;
         } else {
             if (isLooking) {
                 float currentDistance = GlobalPosition.DistanceTo(lastDetectionPoint);

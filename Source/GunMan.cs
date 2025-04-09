@@ -55,10 +55,10 @@ public partial class GunMan : CharacterBody2D
 
 		if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
 			hasTarget = true;
+			direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
 			_projectileComponent.Shoot();
 			
 			_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
-			direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
 			_projectileLauncher.SetFlipH(Mathf.Sign(direction.X) < 0);
 			_sprite2D.FlipH = _projectileLauncher.GetFlipH();
 		} else {

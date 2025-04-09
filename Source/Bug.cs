@@ -43,7 +43,7 @@ public partial class Bug : CharacterBody2D
 
 		velocity = _pathFinding.AvoidWallsAir(velocity, 60, 30, 40);
 
-		_sprite.Rotation = Mathf.Atan2(velocity.Y, velocity.X);
+		Rotation = Mathf.Atan2(velocity.Y, velocity.X);
 
 		Velocity = velocity;
 		MoveAndSlide();

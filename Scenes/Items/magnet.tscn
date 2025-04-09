@@ -20,6 +20,12 @@ script = ExtResource("1_iodp0")
 position = Vector2(26, 0)
 shape = SubResource("RectangleShape2D_fxy4w")
 
+[node name="MagnetSprite" type="Sprite2D" parent="."]
+position = Vector2(2.00003, 0)
+rotation = 1.5708
+texture = ExtResource("2_i74f3")
+offset = Vector2(0, -24)
+
 [node name="BeamSpriteStrong" type="Sprite2D" parent="."]
 position = Vector2(34, 0)
 scale = Vector2(2.242, 1)
@@ -75,9 +81,3 @@ collision_mask = 255
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PhysicsObject"]
 shape = SubResource("RectangleShape2D_hlvj3")
-
-[node name="MagnetSprite" type="Sprite2D" parent="."]
-position = Vector2(2.00003, 0)
-rotation = 1.5708
-texture = ExtResource("2_i74f3")
-offset = Vector2(0, -24)

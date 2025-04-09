@@ -30,6 +30,8 @@ public const float speed = 300.0f;
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 	private PathFindingComponent _pathFinding;
+	private ProjectileLauncher _projectileLauncher;
+	private ProjectileComponent _projectileComponent;
 	public override void _Ready() {
 		foreach (var child in GetParent().GetChildren()) {
 			if (child is MagneticCharacterComponent) {
@@ -37,6 +39,9 @@ public const float speed = 300.0f;
 			}
 		}
 		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
+
+		_projectileLauncher = (ProjectileLauncher) magCharComp.GetPhysicsItems()[0];
+		_projectileComponent = _projectileLauncher.GetProjectileComponent();
 	}
 
 	public override void _PhysicsProcess(double delta) {
@@ -72,6 +77,12 @@ public const float speed = 300.0f;
 		velocity.X = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, acceleration, airAcceleration, delta).X;
 		if (direction == Vector2.Zero) {
 			velocity.X = _pathFinding.ApplyFriction(true, velocity, friction, delta).X;
+		}
+
+		if (IsInGroup("LookingForPlayer") || IsInGroup("CanSeePlayer")) {
+			_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
+			
+			_projectileComponent.Shoot();
 		}
 
 		// Add the gravity.

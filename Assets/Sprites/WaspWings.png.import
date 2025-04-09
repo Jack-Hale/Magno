@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cl0n2nxf7bhwd"
-path="res://.godot/imported/ProjectileComponentIcon.png-68737c6fc683775fa48595d68e59b987.ctex"
+uid="uid://cvdj7g7ujk0c0"
+path="res://.godot/imported/WaspWings.png-76546150f7943f9a18f7e8825e6571e8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/CustomNodeIcons/ProjectileComponentIcon.png"
-dest_files=["res://.godot/imported/ProjectileComponentIcon.png-68737c6fc683775fa48595d68e59b987.ctex"]
+source_file="res://Assets/Sprites/WaspWings.png"
+dest_files=["res://.godot/imported/WaspWings.png-76546150f7943f9a18f7e8825e6571e8.ctex"]
 
 [params]
 

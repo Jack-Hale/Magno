@@ -4,7 +4,7 @@ using System;
 
 public partial class ProjectileComponent : Node2D {
 	[Export]
-	public float speed = 100;
+	public float speed = 700;
 
 	[Export]
 	public float damage = 10;
@@ -15,7 +15,6 @@ public partial class ProjectileComponent : Node2D {
 	[Export]
 	public float shootCooldown = 1;
 
-	[Export]
 	public Array<Node2D> excludeArray = new();
 
 	private Node scene;
@@ -36,7 +35,7 @@ public partial class ProjectileComponent : Node2D {
 	
 	public override void _Ready() {
 		parent = (Node2D)GetParent();
-		scene = GetTree().Root;
+		scene = GetTree().Root.GetChild(0);
 		projectileScene = (PackedScene)GD.Load("res://Scenes/Perishable Objects/projectile.tscn");
 		
 		_projetile = GetNodeOrNull<Projectile>("Projectile");
@@ -75,6 +74,14 @@ public partial class ProjectileComponent : Node2D {
 
 	public void SetFlipH(bool flipH) {
 		this.flipH = flipH;
+	}
+
+	public void AddException(Node2D exception) {
+		excludeArray.Add(exception);
+	}
+
+	public void RemoveException(Node2D exception) {
+		excludeArray.Remove(exception);
 	}
 
 	public void Shoot() {

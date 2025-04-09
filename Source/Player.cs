@@ -82,6 +82,7 @@ public partial class Player : CharacterBody2D
 		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
 		_sprite2D = GetNode<Sprite2D>("Sprite2D");
 		_label = GetNode<Label>("Label");
+		_label.AddToGroup("NoRagdollInclusion");
 		_collisionShape = GetNode<CollisionShape2D>("CollisionShape2D");
 
 		if (_collisionShape.Shape is CapsuleShape2D capsuleShape) {

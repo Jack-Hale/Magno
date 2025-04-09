@@ -30,15 +30,18 @@ public partial class Wasp : CharacterBody2D {
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 
 	private Sprite2D _sprite;
+	private Sprite2D _wingsSprite;
 	private Sprite2D _gunSprite;
 
 	private PathFindingComponent _pathFinding;
 	private ProjectileComponent _projectileComponent;
-	private Node2D _gun;
+	private RigidBody2D _gun;
 	private Vector2 projectilePosition;
 	private float gunRotation;
 	private Vector2 gunPosition;
+	private Vector2 wingsPosition;
 	private ProjectileLauncher _projectileLauncher;
+	private AnimationPlayer _animationPlayer;
 	public override void _Ready() {
 		foreach (var child in GetParent().GetChildren()) {
 			if (child is MagneticCharacterComponent) {
@@ -47,15 +50,27 @@ public partial class Wasp : CharacterBody2D {
 		}
 		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
 		_sprite = GetNode<Sprite2D>("Sprite2D");
+		_wingsSprite = GetNode<Sprite2D>("Wings");
+		_gun = GetNode<RigidBody2D>("Gun");
 
-		_projectileLauncher = GetNode<ProjectileLauncher>("ProjectileLauncher");
+		_projectileLauncher = (ProjectileLauncher) magCharComp.GetPhysicsItems()[0];
 		_projectileComponent = _projectileLauncher.GetProjectileComponent();
+
+		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
+		_animationPlayer.Play("wings_flap");
+
+		wingsPosition = _wingsSprite.Position;
 	}
 
+	public override void _Process(double delta) {
+		if (magCharComp != null && magCharComp.Dettach()) {
+			DettachProjectile();
+		}
+	}
 	public override void _PhysicsProcess(double delta) {
 		Vector2 velocity = Velocity;
 		Vector2 direction = Vector2.Zero;
-		
+		// GD.Print(GetParent().GetTreeStringPretty());
 		// Handles magnetic states
 		if (IsInGroup("Magnetic")) {
 			if (magCharComp == null) {
@@ -83,18 +98,16 @@ public partial class Wasp : CharacterBody2D {
 
 
 		if (affected) { // Handle behaviour when affected by a magnet
-			
 		} else { // Handle behaviour when unaffected by a magnet
-
-
 			if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
 				direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint() + Vector2.Up*200);
-				
-				_projectileComponent.Shoot();
+				if (_projectileLauncher != null) {
+					_projectileComponent.Shoot();
 
-				_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
+					_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
 
-				_projectileLauncher.SetFlipH(Mathf.Sign(direction.X) < 0);
+					_projectileLauncher.SetFlipH(Mathf.Sign(direction.X) < 0);
+				}
 			}
 
 			velocity = _pathFinding.MoveCharacter(false, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
@@ -103,19 +116,17 @@ public partial class Wasp : CharacterBody2D {
 			}
 
 			velocity = _pathFinding.AvoidWallsAir(velocity, 60, 30, 40);
-			_sprite.FlipH = _projectileLauncher.GetFlipH();
+			_sprite.FlipH = _projectileLauncher != null ? _projectileLauncher.GetFlipH() : (direction.X < 0);
+			_wingsSprite.FlipH = _sprite.FlipH;
+
+			_wingsSprite.Position = new Vector2(_wingsSprite.FlipH ? -wingsPosition.X : wingsPosition.X, wingsPosition.Y);
 		}
-
-		// bool flip = Mathf.Sign(direction.X) < 0;
-		// _gunSprite.FlipH = flip;
-		
-		// _projectileComponent.SetHFlip(flip);
-
-
-
-		// GD.Print(_projectileComponent.Position);
 
 		Velocity = velocity;
 		MoveAndSlide();
+	}
+
+	private void DettachProjectile() {
+		_projectileLauncher = null;
 	}
 }

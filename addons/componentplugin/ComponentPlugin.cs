@@ -3,10 +3,8 @@ using Godot;
 using System;
 
 [Tool]
-public partial class ComponentPlugin : EditorPlugin
-{
-    public override void _EnterTree()
-    {
+public partial class ComponentPlugin : EditorPlugin {
+    public override void _EnterTree() {
         var script = GD.Load<Script>("res://Source/Components/HealthComponent.cs");
         var icon = GD.Load<Texture2D>("res://Assets/CustomNodeIcons/HealthComponentIcon.png");
         AddCustomType("HealthComponent", "Node2D", script, icon);
@@ -44,8 +42,7 @@ public partial class ComponentPlugin : EditorPlugin
         AddCustomType("ProjectileLauncher", "Node2D", script, icon);
     }
 
-    public override void _ExitTree()
-    {
+    public override void _ExitTree() {
         RemoveCustomType("HealthComponent");
         RemoveCustomType("MagneticComponent");
         RemoveCustomType("MagneticCharacterComponent");

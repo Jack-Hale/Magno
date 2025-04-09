@@ -14,6 +14,7 @@ public partial class ProjectileLauncher : Node2D {
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
+		AddToGroup("HasPhysics");
 		_projectileComponent = GetNodeOrNull<ProjectileComponent>("ProjectileComponent");
 		_sprite = GetNodeOrNull<Sprite2D>("Sprite2D");
 
@@ -54,6 +55,7 @@ public partial class ProjectileLauncher : Node2D {
 
 		_projectileComponent.SetFlipH(flip);
 		_sprite.Rotation = flip ? -spriteRotation : spriteRotation;
+        
 		Rotate(flip ? -originalRotation : originalRotation);
 		Position = new Vector2(flip ? -originalPosition.X : originalPosition.X, originalPosition.Y); 
 

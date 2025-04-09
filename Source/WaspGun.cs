@@ -1,14 +1,14 @@
 using Godot;
 using System;
 
-public partial class Gun : RigidBody2D {
-	
-	private ProjectileComponent _projectileComponent;
+public partial class WaspGun : RigidBody2D {
+    private ProjectileComponent _projectileComponent;
+    private ProjectileLauncher _projectileLauncher;
 	private ItemComponent _itemComponent;
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
-		
-		_projectileComponent = GetNode<ProjectileComponent>("ProjectileComponent");
+		_projectileLauncher = GetNode<ProjectileLauncher>("ProjectileLauncher");
+		_projectileComponent = _projectileLauncher.GetProjectileComponent();
 		_itemComponent = GetNode<ItemComponent>("ItemComponent");
 		
 		_itemComponent.OnUseItemLeft += Shoot;
@@ -16,7 +16,9 @@ public partial class Gun : RigidBody2D {
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)	{
-
+        if (_itemComponent.GetIsBeingHeld()) {
+            _projectileComponent.AddException(_itemComponent.GetItemOwner());
+        }
 	}
 
 	private void Shoot() {

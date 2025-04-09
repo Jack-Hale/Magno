@@ -68,8 +68,11 @@ public partial class Magnet : Area2D
 		_anchor = GetNode<Marker2D>("Anchor");
 		anchorPositionDefault = _anchor.Position;
 		_magnetBeam = GetNode<Area2D>("MagnetBeam");
+		_magnetBeam.AddToGroup("NoRagdollInclusion");
 		_beamSpriteWeak = GetNode<Sprite2D>("BeamSpriteWeak");
+		_beamSpriteWeak.AddToGroup("NoRagdollInclusion");
 		_beamSpriteStrong = GetNode<Sprite2D>("BeamSpriteStrong");
+		_beamSpriteStrong.AddToGroup("NoRagdollInclusion");
 		_tileBeamCast = GetNode<RayCast2D>("TileBeamCast");
 		_objectCheck = GetNode<RayCast2D>("ObjectCheck");
 		_physicsObject = GetNode<StaticBody2D>("PhysicsObject");
@@ -93,6 +96,7 @@ public partial class Magnet : Area2D
 		collision = (CollisionShape2D)_physicsObject.GetNode<CollisionShape2D>("CollisionShape2D").Duplicate();
 		collision.SetMeta("IgnoreCollision", true);
 		collision.Name = "MagnetCollision";
+		collision.AddToGroup("NoRagdollInclusion");
 		parent.CallDeferred("add_child", collision);
 		collision.Position = _physicsObject.Position;
 
@@ -359,27 +363,27 @@ public partial class Magnet : Area2D
 		} 
 
 		// Failsafe for if OnBodyEnteredBeam isnt triggered correctly. Helps the magnet push enemies more consistently.
-		if (_beamCheck1.IsColliding() || _beamCheck2.IsColliding() || _beamCheck3.IsColliding()) {
-			if (_beamCheck1.IsColliding() && _beamCheck1.GetCollider() is PhysicsBody2D body1) {
-				if (body1.IsInGroup("Magnetic")) {
-					if (!attractedObjects.ContainsKey(body1)) {
-						OnBodyEnteredBeam(body1);
-					}
-				}
-			} else if (_beamCheck2.IsColliding() && _beamCheck2.GetCollider() is PhysicsBody2D body2) {
-				if (body2.IsInGroup("Magnetic")) {
-					if (!attractedObjects.ContainsKey(body2)) {
-						OnBodyEnteredBeam(body2);
-					}
-				}
-			} else if (_beamCheck3.IsColliding() && _beamCheck3.GetCollider() is PhysicsBody2D body3) {
-				if (body3.IsInGroup("Magnetic")) {
-					if (!attractedObjects.ContainsKey(body3)) {
-						OnBodyEnteredBeam(body3);
-					}
-				}
-			}
-		}
+		// if (_beamCheck1.IsColliding() || _beamCheck2.IsColliding() || _beamCheck3.IsColliding()) {
+		// 	if (_beamCheck1.IsColliding() && _beamCheck1.GetCollider() is PhysicsBody2D body1) {
+		// 		if (body1.IsInGroup("Magnetic")) {
+		// 			if (!attractedObjects.ContainsKey(body1)) {
+		// 				OnBodyEnteredBeam(body1);
+		// 			}
+		// 		}
+		// 	} else if (_beamCheck2.IsColliding() && _beamCheck2.GetCollider() is PhysicsBody2D body2) {
+		// 		if (body2.IsInGroup("Magnetic")) {
+		// 			if (!attractedObjects.ContainsKey(body2)) {
+		// 				OnBodyEnteredBeam(body2);
+		// 			}
+		// 		}
+		// 	} else if (_beamCheck3.IsColliding() && _beamCheck3.GetCollider() is PhysicsBody2D body3) {
+		// 		if (body3.IsInGroup("Magnetic")) {
+		// 			if (!attractedObjects.ContainsKey(body3)) {
+		// 				OnBodyEnteredBeam(body3);
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		QueueRedraw();
 	}
@@ -387,10 +391,10 @@ public partial class Magnet : Area2D
 	// Called when object touches the magnet beam
 	// Adds object to dict of attracted objects
 	private void OnBodyEnteredBeam(Node body) {
-		GD.Print(body.Name);
 		if (!isObjectAttached) {
 			// Only adds objects with Magnetic group
 			if (body.IsInGroup("Magnetic")) {
+				GD.Print(body.Name);
 				
 				// Magnetic rigidbodies and characterbodies are treated differently
 				if (body.IsInGroup("MagneticCharacter")) {
@@ -532,7 +536,7 @@ public partial class Magnet : Area2D
 			}
 
 			
-			attachedObject.Position = new Vector2(anchorOffset / 2, anchorPositionDefault.Y);
+			attachedObject.Position = new Vector2(anchorOffset / 2, anchorPositionDefault.Y) - mainObjectCollision.Position;
 			attachedObject.Rotation = _anchor.Rotation;
 
 			// Adding a copy of the collisions of the object to the player

@@ -2,6 +2,8 @@ using Godot;
 using Godot.Collections;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.Marshalling;
+using System.Xml;
 
 public struct DamageCooldown {
     public ulong DamageSource;
@@ -26,20 +28,22 @@ public struct DamageNumber {
 [Tool]
 public partial class HealthComponent : Node2D {
 	[Export]
-	float maxHealth = 100;
+	private float maxHealth = 100;
 
-	float health;
+	private float health;
 
-	ProgressBar _progressBar;
-	ProgressBar progressBarPassThrough; // Original character progress bar
+	private ProgressBar _progressBar;
+	private ProgressBar progressBarPassThrough; // Original character progress bar
 
-	CharacterBody2D character;
-	bool requirePassThrough = false; // If healthcomp is on a bodycopy it will parse the data to the original character
-	HealthComponent passThroughHC; // Original character healthcomp
-	bool sceneClass = false; // Prevents the scene in the tscn file from running code since it is [Tool]
+	private CharacterBody2D character;
+	private bool requirePassThrough = false; // If healthcomp is on a bodycopy it will parse the data to the original character
+	private HealthComponent passThroughHC; // Original character healthcomp
+	private bool sceneClass = false; // Prevents the scene in the tscn file from running code since it is [Tool]
 
-	List<DamageCooldown> activeCooldowns = new();
-	Queue<DamageNumber> activeDamageNumbers = new Queue<DamageNumber>(20);
+	private List<DamageCooldown> activeCooldowns = new();
+	private Queue<DamageNumber> activeDamageNumbers = new Queue<DamageNumber>(20);
+
+	private bool hasDied = false;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -103,6 +107,8 @@ public partial class HealthComponent : Node2D {
 				}
 			}
 
+			GD.Print(health);
+
 			if (health <= 0) {
 				RunDeathSequence();
 			}
@@ -148,6 +154,9 @@ public partial class HealthComponent : Node2D {
 		}		
 	}
 
+	/// <summary>
+	/// Will kill the parent object.
+	/// </summary>
 	public void RunDeathSequence() {
 		if (!sceneClass) {
 			if (requirePassThrough) {
@@ -156,12 +165,100 @@ public partial class HealthComponent : Node2D {
 				if (character.IsInGroup("MagneticCharacter")) {
 					
 				}
-				character.GlobalPosition = Vector2.Inf;
+				if (!hasDied) {
+					CreateBodyCopy();
+					hasDied = true;
+				}
 			}
 		}
 	}
 
-	// Generates a damage number that appears above the enemy that was hurt
+	/// <summary>
+	/// Creates a RigidBody2D copy of the character and replaces character with copy as a ragdoll.
+	/// Doesn't work if parent is not CharacterBody2D
+	/// </summary>
+	public void CreateBodyCopy() {
+		if (character != null) {
+			RigidBody2D bodyCopy = new();
+			bodyCopy.Name = $"BodyCopy";		
+
+			Node characterParent = character.GetParent();
+
+			bodyCopy.CollisionLayer = 1u << 2;
+			bodyCopy.CollisionMask = (1u << 0) | (1u << 1) | (1u << 2) | (1u << 4) | (1u << 5) | (1u << 6) | (1u << 7);
+
+
+			foreach (Node child in character.GetChildren()) {
+				if (!child.IsInGroup("MagneticComponent")) {
+					if (!child.IsInGroup("NoRagdollInclusion")) {
+						if (child is Sprite2D || child is CollisionShape2D || child is CollisionObject2D || child is Camera2D) {
+							if (child is CollisionObject2D colObj) {
+
+								Area2D newObj = null;
+								foreach (Node2D objChild in colObj.GetChildren()) {
+									if (!objChild.IsInGroup("NoRagdollInclusion")) {
+										if (objChild is Sprite2D || objChild is CollisionShape2D || objChild is CollisionObject2D || objChild is Camera2D) {
+											if (newObj == null) {
+												newObj = new();
+											}
+											newObj.Rotation = colObj.Rotation;
+											newObj.Position = colObj.Position;
+											newObj.AddChild(objChild.Duplicate());
+										}
+									}
+								}
+								if (newObj != null) {
+									bodyCopy.AddChild(newObj);
+								}
+							} else {
+								bodyCopy.AddChild(child.Duplicate());
+							}
+						}
+					}
+				}
+			}
+			bodyCopy.GlobalPosition = character.GlobalPosition;
+
+			characterParent.AddChild(bodyCopy);
+			characterParent.RemoveChild(character);
+		}
+	}
+
+	/// <summary>
+	/// Given a sprite it will create a new RigidBody2D containing that sprite.
+	/// </summary>
+	/// <param name="originalBody">The body that the sprite originally came from.</param>
+	/// <param name="sprite">The Sprite2D to base the RigidBody2D on.</param>
+	/// <param name="collision">The CollisionShape2D to put on the new RigidBody2D</param>
+	/// <returns></returns>
+	public RigidBody2D CreateBodyOfSprite(RigidBody2D originalBody, Sprite2D sprite, CollisionShape2D collision) {
+		RigidBody2D body = new();
+		Sprite2D duplicateSprite;
+
+		body.CollisionLayer = originalBody.CollisionLayer;
+		body.CollisionMask = originalBody.CollisionMask;
+
+		duplicateSprite = (Sprite2D) sprite.Duplicate();
+		duplicateSprite.Name = $"{sprite.Name}";
+		duplicateSprite.Position = body.Position + sprite.Position;
+		duplicateSprite.Rotation = body.Rotation + sprite.Rotation;
+
+		body.Name = $"{sprite.Name}Object";
+
+		body.Position = sprite.Position;
+
+		CollisionShape2D newCollision = (CollisionShape2D) collision.Duplicate();
+		newCollision.Position = sprite.Position;
+		body.AddChild(newCollision);
+		body.AddChild(duplicateSprite);
+
+		return body;
+	}
+
+	/// <summary>
+	/// Generates a damage number that appears above the enemy that was hurt
+	/// </summary>
+	/// <param name="damageAmount">Amount of damage to take off of health.</param>
 	public void CreateDamageNumber(float damageAmount) {
 		if (requirePassThrough) {
 			passThroughHC.CreateDamageNumber(damageAmount);

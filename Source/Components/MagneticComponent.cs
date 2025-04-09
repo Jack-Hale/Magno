@@ -71,7 +71,6 @@ public partial class MagneticComponent : Node2D
 				rigidObject.AddToGroup("Magnetic");
 
 				if (objectParent is PhysicsBody2D op && objectParent is not StaticBody2D) {
-					GD.Print(objectParent.Name);
 					objectParent = op;
 
 					// Disabling the rigid object while it is within the larger object
@@ -80,7 +79,6 @@ public partial class MagneticComponent : Node2D
 
 					rigidObject.CollisionLayer = 0;
 					rigidObject.CollisionMask = 0;
-					
 					
 					rigidObject.Visible = false;
 					rigidObject.Sleeping = true;

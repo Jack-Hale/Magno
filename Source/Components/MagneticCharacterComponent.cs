@@ -34,6 +34,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	public bool isRigidPhysics = true;
 
 	private Node2D parent;
+	private MagneticCharacterParent magCharPar;
 	private CharacterBody2D character;
 
 	private RigidBody2D bodyCopy;
@@ -58,14 +59,26 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
+	private Array<Node2D> physicsItems = new();
+	private bool dettach = false;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
 		parent = (Node2D)GetParent();
 
-		if (parent is not MagneticCharacterParent) {
+		if (parent is MagneticCharacterParent mgp) {
+			magCharPar = mgp;
+		} else {
 			GD.PrintErr($"MagneticCharacteComponent {this}, does not have a parent of type MagneticCharacterParent {GetParent()}");
 			GD.PushError($"MagneticCharacteComponent {this}, does not have a parent of type MagneticCharacterParent {GetParent()}");
+		}
+
+		Array<Node> children = magCharPar.GetChildren();
+
+		for (int i = 0; i < children.Count; i++) {
+			if (children[i] is CharacterBody2D character) {
+				this.character = character;
+			}
 		}
 	}
 	public override void _Draw() {
@@ -118,10 +131,31 @@ public partial class MagneticCharacterComponent : Node2D {
 		}
 	}
 
+	public Array<Node2D> GetPhysicsItems() {
+		Array<Node> children = character.GetChildren();
+
+		for (int i = 0; i < children.Count; i++) {
+			if (children[i].IsInGroup("Magnetic")) {				
+				Array<Node> childrenMag = children[i].GetChildren();
+				for (int j = 0; j < childrenMag.Count; j++) {
+					if (childrenMag[j].IsInGroup("HasPhysics")) {
+						Node2D node = (Node2D) childrenMag[j].Duplicate();
+						node.Position = ((Node2D) children[i]).Position;
+						physicsItems.Add(node);
+						character.AddChild(node);
+					}
+				}
+			}
+		}
+		return physicsItems;
+	}
+
 	private void OnBodyEntered(Node body) {
 		ragdollTimer = 0;
 	}
-
+	public bool Dettach() {
+		return dettach;
+	}
 	// Swaps the CharacterBody2D with the Rigidbody2D bodyCopy
 	public void SwapToRigid() {
 		if (isCharacter && isRigidPhysics) {
@@ -183,13 +217,19 @@ public partial class MagneticCharacterComponent : Node2D {
 		character.RemoveFromGroup("Magnetic");
 		SwapToCharacter();
 		Vector2 position = character.GlobalPosition;
-
-		character.RemoveChild(magnetSprite);
+		
+		for (int i = 0; i < physicsItems.Count; i++) {
+			physicsItems[i].Position = new Vector2(0, 0);
+			character.RemoveChild(physicsItems[i]);
+		}
+		if (magnetSprite != null) {
+			character.RemoveChild(magnetSprite);
+		}
 
 		parent.RemoveChild(character);
 		parent.GetParent().AddChild(character);
-
 		character.GlobalPosition = position;
+		dettach = true;
 
 		QueueFree();
 	}

@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://blou1m5hu4wkf" path="res://Assets/Sprites/Gunman.png" id="1_aupy1"]
 [ext_resource type="Texture2D" uid="uid://bs0tlmwc641ta" path="res://Assets/Sprites/gun.png" id="2_k0tne"]
 [ext_resource type="Script" uid="uid://5wibdv2faylk" path="res://Source/Components/ProjectileComponent.cs" id="3_2uqyx"]
-[ext_resource type="Script" uid="uid://dua4i2a4v8nv0" path="res://Source/Components/ProjectileLauncher.cs" id="4_iiok4"]
+[ext_resource type="Script" uid="uid://dx10ddc7s71oq" path="res://Source/Components/ProjectileLauncher.cs" id="4_15ge7"]
 [ext_resource type="PackedScene" uid="uid://cw68htgtmsams" path="res://Scenes/Perishable Objects/projectile.tscn" id="5_7mfjt"]
 [ext_resource type="Texture2D" uid="uid://bndpu71fqofpt" path="res://Assets/Sprites/DamageBall.png" id="5_11i2t"]
 [ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="7_axe18"]
@@ -32,8 +32,8 @@ veiwRadius = 1000.0
 metadata/_custom_type_script = "uid://dfgsiwyixd82h"
 
 [node name="ProjectileLauncher" type="Node2D" parent="."]
-script = ExtResource("4_iiok4")
-metadata/_custom_type_script = "uid://dua4i2a4v8nv0"
+script = ExtResource("4_15ge7")
+metadata/_custom_type_script = "uid://dx10ddc7s71oq"
 
 [node name="ProjectileComponent" type="Node2D" parent="ProjectileLauncher" node_paths=PackedStringArray("excludeArray")]
 position = Vector2(37, -4)
