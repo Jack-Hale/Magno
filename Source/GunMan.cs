@@ -59,7 +59,7 @@ public partial class GunMan : CharacterBody2D
 			_projectileComponent.Shoot();
 			
 			_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
-			_projectileLauncher.SetFlipH(Mathf.Sign(direction.X) < 0);
+			// _projectileLauncher.flipH = Mathf.Sign(direction.X) < 0;
 			_sprite2D.FlipH = _projectileLauncher.GetFlipH();
 		} else {
 			hasTarget = false;

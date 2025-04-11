@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using System;
 
 public partial class Wasp : CharacterBody2D {
@@ -42,6 +43,10 @@ public partial class Wasp : CharacterBody2D {
 	private Vector2 wingsPosition;
 	private ProjectileLauncher _projectileLauncher;
 	private AnimationPlayer _animationPlayer;
+	private RigidBody2D _wings;
+	bool hasWings = true;
+	bool collectedMagnetSprites = false;
+	bool collectedMagnetPlayers = false;
 	public override void _Ready() {
 		foreach (var child in GetParent().GetChildren()) {
 			if (child is MagneticCharacterComponent) {
@@ -50,27 +55,65 @@ public partial class Wasp : CharacterBody2D {
 		}
 		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
 		_sprite = GetNode<Sprite2D>("Sprite2D");
-		_wingsSprite = GetNode<Sprite2D>("Wings");
+		_wings = GetNode<RigidBody2D>("Wings");
+		_wingsSprite = _wings.GetNode<Sprite2D>("Sprite2D");
 		_gun = GetNode<RigidBody2D>("Gun");
 
 		_projectileLauncher = (ProjectileLauncher) magCharComp.GetPhysicsItems()[0];
 		_projectileComponent = _projectileLauncher.GetProjectileComponent();
 
-		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
-		_animationPlayer.Play("wings_flap");
+		_animationPlayer = _wings.GetNode<AnimationPlayer>("AnimationPlayer");
 
 		wingsPosition = _wingsSprite.Position;
 	}
 
 	public override void _Process(double delta) {
-		if (magCharComp != null && magCharComp.Dettach()) {
-			DettachProjectile();
+		
+		// Waiting for duplicate sprites to exist to extract
+		if (!collectedMagnetSprites && !collectedMagnetPlayers) {
+			Dictionary<AnimationPlayer, AnimationPlayer> players = magCharComp.GetDuplicatePlayers();
+			Dictionary<Sprite2D, Sprite2D> sprites = magCharComp.GetDuplicateSprites();
+
+			// If none exist, arrays will be null
+			collectedMagnetSprites = sprites == null;
+			collectedMagnetPlayers = players == null;
+
+			if (players != null && players.Keys.Count > 0) {
+				foreach (var item in players.Keys) {
+					if (_animationPlayer == players[item]) {
+						_animationPlayer = item;
+						collectedMagnetPlayers = true;
+					}
+				}
+			}
+
+			if (sprites != null && sprites.Keys.Count > 0) {
+				foreach (var item in sprites.Keys) {
+					if (_wingsSprite == sprites[item]) {
+						_wingsSprite = item;
+						collectedMagnetSprites = true;
+					}
+				}
+			}
+		}
+
+		if (magCharComp != null) {
+			if(magCharComp.Dettach()) {
+				DettachProjectile();
+			}
 		}
 	}
+
 	public override void _PhysicsProcess(double delta) {
 		Vector2 velocity = Velocity;
 		Vector2 direction = Vector2.Zero;
-		// GD.Print(GetParent().GetTreeStringPretty());
+
+		if (hasWings) {
+			if (GetNodeOrNull<RigidBody2D>("Wings") == null) {
+				hasWings = false;
+			}
+		}
+		
 		// Handles magnetic states
 		if (IsInGroup("Magnetic")) {
 			if (magCharComp == null) {
@@ -96,6 +139,11 @@ public partial class Wasp : CharacterBody2D {
 			magCharComp = null;
 		}
 
+		// Add the gravity.
+		if (!IsOnFloor() && !hasWings) {
+			velocity += GetGravity() * (float)delta;
+		}
+
 
 		if (affected) { // Handle behaviour when affected by a magnet
 		} else { // Handle behaviour when unaffected by a magnet
@@ -106,21 +154,30 @@ public partial class Wasp : CharacterBody2D {
 
 					_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
 
-					_projectileLauncher.SetFlipH(Mathf.Sign(direction.X) < 0);
 				}
 			}
 
-			velocity = _pathFinding.MoveCharacter(false, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
-			if (direction == Vector2.Zero) {
-				velocity = _pathFinding.ApplyFriction(false, velocity, friction, delta);
+			if (hasWings) {
+				velocity = _pathFinding.MoveCharacter(!hasWings, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
+				velocity = _pathFinding.AvoidWallsAir(velocity, 60, 30, 40);
 			}
 
-			velocity = _pathFinding.AvoidWallsAir(velocity, 60, 30, 40);
-			_sprite.FlipH = _projectileLauncher != null ? _projectileLauncher.GetFlipH() : (direction.X < 0);
+			if (direction == Vector2.Zero) {
+				velocity = _pathFinding.ApplyFriction(!hasWings, velocity, friction, delta);
+			}
+			
+			_sprite.FlipH = direction.X < 0;
 			_wingsSprite.FlipH = _sprite.FlipH;
+
+			if (_projectileLauncher != null) {
+				_projectileLauncher.SetFlipH(_sprite.FlipH);
+			}
 
 			_wingsSprite.Position = new Vector2(_wingsSprite.FlipH ? -wingsPosition.X : wingsPosition.X, wingsPosition.Y);
 		}
+
+		// GD.Print(_sprite.FlipH, " ", _projectileLauncher.flipH);
+		// GD.Print(_sprite.FlipH == _projectileComponent.flipH);
 
 		Velocity = velocity;
 		MoveAndSlide();

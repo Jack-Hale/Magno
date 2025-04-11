@@ -36,6 +36,8 @@ public partial class MagneticComponent : Node2D
 	private Tuple<bool, Vector2> magnetData = new Tuple<bool, Vector2>(false, Vector2.Inf);
 	private Tuple<Vector2, Vector2> forceData = new Tuple<Vector2, Vector2>(Vector2.Zero, Vector2.Zero);
 	private Tuple<bool, bool> strengthData = new Tuple<bool, bool>(false, false);
+
+	private bool secondaryObject = false;
 	
 	public MagneticComponent() {
 		Name = "MagneticComponent";
@@ -103,6 +105,9 @@ public partial class MagneticComponent : Node2D
 					rigidObjectParent = magCharComp.GetParent().GetParent();
 
 					characterObject = (CharacterBody2D) objectParent;
+					if (characterObject.IsInGroup("Magnetic")) {
+						secondaryObject = true;
+					}
 					characterObject.AddToGroup("Magnetic");
 				}
 
@@ -183,7 +188,10 @@ public partial class MagneticComponent : Node2D
 	// Destroys connection between Character and Rigid objects and removes any ability for Character to be magnetic
 	public void EnableRigidObject() {
 		if (characterObject != null) {
-			magCharComp.SwapToCharacter();
+			if (!secondaryObject) {
+				magCharComp.SwapToCharacter();
+			}
+
 			Node parent = rigidObject.GetParent();
 			parent.RemoveChild(rigidObject);
 			
@@ -217,6 +225,9 @@ public partial class MagneticComponent : Node2D
 
 			characterObject = null;
 			isRigidPhysics = true;
+
+			secondaryObject = false;
+
 			magCharComp.DettachMetalObject();
 			magCharComp = null;
 		}
@@ -235,25 +246,26 @@ public partial class MagneticComponent : Node2D
 
 	// Applies the Magnetic force onto the parent object
 	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta, bool isRigidPhysics) {
+		if (!secondaryObject) {
+			// Vector that is positive or negative depending on what pull mode the magnet is in
+			Vector2 pushForce = pull ? attractionPoint - rigidObject.GlobalPosition : rigidObject.GlobalPosition - attractionPoint;
 		
-		// Vector that is positive or negative depending on what pull mode the magnet is in
-		Vector2 pushForce = pull ? attractionPoint - rigidObject.GlobalPosition : rigidObject.GlobalPosition - attractionPoint;
-	
-		// Vector that is larger the closer the Object is to the magnet
-		float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(rigidObject.GlobalPosition), 1, beamLength);
+			// Vector that is larger the closer the Object is to the magnet
+			float magnetStrength = Math.Clamp(beamLength - attractionPoint.DistanceTo(rigidObject.GlobalPosition), 1, beamLength);
 
-		float multiplier = blast ? blastMultiplier : strongMagnet ? strongMultiplier : weakMultiplier;
+			float multiplier = blast ? blastMultiplier : strongMagnet ? strongMultiplier : weakMultiplier;
 
-		Vector2 force = pushForce * magnetStrength * multiplier * (float)delta;
-		Vector2 position = collisionPoint - rigidObject.GlobalPosition;
-		
-		magnetData = new Tuple<bool, Vector2>(pull, attractionPoint);
-		forceData = new Tuple<Vector2, Vector2>(force, position);
-		strengthData = new Tuple<bool, bool>(blast, strongMagnet);
-		
-		if (!isRigidPhysics) {
-			if (rigidObject != null) {
-				rigidObject.ApplyForce(force, position);
+			Vector2 force = pushForce * magnetStrength * multiplier * (float)delta;
+			Vector2 position = collisionPoint - rigidObject.GlobalPosition;
+			
+			magnetData = new Tuple<bool, Vector2>(pull, attractionPoint);
+			forceData = new Tuple<Vector2, Vector2>(force, position);
+			strengthData = new Tuple<bool, bool>(blast, strongMagnet);
+			
+			if (!isRigidPhysics) {
+				if (rigidObject != null) {
+					rigidObject.ApplyForce(force, position);
+				}
 			}
 		}
 	}

@@ -55,7 +55,8 @@ public partial class MagneticCharacterComponent : Node2D {
 	private float targetRotation;
 	private bool isRotatingPostSwap = false;
 
-	private Sprite2D magnetSprite = null;
+	private Array<Sprite2D> magnetSprites = new();
+	private Array<AnimationPlayer> magnetPlayers = new();
 
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
@@ -78,6 +79,11 @@ public partial class MagneticCharacterComponent : Node2D {
 		for (int i = 0; i < children.Count; i++) {
 			if (children[i] is CharacterBody2D character) {
 				this.character = character;
+				character.AddToGroup("MagneticCharacter");
+
+				// Creating a copy the collision mask and layer of character
+				collisionL = character.CollisionLayer;
+				collisionM = character.CollisionMask;
 			}
 		}
 	}
@@ -130,6 +136,8 @@ public partial class MagneticCharacterComponent : Node2D {
 			}
 		}
 	}
+
+
 
 	public Array<Node2D> GetPhysicsItems() {
 		Array<Node> children = character.GetChildren();
@@ -213,25 +221,43 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	// Isolates the character object deleting the bodyCopy and this
 	public void DettachMetalObject() {
-		character.RemoveFromGroup("MagneticCharacter");
-		character.RemoveFromGroup("Magnetic");
-		SwapToCharacter();
-		Vector2 position = character.GlobalPosition;
-		
-		for (int i = 0; i < physicsItems.Count; i++) {
-			physicsItems[i].Position = new Vector2(0, 0);
-			character.RemoveChild(physicsItems[i]);
-		}
-		if (magnetSprite != null) {
-			character.RemoveChild(magnetSprite);
-		}
+		// If the character still has magnet objects to dettach, don't remove magnetic abilities yet
+		if (!CharacterHasMagnet()) {
+			character.RemoveFromGroup("MagneticCharacter");
+			character.RemoveFromGroup("Magnetic");
+			SwapToCharacter();
+			Vector2 position = character.GlobalPosition;
+			
+			for (int i = 0; i < physicsItems.Count; i++) {
+				physicsItems[i].Position = new Vector2(0, 0);
+				character.RemoveChild(physicsItems[i]);
+			}
 
-		parent.RemoveChild(character);
-		parent.GetParent().AddChild(character);
-		character.GlobalPosition = position;
-		dettach = true;
+			for (int i = 0; i < magnetSprites.Count; i++) {
+				character.RemoveChild(magnetSprites[i]);
+			}
 
-		QueueFree();
+			for (int i = 0; i < magnetPlayers.Count; i++) {
+				character.RemoveChild(magnetPlayers[i]);
+			}
+
+			parent.RemoveChild(character);
+			parent.GetParent().AddChild(character);
+			character.GlobalPosition = position;
+			dettach = true;
+
+			QueueFree();
+		}
+	}
+
+	public bool CharacterHasMagnet() {
+		Array<Node> children = character.GetChildren();
+		for (int i = 0; i < children.Count; i++) {
+			if (children[i].IsInGroup("Magnetic")) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public bool IsLargeCharacter() {
@@ -270,14 +296,12 @@ public partial class MagneticCharacterComponent : Node2D {
 	public CharacterBody2D GetCharacter() {
 		return character;
 	}
-	public void SetCharacter(CharacterBody2D character, Sprite2D magnetSprite) {
-		this.magnetSprite = magnetSprite;
-		this.character = character;
-		character.AddToGroup("MagneticCharacter");
+	public void SetCharacterSprites(Dictionary<Sprite2D, Sprite2D> magnetSprites) {
+		this.magnetSprites.AddRange(magnetSprites.Keys);
+	}
 
-		// Creating a copy the collision mask and layer of character
-		collisionL = character.CollisionLayer;
-		collisionM = character.CollisionMask;
+	public void SetCharacterPlayers(Dictionary<AnimationPlayer, AnimationPlayer> magnetPlayers) {
+		this.magnetPlayers.AddRange(magnetPlayers.Keys);
 	}
 
 	public Vector2 GetCharacterVelocity() {
@@ -325,5 +349,13 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	public void ApplyTorqueBodyCopy(float torque) {
 		bodyCopy.ApplyTorque(torque);
+	}
+
+	public Dictionary<Sprite2D, Sprite2D> GetDuplicateSprites() {
+		return magCharPar.GetDuplicateSprites();
+	}
+
+	public Dictionary<AnimationPlayer, AnimationPlayer> GetDuplicatePlayers() {
+		return magCharPar.GetDuplicatePlayers();
 	}
 }

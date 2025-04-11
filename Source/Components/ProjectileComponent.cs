@@ -27,7 +27,7 @@ public partial class ProjectileComponent : Node2D {
 	private bool useTemplate = false;
 
 	private float cooldownTimer = 0;
-	private bool flipH = false;
+	public bool flipH = false;
 	private bool flipping = false;
 
 	private Vector2 originalPosition;
@@ -55,16 +55,12 @@ public partial class ProjectileComponent : Node2D {
 		Rotation = -originalRotation;
 
 		excludeArray.Add(parent);
-	}
-
-	public override void _Process(double delta)	{
-		if (cooldownTimer > 0) {
-			cooldownTimer -= (float) delta;
-		} else {
-			cooldownTimer = 0;
+		if (parent is ProjectileLauncher) {
+			excludeArray.Add((Node2D) parent.GetParent());
 		}
-		
-		if (flipH != flipping) {
+
+			if (flipH != flipping) {
+			GD.Print("FLIP");
 			Position = new Vector2(flipH ? -originalPosition.X : originalPosition.X, Position.Y);
 			Rotation = flipH ? originalRotation : -originalRotation;
 		}
@@ -72,8 +68,15 @@ public partial class ProjectileComponent : Node2D {
 		flipping = flipH;
 	}
 
-	public void SetFlipH(bool flipH) {
-		this.flipH = flipH;
+	public override void _PhysicsProcess(double delta)	{
+	
+	}
+	public override void _Process(double delta)	{
+		if (cooldownTimer > 0) {
+			cooldownTimer -= (float) delta;
+		} else {
+			cooldownTimer = 0;
+		}
 	}
 
 	public void AddException(Node2D exception) {
@@ -94,6 +97,7 @@ public partial class ProjectileComponent : Node2D {
 			}
 			projectile.SetVariables(speed, GlobalRotation, GlobalPosition, GlobalRotation, damage, projectileTimeout, excludeArray);
 			scene.AddChild(projectile);
+			scene.MoveChild(projectile, 0);
 
 			cooldownTimer = shootCooldown;
 		}

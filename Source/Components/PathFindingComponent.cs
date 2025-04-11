@@ -81,7 +81,6 @@ public partial class PathFindingComponent : Node2D {
         bool isLooking = false;
         foreach (RayCast2D ray in rays) {
             if (ray.GetCollider() == player) {
-                // GD.Print(ray.GetCollider());
                 isDetected = true;
                 lastDetectionPoint = ToGlobal(ray.TargetPosition);
                 stopLooking = false;
@@ -190,6 +189,10 @@ public partial class PathFindingComponent : Node2D {
         QueueRedraw();
     }
 
+    /// <summary>
+    /// Applies a friction to the character's movement slowing them down
+    /// </summary>
+    /// <returns>Updated vector with friction applied.</returns>
     public Vector2 ApplyFriction(bool justX, Vector2 velocity, float friction, double delta) {
         Vector2 NewVelocity = Vector2.Zero;
 
@@ -211,7 +214,10 @@ public partial class PathFindingComponent : Node2D {
 
         return NewVelocity;
     }
-
+    /// <summary>
+    /// <para>Moves the character in the direction specified.</para>
+    /// </summary>
+    /// <returns>Updated vector with movement applied.</returns>
     public Vector2 MoveCharacter(bool justX, Vector2 velocity, Vector2 direction, float maxSpeed, float acceleration, float airAcceleration, double delta) {
 		Vector2 NewVelocity = Vector2.Zero;
         float friction = 100;
@@ -242,7 +248,10 @@ public partial class PathFindingComponent : Node2D {
 		return NewVelocity;
 	}
 
-    // When moving, if character would brush up against a wall, it instead moves along it by a distance
+    /// <summary>
+    /// When moving, if character would brush up against a wall, it instead moves along it by a distance
+    /// </summary>
+    /// <returns>Updated vector in the direction of the avoided path.</returns>
 	public Vector2 AvoidWallsAir(Vector2 velocity, float avoidDistance, float checkAngle, float angleToTurn) {
 
 		Vector2 start = GlobalPosition;
@@ -288,57 +297,67 @@ public partial class PathFindingComponent : Node2D {
 		return velocity;
 	}
 
+    /// <summary>
+    /// In the direction of velocity, will check in front at the parsed distance and angle if there is a wall.
+    /// 
+    /// <para>Angle checks up and down from the character's centre.</para>
+    /// </summary>
+    /// <returns>True if wall is found.</returns>
     public bool AvoidWallsGround(Vector2 velocity, float avoidDistance, float checkAngle) {
 
         float movementDir = Position.DirectionTo(velocity).X;
-        if (true) {
 
-            movementDir = movementDir >= 0 ? 1 : -1;
+        movementDir = movementDir >= 0 ? 1 : -1;
 
 
-            Vector2 start = parent.GlobalPosition;
-            Vector2 end = new Vector2(parent.GlobalPosition.X + (avoidDistance * movementDir), parent.GlobalPosition.Y);
+        Vector2 start = parent.GlobalPosition;
+        Vector2 end = new Vector2(parent.GlobalPosition.X + (avoidDistance * movementDir), parent.GlobalPosition.Y);
 
-            float angleOffset = Mathf.DegToRad(checkAngle);
-            Vector2 direction = start.DirectionTo(end);
-            float distance = start.DistanceTo(end);
+        float angleOffset = Mathf.DegToRad(checkAngle);
+        Vector2 direction = start.DirectionTo(end);
+        float distance = start.DistanceTo(end);
 
-            Vector2 posDir = direction.Rotated(angleOffset);
-            Vector2 negDir = direction.Rotated(-angleOffset);
+        Vector2 posDir = direction.Rotated(angleOffset);
+        Vector2 negDir = direction.Rotated(-angleOffset);
 
-            var posCheck = FireRayCast(start, start + posDir * distance, collision);
-            var negCheck = FireRayCast(start, start + negDir * distance, collision);
+        var posCheck = FireRayCast(start, start + posDir * distance, collision);
+        var negCheck = FireRayCast(start, start + negDir * distance, collision);
 
-            // draw1 = start;
-            // draw2 = start + posDir * distance;
-            // draw3 = start;
-            // draw4 = start + negDir * distance;
+        // draw1 = start;
+        // draw2 = start + posDir * distance;
+        // draw3 = start;
+        // draw4 = start + negDir * distance;
 
-            bool posTileFound = false;
-            bool negTileFound = false;
+        bool posTileFound = false;
+        bool negTileFound = false;
 
-            if (posCheck.Count > 0) {
-                Node2D colliderPos = (Node2D) posCheck["collider"];
-                if (colliderPos is TileMapLayer) {
-                    posTileFound = true;
-                }
-            } 
-
-            if (negCheck.Count > 0) {
-                Node2D colliderNeg = (Node2D) negCheck["collider"];
-                if (colliderNeg is TileMapLayer) {
-                    negTileFound = true;
-                }
+        if (posCheck.Count > 0) {
+            Node2D colliderPos = (Node2D) posCheck["collider"];
+            if (colliderPos is TileMapLayer) {
+                posTileFound = true;
             }
+        } 
 
-            if (posTileFound || negTileFound) {
-                return true;
+        if (negCheck.Count > 0) {
+            Node2D colliderNeg = (Node2D) negCheck["collider"];
+            if (colliderNeg is TileMapLayer) {
+                negTileFound = true;
             }
-
         }
-		return false;
+
+        if (posTileFound || negTileFound) {
+            return true;
+        }
+        return false;
     }
 
+    /// <summary>
+    /// Checks if there is no floor in front of the character in the direction of velocity.
+    /// 
+    /// <para>distanceAcross defines how far ahead of the character to check.</para>
+    /// <para>distanceBelow defines how far past the characters lowest point to check.</para>
+    /// </summary>
+    /// <returns>True if no floor is detected.</returns>
     public bool CheckNoFloor(Vector2 velocity, float distanceAcross, float distanceBelow) {
         if (velocity != Vector2.Zero) {
             float sizeX = parentShapeSize.X;
@@ -365,12 +384,19 @@ public partial class PathFindingComponent : Node2D {
         return false;
     }
     
+    /// <summary>
+    /// If detection point is above character check above the character to see if there is a ledge it can jump to.
+    /// <para>Allows a character to choose to jump onto a ledge that is above their head instead of running underneath it.</para>
+    /// <para>distanceAbove defines how far above the character to check.</para>
+    /// <para>distanceInFront defines how far in front of the character to check.</para>
+    /// </summary>
+    /// <returns>True if ground is detected.</returns>
     public bool CheckGroundAbove(Vector2 velocity, float distanceAbove, float distanceInFront) {
         if (lastDetectionPoint.Y < parent.GlobalPosition.Y - parentShapeSize.Y) {
 
-            float movementDir = parent.Position.DirectionTo(velocity).X;
-            movementDir = movementDir >= 0 ? 1 : -1;
+            float movementDir = Mathf.Sign(velocity.X);
             uint tileCollisions = (1u << 0) | (1u << 7);
+            GD.Print(movementDir);
 
             float toX = parent.GlobalPosition.X + ((parentShapeSize.X/2) + distanceInFront) * movementDir;
             float toY = parent.GlobalPosition.Y - (parentShapeSize.Y/2) - distanceAbove;
@@ -378,8 +404,8 @@ public partial class PathFindingComponent : Node2D {
             Vector2 checkFrom = parent.GlobalPosition;
             Vector2 checkTo = new Vector2(toX, toY);
             
-            // draw7 = checkFrom;
-            // draw8 = checkTo;
+            draw7 = checkFrom;
+            draw8 = checkTo;
             
             var check = FireRayCast(checkFrom, checkTo, tileCollisions);
 

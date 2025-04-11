@@ -107,8 +107,6 @@ public partial class HealthComponent : Node2D {
 				}
 			}
 
-			GD.Print(health);
-
 			if (health <= 0) {
 				RunDeathSequence();
 			}
@@ -166,7 +164,8 @@ public partial class HealthComponent : Node2D {
 					
 				}
 				if (!hasDied) {
-					CreateBodyCopy();
+					RigidBody2D body = CreateBodyCopy();
+					body.ApplyTorqueImpulse(1000);
 					hasDied = true;
 				}
 			}
@@ -177,7 +176,7 @@ public partial class HealthComponent : Node2D {
 	/// Creates a RigidBody2D copy of the character and replaces character with copy as a ragdoll.
 	/// Doesn't work if parent is not CharacterBody2D
 	/// </summary>
-	public void CreateBodyCopy() {
+	public RigidBody2D CreateBodyCopy() {
 		if (character != null) {
 			RigidBody2D bodyCopy = new();
 			bodyCopy.Name = $"BodyCopy";		
@@ -221,6 +220,10 @@ public partial class HealthComponent : Node2D {
 
 			characterParent.AddChild(bodyCopy);
 			characterParent.RemoveChild(character);
+			bodyCopy.Inertia = 100;
+			return bodyCopy;
+		} else {
+			return null;
 		}
 	}
 

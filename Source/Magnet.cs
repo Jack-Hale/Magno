@@ -394,7 +394,6 @@ public partial class Magnet : Area2D
 		if (!isObjectAttached) {
 			// Only adds objects with Magnetic group
 			if (body.IsInGroup("Magnetic")) {
-				GD.Print(body.Name);
 				
 				// Magnetic rigidbodies and characterbodies are treated differently
 				if (body.IsInGroup("MagneticCharacter")) {

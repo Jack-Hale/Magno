@@ -419,4 +419,4 @@ position = Vector2(3018, -64.23)
 position = Vector2(1177, 631)
 
 [node name="Wasp" parent="." instance=ExtResource("5_npfmg")]
-position = Vector2(977, 497)
+position = Vector2(1043, 500)

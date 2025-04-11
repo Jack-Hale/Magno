@@ -3,6 +3,8 @@ using Godot.Collections;
 using System;
 
 public partial class ProjectileLauncher : Node2D {
+	[Export]
+	private bool flipOnParentSprite = false;
 	private ProjectileComponent _projectileComponent;
 	private Sprite2D _sprite;
 	private bool flipH = false;
@@ -34,40 +36,45 @@ public partial class ProjectileLauncher : Node2D {
 		spriteRotation = _sprite.Rotation;
 	}
 
+	public override void _PhysicsProcess(double delta) {
+
+	}
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta) {
-		if (flipH != flipping) {
-			_projectileComponent.SetFlipH(flipH);
-		}
 
-		bool flip = false;
+		bool flip = flipOnParentSprite ? flipH : false;
 		float angle = (Rotation % (2 * Mathf.Pi) + (2 * Mathf.Pi)) % (2 * Mathf.Pi);
 
-		// Testing if the angle of the gun has it pointing on the left side of the character to flip its sprites
-		if (angle >= (3 * Mathf.Pi / 2) || angle <= (Mathf.Pi / 2)) {
-			_projectileComponent.Position = projectilePosition;
-		} else {
-			_projectileComponent.Position = new Vector2(projectilePosition.X, -projectilePosition.Y);
-			flip = true;
+		if (!flipOnParentSprite) {
+			// Testing if the angle of the gun has it pointing on the left side of the character to flip its sprites
+			if (angle >= (3 * Mathf.Pi / 2) || angle <= (Mathf.Pi / 2)) {
+				_projectileComponent.Position = projectilePosition;
+			} else {
+				_projectileComponent.Position = new Vector2(projectilePosition.X, -projectilePosition.Y);
+				flip = true;
+			}
 		}
 
 		_sprite.FlipV = flip;
+		_projectileComponent.flipH = flip;
 
-		_projectileComponent.SetFlipH(flip);
 		_sprite.Rotation = flip ? -spriteRotation : spriteRotation;
         
 		Rotate(flip ? -originalRotation : originalRotation);
 		Position = new Vector2(flip ? -originalPosition.X : originalPosition.X, originalPosition.Y); 
-
 		flipping = flipH;
-	}
 
-	public void SetFlipH(bool flipH) {
-		this.flipH = flipH;
+		if (flipOnParentSprite) {
+			flipH = flip;
+		}
 	}
 
 	public bool GetFlipH() {
 		return flipH;
+	}
+	
+	public void SetFlipH(bool flipH) {
+		this.flipH = flipH;
 	}
 
 	public ProjectileComponent GetProjectileComponent() {
