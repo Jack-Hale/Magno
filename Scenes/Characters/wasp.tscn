@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://xcrlbcscygw2"]
+[gd_scene load_steps=23 format=3 uid="uid://xcrlbcscygw2"]
 
 [ext_resource type="Script" uid="uid://cyfe7n8vtr5xk" path="res://Source/Components/MagneticCharacterParent.cs" id="1_regco"]
 [ext_resource type="Script" uid="uid://bv76e8qnymuee" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_o2sb4"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" uid="uid://dn3abb2bdasda" path="res://Source/Components/ItemComponent.cs" id="7_waw0e"]
 [ext_resource type="Texture2D" uid="uid://galar4b2b6at" path="res://Assets/Sprites/waspGun.png" id="8_huucs"]
 [ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="14_lpx0u"]
+[ext_resource type="Texture2D" uid="uid://l0mqlfwlgbv" path="res://Assets/Sprites/WaspWingsFlipped.png" id="15_2mp5y"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_sexx5"]
 radius = 16.0
@@ -41,7 +42,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ExtResource("4_e83o0")]
+"values": [ExtResource("15_2mp5y")]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -220,6 +221,8 @@ rotation = 1.5708
 shape = SubResource("CapsuleShape2D_ahunh")
 
 [node name="Wings" type="RigidBody2D" parent="Wasp"]
+position = Vector2(-15, -9)
+rotation = 3.14159
 collision_layer = 4
 collision_mask = 183
 
@@ -227,14 +230,8 @@ collision_mask = 183
 script = ExtResource("6_0cir8")
 metadata/_custom_type_script = "uid://dga5am8fpoq83"
 
-[node name="Sprite2D" type="Sprite2D" parent="Wasp/Wings"]
-position = Vector2(-9, -2)
-scale = Vector2(2, 2)
-texture = ExtResource("4_e83o0")
-hframes = 2
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Wasp/Wings"]
-position = Vector2(-40, -13)
+position = Vector2(25, 10)
 rotation = 1.79943
 shape = SubResource("CapsuleShape2D_e83o0")
 
@@ -244,3 +241,12 @@ libraries = {
 &"": SubResource("AnimationLibrary_0bka1")
 }
 speed_scale = 4.0
+
+[node name="Sprite2D" type="Sprite2D" parent="Wasp/Wings"]
+position = Vector2(-9, -2)
+scale = Vector2(2, 2)
+texture = ExtResource("15_2mp5y")
+hframes = 2
+
+[node name="Node" type="Node2D" parent="Wasp"]
+position = Vector2(-6, -7)

@@ -87,10 +87,13 @@ public partial class MagneticCharacterParent : Node2D {
 
 							originalSprite = (Sprite2D) children[i];
 							Sprite2D duplicateSprite = (Sprite2D) originalSprite.Duplicate();
-							duplicateSprite.Position = metalObject.Position + originalSprite.Position;
+							// duplicateSprite.Position = bodyCopy.ToLocal(originalSprite.GlobalPosition);
 							duplicateSprite.Name = $"{originalSprite.Name}_Duplicate";
 							duplicateSprite.Rotation = metalObject.Rotation + originalSprite.Rotation;
 							
+							duplicateSprite.Position = metalObject.Position.Rotated(metalObject.Rotation) + originalSprite.Position.Rotated(originalSprite.Rotation);
+							duplicateSprite.Position = duplicateSprite.Position.Rotated(duplicateSprite.Rotation);
+
 							// Getting the duplicate of the sprite used in the animation player
 							if (animationPlayer != null) {
 								if (animationSprite == originalSprite) {
