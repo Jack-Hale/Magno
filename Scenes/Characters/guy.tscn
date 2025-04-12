@@ -27,8 +27,6 @@ script = ExtResource("1_0uaom")
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]
 script = ExtResource("2_1sim3")
-exitCondition = 1
-exitTimer = 1.0
 isRigidPhysics = false
 
 [node name="Guy" type="CharacterBody2D" parent="."]

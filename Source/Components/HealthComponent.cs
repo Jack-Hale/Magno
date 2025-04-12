@@ -165,6 +165,7 @@ public partial class HealthComponent : Node2D {
 				}
 				if (!hasDied) {
 					RigidBody2D body = CreateBodyCopy();
+					
 					body.ApplyTorqueImpulse(1000);
 					hasDied = true;
 				}
@@ -180,7 +181,7 @@ public partial class HealthComponent : Node2D {
 		if (character != null) {
 			RigidBody2D bodyCopy = new();
 			bodyCopy.Name = $"BodyCopy";		
-
+			
 			Node characterParent = character.GetParent();
 
 			bodyCopy.CollisionLayer = 1u << 2;
@@ -194,7 +195,7 @@ public partial class HealthComponent : Node2D {
 							if (child is CollisionObject2D colObj) {
 
 								Area2D newObj = null;
-								foreach (Node2D objChild in colObj.GetChildren()) {
+								foreach (Node objChild in colObj.GetChildren()) {
 									if (!objChild.IsInGroup("NoRagdollInclusion")) {
 										if (objChild is Sprite2D || objChild is CollisionShape2D || objChild is CollisionObject2D || objChild is Camera2D) {
 											if (newObj == null) {
@@ -216,10 +217,13 @@ public partial class HealthComponent : Node2D {
 					}
 				}
 			}
-			bodyCopy.GlobalPosition = character.GlobalPosition;
 
 			characterParent.AddChild(bodyCopy);
+
+			bodyCopy.GlobalPosition = character.GlobalPosition;
+
 			characterParent.RemoveChild(character);
+
 			bodyCopy.Inertia = 100;
 			return bodyCopy;
 		} else {

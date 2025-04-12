@@ -139,12 +139,10 @@ public partial class Magnet : Area2D
 			}
 
 			MagneticComponent magneticComponent = (MagneticComponent) attachedObject.GetNode("MagneticComponent");
-			// magneticComponent.ZeroVelocity();
+			MagneticCharacterComponent magCharComp = magneticComponent.GetMagneticCharacterComponent();
 
 			if (blast) {
 				magneticComponent.ForceObject(attachedObject.GlobalPosition, GlobalPosition, beamLength, pullMode, false, true, delta, false);
-
-				MagneticCharacterComponent magCharComp = magneticComponent.GetMagneticCharacterComponent();
 
 				// Starts a ragdoll timer if the object is a character so it doesnt swap from rigid to char
 				// over and over again while being blasted
@@ -345,7 +343,16 @@ public partial class Magnet : Area2D
 								Vector2 position2 = (Vector2)finalResult2["position"];
 								collisionPoint = position1.Lerp(position2, 0.5f);
 							}
-							
+
+							if (magComp.GetRagDollOnAnyForce()) {
+								MagneticCharacterComponent magCharComp = magComp.GetMagneticCharacterComponent();
+								
+								if (magCharComp != null) {
+									if (magCharComp.GetRagDollOnAnyForce() && !magCharComp.GetIsRagDoll()) {
+										magCharComp.StartAnyForceRagDollTimer();
+									}
+								}
+							}
 							magComp.ForceObject(collisionPoint, GlobalPosition, beamLength, pullMode, strongMagnet, false, delta, false);
 						}
 					} else {
@@ -363,27 +370,27 @@ public partial class Magnet : Area2D
 		} 
 
 		// Failsafe for if OnBodyEnteredBeam isnt triggered correctly. Helps the magnet push enemies more consistently.
-		// if (_beamCheck1.IsColliding() || _beamCheck2.IsColliding() || _beamCheck3.IsColliding()) {
-		// 	if (_beamCheck1.IsColliding() && _beamCheck1.GetCollider() is PhysicsBody2D body1) {
-		// 		if (body1.IsInGroup("Magnetic")) {
-		// 			if (!attractedObjects.ContainsKey(body1)) {
-		// 				OnBodyEnteredBeam(body1);
-		// 			}
-		// 		}
-		// 	} else if (_beamCheck2.IsColliding() && _beamCheck2.GetCollider() is PhysicsBody2D body2) {
-		// 		if (body2.IsInGroup("Magnetic")) {
-		// 			if (!attractedObjects.ContainsKey(body2)) {
-		// 				OnBodyEnteredBeam(body2);
-		// 			}
-		// 		}
-		// 	} else if (_beamCheck3.IsColliding() && _beamCheck3.GetCollider() is PhysicsBody2D body3) {
-		// 		if (body3.IsInGroup("Magnetic")) {
-		// 			if (!attractedObjects.ContainsKey(body3)) {
-		// 				OnBodyEnteredBeam(body3);
-		// 			}
-		// 		}
-		// 	}
-		// }
+		if (_beamCheck1.IsColliding() || _beamCheck2.IsColliding() || _beamCheck3.IsColliding()) {
+			if (_beamCheck1.IsColliding() && _beamCheck1.GetCollider() is PhysicsBody2D body1) {
+				if (body1.IsInGroup("Magnetic")) {
+					if (!attractedObjects.ContainsKey(body1)) {
+						OnBodyEnteredBeam(body1);
+					}
+				}
+			} else if (_beamCheck2.IsColliding() && _beamCheck2.GetCollider() is PhysicsBody2D body2) {
+				if (body2.IsInGroup("Magnetic")) {
+					if (!attractedObjects.ContainsKey(body2)) {
+						OnBodyEnteredBeam(body2);
+					}
+				}
+			} else if (_beamCheck3.IsColliding() && _beamCheck3.GetCollider() is PhysicsBody2D body3) {
+				if (body3.IsInGroup("Magnetic")) {
+					if (!attractedObjects.ContainsKey(body3)) {
+						OnBodyEnteredBeam(body3);
+					}
+				}
+			}
+		}
 
 		QueueRedraw();
 	}

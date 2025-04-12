@@ -29,7 +29,10 @@ public partial class MagneticCharacterParent : Node2D {
 		InitialiseCharacterSprite();
 	}
 
-	// Creates the RigidBody2D copy of the character
+	/// <summary>
+	/// Creates the RigidBody2D copy of the character
+	/// </summary>
+	/// <returns>BodyCopy</returns>
 	public RigidBody2D InitialiseBodyCopy() {
 		RigidBody2D bodyCopy = new RigidBody2D();
 		bodyCopy.MaxContactsReported = 1;
@@ -52,14 +55,37 @@ public partial class MagneticCharacterParent : Node2D {
 
 		bool hasPlayers = false;
 		bool hasSprites = false;
-
+		
 		foreach (Node child in character.GetChildren()) {
 			if (!child.IsInGroup("MagneticComponent")) {
 
 				// Duplicating all children of character into bodyCopy except the metal object(s)
 				if (!child.IsInGroup("Magnetic")) {
 					if (child is not PathFindingComponent) {
-						bodyCopy.AddChild(child.Duplicate());
+						if (!child.IsInGroup("HasPhysics")) {
+							Node2D duplicateNode = (Node2D) child.Duplicate();
+							duplicateNode.Name = $"{child.Name}_Duplicate";
+							duplicateNode.AddToGroup(character.GetPathTo(child).ToString());
+							bodyCopy.AddChild(duplicateNode);
+						// If child is a physics item it would have been duplicated from a magnetic body
+						} else {
+							// Ensure duplication is off the original magnetic body and not off the duplicated physics item
+							Node2D originalNode = null;
+							foreach (string item in child.GetGroups()) {
+								// When physics item is duplicated, the path is added to the duplicated node as a group
+								if (item.Split(':').First() == "path") {
+									originalNode = character.GetNode<Node2D>(item.Split(':').Last());
+								}
+							}
+							if (originalNode != null) {
+								Node2D duplicateNode = (Node2D) originalNode.Duplicate();
+								
+								duplicateNode.Position = ((Node2D) child).Position;
+								duplicateNode.Name = $"{originalNode.Name}_Duplicate";
+								duplicateNode.AddToGroup(character.GetPathTo(originalNode).ToString());
+								bodyCopy.AddChild(duplicateNode);
+							}
+						}
 					}
 				} else {
 					// Extracting sprites and animation players from metal object(s)
@@ -88,7 +114,8 @@ public partial class MagneticCharacterParent : Node2D {
 							originalSprite = (Sprite2D) children[i];
 							Sprite2D duplicateSprite = (Sprite2D) originalSprite.Duplicate();
 							// duplicateSprite.Position = bodyCopy.ToLocal(originalSprite.GlobalPosition);
-							duplicateSprite.Name = $"{originalSprite.Name}_Duplicate";
+							duplicateSprite.Name = $"{originalSprite.Name}_{child.Name}_Duplicate";
+							duplicateSprite.AddToGroup(character.GetPathTo(children[i]).ToString());
 							duplicateSprite.Rotation = metalObject.Rotation + originalSprite.Rotation;
 							
 							duplicateSprite.Position = metalObject.Position.Rotated(metalObject.Rotation) + originalSprite.Position.Rotated(originalSprite.Rotation);
@@ -113,6 +140,8 @@ public partial class MagneticCharacterParent : Node2D {
 					// Doing a deep duplication of the animation player
 					if (animationSprite != null && animationPlayer != null) {
 						AnimationPlayer duplicatePlayer = DuplicatedAnimationPlayer(animationPlayer, newAnimationSprite, animationSprite, bodyCopy);
+						duplicatePlayer.Name = $"{animationPlayer.Name}_{animationPlayer.GetParent().Name}_Duplicate";
+						duplicatePlayer.AddToGroup(character.GetPathTo(animationPlayer).ToString());
 						bodyCopy.AddChild(duplicatePlayer);
 
 						AnimationPlayer characterPlayer = DuplicatedAnimationPlayer(animationPlayer, newCharacterAnimationSprite, animationSprite, character);
@@ -259,5 +288,12 @@ public partial class MagneticCharacterParent : Node2D {
 
 	public Dictionary<AnimationPlayer, AnimationPlayer> GetDuplicatePlayers() {
 		return duplicatePlayers;
+	}
+
+	public void RemoveDuplicateSprite(Sprite2D spriteKey) {
+		duplicateSprites.Remove(spriteKey);
+	}
+	public void RemoveDuplicatePlayer(AnimationPlayer playerKey) {
+		duplicatePlayers.Remove(playerKey);
 	}
 }

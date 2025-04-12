@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Linq;
 
 public partial class Wasp : CharacterBody2D {
 	public float maxSpeed = 100.0f;
@@ -45,6 +46,7 @@ public partial class Wasp : CharacterBody2D {
 	private AnimationPlayer _animationPlayer;
 	private RigidBody2D _wings;
 	bool hasWings = true;
+	bool hasGun = true;
 	bool collectedMagnetSprites = false;
 	bool collectedMagnetPlayers = false;
 	public override void _Ready() {
@@ -59,7 +61,7 @@ public partial class Wasp : CharacterBody2D {
 		_wingsSprite = _wings.GetNode<Sprite2D>("Sprite2D");
 		_gun = GetNode<RigidBody2D>("Gun");
 
-		_projectileLauncher = (ProjectileLauncher) magCharComp.GetPhysicsItems()[0];
+		_projectileLauncher = (ProjectileLauncher) magCharComp.GetPhysicsItems().Keys.First();
 		_projectileComponent = _projectileLauncher.GetProjectileComponent();
 
 		_animationPlayer = _wings.GetNode<AnimationPlayer>("AnimationPlayer");
@@ -110,7 +112,17 @@ public partial class Wasp : CharacterBody2D {
 
 		if (hasWings) {
 			if (GetNodeOrNull<RigidBody2D>("Wings") == null) {
+				_wings = null;
+				_wingsSprite = null;
 				hasWings = false;
+			}
+		}
+
+		if (hasGun) {
+			if (GetNodeOrNull<RigidBody2D>("Gun") == null) {
+				_gun = null;
+				_projectileLauncher = null;
+				hasGun = false;
 			}
 		}
 		
@@ -161,23 +173,20 @@ public partial class Wasp : CharacterBody2D {
 				velocity = _pathFinding.MoveCharacter(!hasWings, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
 				velocity = _pathFinding.AvoidWallsAir(velocity, 60, 30, 40);
 			}
+			_sprite.FlipH = direction.X < 0;
+			if (hasWings) _wingsSprite.FlipH = _sprite.FlipH;
 
 			if (direction == Vector2.Zero) {
 				velocity = _pathFinding.ApplyFriction(!hasWings, velocity, friction, delta);
 			}
 			
-			_sprite.FlipH = direction.X < 0;
-			_wingsSprite.FlipH = _sprite.FlipH;
 
 			if (_projectileLauncher != null) {
 				_projectileLauncher.SetFlipH(_sprite.FlipH);
 			}
 
-			_wingsSprite.Position = new Vector2(_wingsSprite.FlipH ? -wingsPosition.X : wingsPosition.X, wingsPosition.Y);
+			if (hasWings) _wingsSprite.Position = new Vector2(_wingsSprite.FlipH ? -wingsPosition.X : wingsPosition.X, wingsPosition.Y);
 		}
-
-		// GD.Print(_sprite.FlipH, " ", _projectileLauncher.flipH);
-		// GD.Print(_sprite.FlipH == _projectileComponent.flipH);
 
 		Velocity = velocity;
 		MoveAndSlide();

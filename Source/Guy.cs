@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 public partial class Guy : CharacterBody2D
 {	
@@ -40,7 +41,7 @@ public const float speed = 300.0f;
 		}
 		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
 
-		_projectileLauncher = (ProjectileLauncher) magCharComp.GetPhysicsItems()[0];
+		_projectileLauncher = (ProjectileLauncher) magCharComp.GetPhysicsItems().Values.First();
 		_projectileComponent = _projectileLauncher.GetProjectileComponent();
 	}
 

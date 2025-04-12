@@ -396,7 +396,6 @@ public partial class PathFindingComponent : Node2D {
 
             float movementDir = Mathf.Sign(velocity.X);
             uint tileCollisions = (1u << 0) | (1u << 7);
-            GD.Print(movementDir);
 
             float toX = parent.GlobalPosition.X + ((parentShapeSize.X/2) + distanceInFront) * movementDir;
             float toY = parent.GlobalPosition.Y - (parentShapeSize.Y/2) - distanceAbove;

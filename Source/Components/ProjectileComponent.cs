@@ -88,6 +88,7 @@ public partial class ProjectileComponent : Node2D {
 	}
 
 	public void Shoot() {
+		
 		if (cooldownTimer <= 0) {
 			Projectile projectile;
 			if (useTemplate) {

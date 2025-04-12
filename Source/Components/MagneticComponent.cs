@@ -2,8 +2,14 @@ using Godot;
 using Godot.Collections;
 using System;
 
-public partial class MagneticComponent : Node2D
-{
+public enum ExitCondition {
+	CannotExit,
+	TimeLimit,
+	StrongForce,
+	Throw
+}
+
+public partial class MagneticComponent : Node2D {
 	[Export]
 	private float weakMultiplier = 7;	
 	[Export]
@@ -12,6 +18,10 @@ public partial class MagneticComponent : Node2D
 	private float blastMultiplier = 800;
 	[Export]
 	private bool canJoin = true;
+	[Export]
+	public ExitCondition exitCondition;
+	[Export]
+	public float exitTimer = 2;
 
 	private RigidBody2D rigidObject;
 	private CharacterBody2D characterObject;
@@ -20,7 +30,6 @@ public partial class MagneticComponent : Node2D
 
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
-	private float exitTimer = 0;
 	private bool inExitSequence = false;
 	private bool isRigidPhysics;
 	private float exitTimerDefault;
@@ -38,6 +47,8 @@ public partial class MagneticComponent : Node2D
 	private Tuple<bool, bool> strengthData = new Tuple<bool, bool>(false, false);
 
 	private bool secondaryObject = false;
+	private Sprite2D rigidSprite;
+	private AnimationPlayer rigidPlayer;
 	
 	public MagneticComponent() {
 		Name = "MagneticComponent";
@@ -69,6 +80,27 @@ public partial class MagneticComponent : Node2D
 			if (parent is RigidBody2D rb) {
 				rigidObject = rb;
 				Node objectParent = rigidObject.GetParent();
+				
+				// Storing a copy of the sprite and animation player being copied onto character
+				Array<Node> children = rigidObject.GetChildren();
+				for (int i = 0; i < children.Count; i++) {
+					if (children[i] is Sprite2D sprite) {
+						rigidSprite = sprite;
+					}
+
+					if (children[i] is AnimationPlayer player) {
+						rigidPlayer = player;
+					}
+
+					if (children[i].IsInGroup("HasPhysics")) {
+						Array<Node> physChildren = children[i].GetChildren();
+						for (int j = 0; j < physChildren.Count; j++) {
+							if (physChildren[j] is Sprite2D physSprite) {
+								rigidSprite = physSprite;
+							}
+						}
+					}
+				}
 
 				rigidObject.AddToGroup("Magnetic");
 
@@ -100,7 +132,7 @@ public partial class MagneticComponent : Node2D
 						GD.PushError(objectParent, " requires MagneticCharacterComponent");
 					}
 
-					exitTimerDefault = magCharComp.GetExitTimerDefault();
+					exitTimerDefault = exitTimer;
 					isRigidPhysics = magCharComp.GetIsRigidPhysics();
 					rigidObjectParent = magCharComp.GetParent().GetParent();
 
@@ -146,8 +178,7 @@ public partial class MagneticComponent : Node2D
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(double delta) {
 		if (characterObject != null && rigidObject != null) {
-			switch (magCharComp.exitCondition)
-			{
+			switch (exitCondition) {
 				case ExitCondition.CannotExit:
 					break;
 				case ExitCondition.TimeLimit:
@@ -188,9 +219,8 @@ public partial class MagneticComponent : Node2D
 	// Destroys connection between Character and Rigid objects and removes any ability for Character to be magnetic
 	public void EnableRigidObject() {
 		if (characterObject != null) {
-			if (!secondaryObject) {
-				magCharComp.SwapToCharacter();
-			}
+			magCharComp.SwapToCharacter();
+			magCharComp.DettachMetalObject(rigidObject);
 
 			Node parent = rigidObject.GetParent();
 			parent.RemoveChild(rigidObject);
@@ -222,13 +252,12 @@ public partial class MagneticComponent : Node2D
 
 			rigidObject.GlobalPosition = spawnLocation;
 			rigidObject.LinearVelocity = Vector2.Zero;
-
+			
 			characterObject = null;
 			isRigidPhysics = true;
 
 			secondaryObject = false;
 
-			magCharComp.DettachMetalObject();
 			magCharComp = null;
 		}
 	}
@@ -264,6 +293,7 @@ public partial class MagneticComponent : Node2D
 			
 			if (!isRigidPhysics) {
 				if (rigidObject != null) {
+					rigidObject.Rotation = 0;
 					rigidObject.ApplyForce(force, position);
 				}
 			}
@@ -304,5 +334,18 @@ public partial class MagneticComponent : Node2D
 
 	public bool GetCanJoin() {
 		return canJoin;
+	}
+	public Sprite2D GetRigidSprite() {
+		return rigidSprite;
+	}
+	public AnimationPlayer GetRigidPlayer() {
+		return rigidPlayer;
+	}
+
+	public bool GetRagDollOnAnyForce() {
+		if (magCharComp != null) {
+			return magCharComp.GetRagDollOnAnyForce();
+		}
+		return false;
 	}
 }

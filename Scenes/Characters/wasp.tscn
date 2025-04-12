@@ -147,7 +147,7 @@ metadata/_custom_type_script = "uid://cyfe7n8vtr5xk"
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]
 script = ExtResource("2_o2sb4")
-exitCondition = 2
+ragDollOnAnyForce = true
 metadata/_custom_type_script = "uid://bv76e8qnymuee"
 
 [node name="Wasp" type="CharacterBody2D" parent="."]
@@ -247,6 +247,3 @@ position = Vector2(-9, -2)
 scale = Vector2(2, 2)
 texture = ExtResource("15_2mp5y")
 hframes = 2
-
-[node name="Node" type="Node2D" parent="Wasp"]
-position = Vector2(-6, -7)
