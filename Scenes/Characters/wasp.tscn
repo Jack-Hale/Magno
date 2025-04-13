@@ -143,6 +143,7 @@ _data = {
 
 [node name="Wasp" type="Node2D"]
 script = ExtResource("1_regco")
+strongMultiplier = 15.0
 metadata/_custom_type_script = "uid://cyfe7n8vtr5xk"
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]

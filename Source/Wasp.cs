@@ -162,10 +162,21 @@ public partial class Wasp : CharacterBody2D {
 			if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
 				direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint() + Vector2.Up*200);
 				if (_projectileLauncher != null) {
+
 					_projectileComponent.Shoot();
+					float angle = _pathFinding.GetAngle(GlobalPosition, _pathFinding.GetLastDetectionPoint());
 
-					_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
+					if (angle < Mathf.Pi && angle > 0) {
+						_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
+					} else {
+						_projectileLauncher.Rotation = angle > 3*MathF.PI/2 ? 0 : Mathf.Pi;
+					}
 
+				}
+			} else {
+				float distanceFromGround = _pathFinding.GetDistanceFromSurface(1000, Vector2.Down);
+				if (distanceFromGround < 200) {
+					direction = Vector2.Up;
 				}
 			}
 

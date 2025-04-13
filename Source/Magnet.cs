@@ -370,7 +370,7 @@ public partial class Magnet : Area2D
 		} 
 
 		// Failsafe for if OnBodyEnteredBeam isnt triggered correctly. Helps the magnet push enemies more consistently.
-		if (_beamCheck1.IsColliding() || _beamCheck2.IsColliding() || _beamCheck3.IsColliding()) {
+		if (activated && (_beamCheck1.IsColliding() || _beamCheck2.IsColliding() || _beamCheck3.IsColliding())) {
 			if (_beamCheck1.IsColliding() && _beamCheck1.GetCollider() is PhysicsBody2D body1) {
 				if (body1.IsInGroup("Magnetic")) {
 					if (!attractedObjects.ContainsKey(body1)) {

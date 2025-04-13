@@ -26,7 +26,7 @@ public partial class PathFindingComponent : Node2D {
     
 	private float storedDistance = float.PositiveInfinity;
     private bool stopLooking = false;
-
+    private uint tileCollisions = (1u << 0) | (1u << 7);
     private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
     private Vector2 draw3 = Vector2.Zero;
@@ -372,8 +372,6 @@ public partial class PathFindingComponent : Node2D {
             // draw5 = checkFrom;
             // draw6 = checkTo;
 
-            uint tileCollisions = (1u << 0) | (1u << 7);
-
             var check = FireRayCast(checkFrom, checkTo, tileCollisions);
 			if (check.Count > 0) {
 				return false;
@@ -395,7 +393,6 @@ public partial class PathFindingComponent : Node2D {
         if (lastDetectionPoint.Y < parent.GlobalPosition.Y - parentShapeSize.Y) {
 
             float movementDir = Mathf.Sign(velocity.X);
-            uint tileCollisions = (1u << 0) | (1u << 7);
 
             float toX = parent.GlobalPosition.X + ((parentShapeSize.X/2) + distanceInFront) * movementDir;
             float toY = parent.GlobalPosition.Y - (parentShapeSize.Y/2) - distanceAbove;
@@ -414,6 +411,33 @@ public partial class PathFindingComponent : Node2D {
             return false;
         }
         return false;
+    }
+
+    /// <summary>
+    /// Gets the distance from parent to any ground in the path of direction at the specified maximum distance.
+    /// </summary>
+    /// <returns>
+    /// The distance from parent to ground.
+    /// <para>-1 if no ground is detected.</para>
+    /// </returns>
+    public float GetDistanceFromSurface(float checkDistance, Vector2 direction) {
+        direction = direction.Normalized();
+        Vector2 from = parent.GlobalPosition;
+        Vector2 to = from + (direction * checkDistance);
+        var check = FireRayCast(from, to, tileCollisions);
+        if (check.Count > 0) {
+            return parent.GlobalPosition.DistanceTo((Vector2) check["position"]);
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Gets the angle from one vector to another normalised between 0 and 2π where 0 is right.
+    /// </summary>
+    /// <returns>Angle between 0 and 2π.</returns>
+    public float GetAngle(Vector2 from, Vector2 to) {
+        float angleToTarget = from.DirectionTo(to).Angle();
+        return angleToTarget - 2 * Mathf.Pi * Mathf.Floor(angleToTarget / (2 * Mathf.Pi));
     }
 
     private Dictionary FireRayCast(Vector2 from, Vector2 to, uint collisions) {

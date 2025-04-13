@@ -54,11 +54,16 @@ public partial class MagneticComponent : Node2D {
 		Name = "MagneticComponent";
 		AddToGroup("MagneticComponent");
 	}
-	public MagneticComponent(MagneticCharacterComponent magneticCharacterComponent) {
+	public MagneticComponent(MagneticCharacterComponent magneticCharacterComponent, float weakMultiplier, float strongMultiplier, float blastMultiplier, bool canJoin) {
 		magCharComp = magneticCharacterComponent;
 		Name = "MagneticComponent";
 		AddToGroup("MagneticComponent");
 		isRigidPhysics = magCharComp.GetIsRigidPhysics();
+
+		this.weakMultiplier = weakMultiplier;
+		this.strongMultiplier = strongMultiplier;
+		this.blastMultiplier = blastMultiplier;
+		this.canJoin = canJoin;
 	}
 
 	// Called when the node enters the scene tree for the first time.

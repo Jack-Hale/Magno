@@ -4,6 +4,14 @@ using System;
 using System.Linq;
 
 public partial class MagneticCharacterParent : Node2D {
+	[Export]
+	private float weakMultiplier = 7;	
+	[Export]
+	private float strongMultiplier = 10;
+	[Export]
+	private float blastMultiplier = 800;
+	[Export]
+	private bool canJoin = true;
 	CharacterBody2D character;
 	MagneticCharacterComponent component;
 	Node magnetObject;
@@ -160,7 +168,8 @@ public partial class MagneticCharacterParent : Node2D {
 
 
 		// Adds a magnetic component to the rigidbody so it can be moved with magnets
-		MagneticComponent magComp = new MagneticComponent(component);
+		MagneticComponent magComp = new MagneticComponent(component, weakMultiplier, strongMultiplier, blastMultiplier, canJoin);
+
 		bodyCopy.AddChild(magComp);	
 
 		return bodyCopy;

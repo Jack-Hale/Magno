@@ -113,7 +113,6 @@ public partial class MagneticCharacterComponent : Node2D {
 	}
 
 	public override void _PhysicsProcess(double delta)	{
-
 		// Rotates the character back to 0 gradually once switched to character from rigid
 		if (isRotatingPostSwap) {
 			rotationTime += (float) delta;
@@ -130,8 +129,6 @@ public partial class MagneticCharacterComponent : Node2D {
 			}
 		}
 	}
-
-
 
 	public Dictionary<Node2D, Node2D> GetPhysicsItems() {
 		Array<Node> children = character.GetChildren();
@@ -170,7 +167,8 @@ public partial class MagneticCharacterComponent : Node2D {
 			bodyCopy.GlobalPosition = character.GlobalPosition;
 			bodyCopy.LinearVelocity = Vector2.Zero;
 			bodyCopy.AngularVelocity = 0;
-			bodyCopy.Rotation = character.Rotation;
+			bodyCopy.Rotation = 0;
+			// bodyCopy.Rotation = character.Rotation;
 
 			ReplaceCollisions(character, true);
 			bodyCopy.Visible = true;
