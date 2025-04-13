@@ -47,7 +47,6 @@ shape = SubResource("CircleShape2D_hbdjf")
 
 [node name="PathFindingComponent" type="Node2D" parent="Guy"]
 script = ExtResource("7_fm7on")
-veiwRadius = 500.0
 metadata/_custom_type_script = "uid://dfgsiwyixd82h"
 
 [node name="Gun" type="RigidBody2D" parent="Guy"]

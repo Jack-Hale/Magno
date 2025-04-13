@@ -49,6 +49,7 @@ public partial class MagneticComponent : Node2D {
 	private bool secondaryObject = false;
 	private Sprite2D rigidSprite;
 	private AnimationPlayer rigidPlayer;
+	private bool disableMagneticism = false;
 	
 	public MagneticComponent() {
 		Name = "MagneticComponent";
@@ -108,30 +109,36 @@ public partial class MagneticComponent : Node2D {
 				}
 
 				rigidObject.AddToGroup("Magnetic");
-
+				bool magnetCharacter = false;
+				
 				if (objectParent is PhysicsBody2D op && objectParent is not StaticBody2D) {
 					objectParent = op;
 
-					// Disabling the rigid object while it is within the larger object
-					collisionL = rigidObject.CollisionLayer;
-					collisionM = rigidObject.CollisionMask;
-
-					rigidObject.CollisionLayer = 0;
-					rigidObject.CollisionMask = 0;
-					
-					rigidObject.Visible = false;
-					rigidObject.Sleeping = true;
-				}
-
-				// Character contains a magnetic object that imparts its magneticism onto the character
-				if (objectParent is CharacterBody2D) {
-					foreach (var child in objectParent.GetParent().GetChildren()) {
-						if (child is MagneticCharacterComponent) {
-							magCharComp = (MagneticCharacterComponent)child;
-							break;
+					if (objectParent is CharacterBody2D) {
+						foreach (var child in objectParent.GetParent().GetChildren()) {
+							if (child is MagneticCharacterComponent) {
+								magCharComp = (MagneticCharacterComponent)child;
+								magnetCharacter = true;
+								break;
+							}
 						}
 					}
 
+					if (magnetCharacter) {
+						// Disabling the rigid object while it is within the larger object
+						collisionL = rigidObject.CollisionLayer;
+						collisionM = rigidObject.CollisionMask;
+
+						rigidObject.CollisionLayer = 0;
+						rigidObject.CollisionMask = 0;
+						
+						rigidObject.Visible = false;
+						rigidObject.Sleeping = true;
+					}
+				}
+
+				// Character contains a magnetic object that imparts its magneticism onto the character
+				if (magnetCharacter) {
 					if (magCharComp == null) {
 						GD.PrintErr(objectParent, " requires MagneticCharacterComponent");
 						GD.PushError(objectParent, " requires MagneticCharacterComponent");
@@ -218,6 +225,8 @@ public partial class MagneticComponent : Node2D {
 			}
 		}
 
+		canJoin = !disableMagneticism;
+
 		QueueRedraw();
 	}
 
@@ -278,9 +287,22 @@ public partial class MagneticComponent : Node2D {
 		return parentCheck is Magnet;
 	}
 
+	public Magnet GetMagnet() {
+		Node parentCheck = GetParent();
+
+		// Iterate through parents until Magnet or Root is found
+		while (parentCheck is not Magnet && parentCheck != GetTree().Root) {
+			parentCheck = parentCheck.GetParent();
+		}
+		if (parentCheck is Magnet magnet) {
+			return magnet;
+		}
+		return null;
+	}
+
 	// Applies the Magnetic force onto the parent object
 	public void ForceObject(Vector2 collisionPoint, Vector2 attractionPoint, float beamLength, bool pull, bool strongMagnet, bool blast, double delta, bool isRigidPhysics) {
-		if (!secondaryObject) {
+		if (!secondaryObject && !disableMagneticism) {
 			// Vector that is positive or negative depending on what pull mode the magnet is in
 			Vector2 pushForce = pull ? attractionPoint - rigidObject.GlobalPosition : rigidObject.GlobalPosition - attractionPoint;
 		
@@ -302,6 +324,13 @@ public partial class MagneticComponent : Node2D {
 					rigidObject.ApplyForce(force, position);
 				}
 			}
+		}
+	}
+
+	public void DetachFromMagnet() {
+		Magnet magnet = GetMagnet();
+		if (magnet != null) {
+			magnet.Detach();
 		}
 	}
 
@@ -352,5 +381,9 @@ public partial class MagneticComponent : Node2D {
 			return magCharComp.GetRagDollOnAnyForce();
 		}
 		return false;
+	}
+
+	public void DisableMagneticism(bool disable) {
+		disableMagneticism = disable;
 	}
 }

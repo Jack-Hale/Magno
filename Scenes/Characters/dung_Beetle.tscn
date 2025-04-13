@@ -1,0 +1,43 @@
+[gd_scene load_steps=7 format=3 uid="uid://dpsb1s8ycc81d"]
+
+[ext_resource type="PackedScene" uid="uid://bsraimoejo1h6" path="res://Scenes/Items/bomb.tscn" id="1_cordj"]
+[ext_resource type="Script" uid="uid://6mlpcry3u7xm" path="res://Source/DungBeetle.cs" id="1_mu1ll"]
+[ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="1_wt33f"]
+[ext_resource type="Texture2D" uid="uid://c1jcovkgibbdr" path="res://Assets/Sprites/beetle.png" id="2_cordj"]
+[ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="3_mu1ll"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wcgeo"]
+height = 34.0
+
+[node name="DungBeetle" type="CharacterBody2D"]
+collision_layer = 32
+collision_mask = 247
+script = ExtResource("1_mu1ll")
+
+[node name="Bomb" parent="." instance=ExtResource("1_cordj")]
+position = Vector2(0, -8)
+mass = 2.0
+damageAmount = 100.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_cordj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-2, 5)
+rotation = 0.0890118
+shape = SubResource("CapsuleShape2D_wcgeo")
+
+[node name="HealthComponent" type="Node2D" parent="."]
+position = Vector2(-27, -29)
+script = ExtResource("3_mu1ll")
+metadata/_custom_type_script = "uid://mqaot311ny8c"
+
+[node name="PathFindingComponent" type="Node2D" parent="."]
+script = ExtResource("1_wt33f")
+veiwRadius = 1000.0
+metadata/_custom_type_script = "uid://dfgsiwyixd82h"
+
+[node name="PinJoint2D" type="PinJoint2D" parent="."]
+position = Vector2(0, -8)
+node_a = NodePath("..")
+node_b = NodePath("../Bomb")

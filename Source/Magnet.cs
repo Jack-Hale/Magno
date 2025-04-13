@@ -184,7 +184,7 @@ public partial class Magnet : Area2D
 			}
 			if (!activated || !canJoin) {
 				if (dropItemOnDeactivate || !isItem) {
-					Dettach();
+					Detach();
 				}
 			}
 		}
@@ -229,9 +229,9 @@ public partial class Magnet : Area2D
 					MagneticComponent magComp = attractedObjects[body];
 					
 					if (EnteredBody == body && attachedObject != body && canJoin) {
-						// Dettaching object from any magnet that is already holding it
+						// Detaching object from any magnet that is already holding it
 						if (magComp.IsBeingHeld()) {
-							magComp.GetMagnetParent().Dettach();
+							magComp.GetMagnetParent().Detach();
 						}
 						magComp.SetMagnetParent(this);
 						AttachObject(body, magComp);
@@ -366,7 +366,7 @@ public partial class Magnet : Area2D
 		// Failsafe for if object is not in beam but is still included in the attractedObjects Dict
 		// TODO: Make this never actually occur 
 		if (!_beamCheck1.IsColliding() && !_beamCheck2.IsColliding() && !_beamCheck3.IsColliding() && attractedObjects.Count > 0 && !isObjectAttached) {
-			DettachAll();
+			DetachAll();
 		} 
 
 		// Failsafe for if OnBodyEnteredBeam isnt triggered correctly. Helps the magnet push enemies more consistently.
@@ -440,7 +440,7 @@ public partial class Magnet : Area2D
 	// Called when object is not longer touching the magnet beam
 	// Removes object from dict of attracted objects
 	private void OnBodyExitedBeam(Node body) {
-		// Body can only be dettached if it's being pushed by the beam but not attached to the magnet
+		// Body can only be detached if it's being pushed by the beam but not attached to the magnet
 		if (body != attachedObject) {
 			if (body is PhysicsBody2D) {
 
@@ -571,7 +571,7 @@ public partial class Magnet : Area2D
 	}
 
 	// Detach any object from the magnet beam or magnet
-	private void Dettach() {
+	public void Detach() {
 		if (isObjectAttached) {
 			// Store object space data
 			Vector2 objectPosition = attachedObject.GlobalPosition;
@@ -628,7 +628,7 @@ public partial class Magnet : Area2D
 
 	}
 
-	private void DettachAll() {
+	private void DetachAll() {
 		foreach (var objectKey in attractedObjects.Keys) {
 			OnBodyExitedBeam(objectKey);
 		}
@@ -643,7 +643,7 @@ public partial class Magnet : Area2D
 
 	public void DropItem() {
 		if (isObjectAttached && isItem) {
-			Dettach();
+			Detach();
 		}
 	}
 
@@ -693,7 +693,7 @@ public partial class Magnet : Area2D
 		_tileBeamCast.Enabled = activated;
 		
 		if (!activated && attractedObjects.Count > 0) {
-			DettachAll();
+			DetachAll();
 		}
 	}
 

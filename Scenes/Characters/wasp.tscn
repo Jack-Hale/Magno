@@ -212,6 +212,7 @@ shootCooldown = 0.1
 metadata/_custom_type_script = "uid://5wibdv2faylk"
 
 [node name="Projectile" parent="Wasp/Gun/ProjectileLauncher/ProjectileComponent" instance=ExtResource("6_6mxyh")]
+explosiveBullets = true
 
 [node name="Sprite2D" type="Sprite2D" parent="Wasp/Gun/ProjectileLauncher/ProjectileComponent/Projectile"]
 scale = Vector2(0.28125, 0.28125)

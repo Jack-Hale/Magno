@@ -1,0 +1,33 @@
+[gd_scene load_steps=7 format=3 uid="uid://bsraimoejo1h6"]
+
+[ext_resource type="Script" uid="uid://dwyw403uw6nnq" path="res://Source/Bomb.cs" id="1_grk2n"]
+[ext_resource type="Texture2D" uid="uid://ye3entelrmdl" path="res://Assets/Sprites/bomb.png" id="1_on5c8"]
+[ext_resource type="PackedScene" uid="uid://cbl4cr0vodv3y" path="res://Scenes/Perishable Objects/explosion.tscn" id="3_lw0k2"]
+[ext_resource type="Script" uid="uid://dn3abb2bdasda" path="res://Source/Components/ItemComponent.cs" id="4_lw0k2"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="5_s74mm"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_uivoi"]
+radius = 29.0172
+
+[node name="Bomb" type="RigidBody2D"]
+script = ExtResource("1_grk2n")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_on5c8")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_uivoi")
+
+[node name="Explosion" parent="." instance=ExtResource("3_lw0k2")]
+process_mode = 4
+visible = false
+
+[node name="ItemComponent" type="Node2D" parent="."]
+script = ExtResource("4_lw0k2")
+metadata/_custom_type_script = "uid://dn3abb2bdasda"
+
+[node name="MagneticComponent" type="Node2D" parent="."]
+script = ExtResource("5_s74mm")
+weakMultiplier = 1.0
+strongMultiplier = 2.0
+metadata/_custom_type_script = "uid://dga5am8fpoq83"

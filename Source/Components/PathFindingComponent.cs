@@ -6,7 +6,7 @@ using System;
 public partial class PathFindingComponent : Node2D {
 
     [Export]
-    public float veiwRadius = 200;
+    public float veiwRadius = 500;
     private CharacterBody2D parent;
     private CharacterBody2D player;
     private RayCast2D[] rays = [
@@ -430,17 +430,17 @@ public partial class PathFindingComponent : Node2D {
     }
 
     /// <summary>
-    /// Gets the distance from parent to any ground in the path of direction at the specified maximum distance.
+    /// Gets the distance from parent to any collisionLayer in the path of direction at the specified maximum distance.
     /// </summary>
     /// <returns>
-    /// The distance from parent to ground.
-    /// <para>-1 if no ground is detected.</para>
+    /// The distance from parent to collision with collisionLayer.
+    /// <para>-1 if no collision on collisionLayer is detected.</para>
     /// </returns>
-    public float GetDistanceFromSurface(float checkDistance, Vector2 direction) {
+    public float GetDistanceFromCollsionLayer(float checkDistance, Vector2 direction, uint collisionLayer) {
         direction = direction.Normalized();
         Vector2 from = parent.GlobalPosition;
         Vector2 to = from + (direction * checkDistance);
-        var check = FireRayCast(from, to, tileCollisions);
+        var check = FireRayCast(from, to, collisionLayer);
         if (check.Count > 0) {
             return parent.GlobalPosition.DistanceTo((Vector2) check["position"]);
         }

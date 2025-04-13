@@ -3,6 +3,9 @@ using Godot.Collections;
 using System;
 
 public partial class Projectile : CharacterBody2D {
+	
+	[Export]
+	public bool explosiveBullets = false;
 	public float speed;
 	private float direction;
 	private float damage;
@@ -15,6 +18,7 @@ public partial class Projectile : CharacterBody2D {
 	private bool needsReady = false;
 	private bool hasReady = false;
 	private Array<Node2D> exclude = new();
+	private PackedScene explosion;
     public override void _Ready() {
 		hasReady = true;
 		_life = GetNode<Timer>("Life");
@@ -23,6 +27,10 @@ public partial class Projectile : CharacterBody2D {
 		_area2D.Connect("body_entered", new Callable(this, MethodName.OnBodyEntered));
 		_defaultSprite2D = GetNode<Sprite2D>("DefaultSprite2D");
 		_defaultCollisionShape2D = GetNode<CollisionShape2D>("DefaultCollisionShape2D");
+
+		if (explosiveBullets) {
+			explosion = (PackedScene)GD.Load("res://Scenes/Perishable Objects/explosion.tscn");
+		}
 
 		_damageComponent = _area2D.GetNode<DamageComponent>("DamageComponent");
 		for (int i = 0; i < exclude.Count; i++) {
@@ -63,12 +71,22 @@ public partial class Projectile : CharacterBody2D {
 		MoveAndSlide();
     }
 
+	public void CreateExplosion() {
+		if (explosiveBullets) {
+			
+			Explosion explosion = (Explosion) this.explosion.Instantiate(); 
+			explosion.GlobalPosition = GlobalPosition;
+			GetParent().CallDeferred("add_child", explosion);
+		}
+	}
+
 	public void SetToTemplate() {
 		Visible = false;
 		ProcessMode = ProcessModeEnum.Disabled;
 	}
 
 	public void OnLifeTimeout() {
+		CreateExplosion();
 		QueueFree();
 	}
 
@@ -80,6 +98,7 @@ public partial class Projectile : CharacterBody2D {
 			}
 		}
 		if (!excluded) {
+			CreateExplosion();
 			QueueFree();
 		}
 	}

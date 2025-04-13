@@ -180,7 +180,7 @@ public partial class Wasp : CharacterBody2D {
 
 				}
 			} else {
-				float distanceFromGround = _pathFinding.GetDistanceFromSurface(1000, Vector2.Down);
+				float distanceFromGround = _pathFinding.GetDistanceFromCollsionLayer(1000, Vector2.Down, (1u << 0) | (1u << 7));
 				if (distanceFromGround < 200) {
 					direction = Vector2.Up;
 				}
