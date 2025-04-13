@@ -235,9 +235,9 @@ public partial class MagneticCharacterComponent : Node2D {
 					if (mc == objectRemove.GetNode<MagneticComponent>("MagneticComponent")) {
 						if (objectRemove.IsInGroup("ChildHasPhysics")) {
 							removeBodyIndex = i;
-							objectSprite = mc.GetRigidSprite();
-							objectPlayer = mc.GetRigidPlayer();
 						}
+						objectSprite = mc.GetRigidSprite();
+						objectPlayer = mc.GetRigidPlayer();
 					}
 				}
 			}

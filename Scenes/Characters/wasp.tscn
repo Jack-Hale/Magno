@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://xcrlbcscygw2"]
+[gd_scene load_steps=24 format=3 uid="uid://xcrlbcscygw2"]
 
 [ext_resource type="Script" uid="uid://cyfe7n8vtr5xk" path="res://Source/Components/MagneticCharacterParent.cs" id="1_regco"]
 [ext_resource type="Script" uid="uid://bv76e8qnymuee" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_o2sb4"]
@@ -16,10 +16,11 @@
 [ext_resource type="Texture2D" uid="uid://galar4b2b6at" path="res://Assets/Sprites/waspGun.png" id="8_huucs"]
 [ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="14_lpx0u"]
 [ext_resource type="Texture2D" uid="uid://l0mqlfwlgbv" path="res://Assets/Sprites/WaspWingsFlipped.png" id="15_2mp5y"]
+[ext_resource type="Script" uid="uid://bs7evxlj3ifeb" path="res://Source/Components/DamageComponent.cs" id="17_m1hlw"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_sexx5"]
 radius = 16.0
-height = 46.0
+height = 56.0
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ahunh"]
 height = 56.0
@@ -162,6 +163,8 @@ scale = Vector2(2, 2)
 texture = ExtResource("3_ot3qv")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Wasp"]
+position = Vector2(-3, 5)
+rotation = 0.467748
 shape = SubResource("CapsuleShape2D_sexx5")
 
 [node name="PathFindingComponent" type="Node2D" parent="Wasp"]
@@ -202,7 +205,7 @@ scale = Vector2(2, 2)
 texture = ExtResource("8_huucs")
 
 [node name="ProjectileComponent" type="Node2D" parent="Wasp/Gun/ProjectileLauncher"]
-position = Vector2(40, -3)
+position = Vector2(41, -5)
 script = ExtResource("4_0cir8")
 speed = 1000.0
 shootCooldown = 0.1
@@ -229,6 +232,7 @@ collision_mask = 183
 
 [node name="MagneticComponent" type="Node2D" parent="Wasp/Wings"]
 script = ExtResource("6_0cir8")
+exitCondition = 2
 metadata/_custom_type_script = "uid://dga5am8fpoq83"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Wasp/Wings"]
@@ -248,3 +252,9 @@ position = Vector2(-9, -2)
 scale = Vector2(2, 2)
 texture = ExtResource("15_2mp5y")
 hframes = 2
+
+[node name="DamageComponent" type="Node2D" parent="Wasp/Wings"]
+script = ExtResource("17_m1hlw")
+velocityScaling = true
+velocityScalingThreshold = 2.0
+metadata/_custom_type_script = "uid://bs7evxlj3ifeb"

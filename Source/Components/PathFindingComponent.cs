@@ -196,15 +196,20 @@ public partial class PathFindingComponent : Node2D {
     public Vector2 ApplyFriction(bool justX, Vector2 velocity, float friction, double delta) {
         Vector2 NewVelocity = Vector2.Zero;
 
-		if (justX) {
-			NewVelocity.X = velocity.X;
-		} else {
-			NewVelocity = velocity;
-		}
+		// if (justX) {
+		// 	NewVelocity.X = velocity.X;
+		// } else {
+		// }
+        NewVelocity = velocity;
 
         // Apply friction to reduce speed
         if (Math.Abs(NewVelocity.Length()) > (friction * (float)delta)) {
-            NewVelocity -= NewVelocity.Normalized() * (justX ? (parent.IsOnFloor() ? friction : 1) : friction) * (float)delta;
+            Vector2 calc = NewVelocity.Normalized() * (justX ? (parent.IsOnFloor() ? friction : 1) : friction) * (float)delta;
+            if (justX) {
+                NewVelocity.X -= calc.X;
+            } else {
+                NewVelocity -= calc;
+            }
         }
 
         else {
@@ -221,16 +226,20 @@ public partial class PathFindingComponent : Node2D {
     public Vector2 MoveCharacter(bool justX, Vector2 velocity, Vector2 direction, float maxSpeed, float acceleration, float airAcceleration, double delta) {
 		Vector2 NewVelocity = Vector2.Zero;
         float friction = 100;
-		if (justX) {
-			NewVelocity.X = velocity.X;
-		} else {
-			NewVelocity = velocity;
-		}
+	
+        NewVelocity = velocity;
 		
 		if (direction == Vector2.Zero) {
 			// Apply friction to reduce speed
 			if (Math.Abs(NewVelocity.Length()) > (friction * (float)delta)) {
-				NewVelocity -= NewVelocity.Normalized() * (justX ? (parent.IsOnFloor() ? friction : 1) : friction) * (float)delta;
+                Vector2 calc = NewVelocity.Normalized() * (justX ? (parent.IsOnFloor() ? friction : 1) : friction) * (float)delta;
+				NewVelocity -= calc;
+
+                if (justX) {
+                    NewVelocity.X -= calc.X;
+                } else {
+                    NewVelocity -= calc;
+                }
             }
 
 			else {
@@ -240,9 +249,16 @@ public partial class PathFindingComponent : Node2D {
 
 		// Input, Add acceleration
 		if (direction != Vector2.Zero) {
-		// 	// Apply friction to reduce ) {
-			NewVelocity += direction * (parent.IsOnFloor() ? acceleration : airAcceleration) * (float)delta;
-			NewVelocity = NewVelocity.LimitLength(maxSpeed);
+		    // Apply friction to reduce ) {
+            Vector2 calc = direction * (parent.IsOnFloor() ? acceleration : airAcceleration) * (float)delta;
+            
+            if (justX) {
+			    NewVelocity.X += calc.X;
+			    NewVelocity.X = NewVelocity.LimitLength(maxSpeed).X;
+            } else {
+                NewVelocity += calc;
+			    NewVelocity = NewVelocity.LimitLength(maxSpeed);
+            }
 		}
 
 		return NewVelocity;

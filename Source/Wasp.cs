@@ -115,6 +115,8 @@ public partial class Wasp : CharacterBody2D {
 				_wings = null;
 				_wingsSprite = null;
 				hasWings = false;
+
+				Rotation = Mathf.DegToRad(56);
 			}
 		}
 
@@ -156,11 +158,15 @@ public partial class Wasp : CharacterBody2D {
 			velocity += GetGravity() * (float)delta;
 		}
 
-
 		if (affected) { // Handle behaviour when affected by a magnet
 		} else { // Handle behaviour when unaffected by a magnet
 			if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
-				direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint() + Vector2.Up*200);
+				if (hasWings) {
+					direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint() + Vector2.Up*200);
+				} else {
+					direction = -GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
+				}
+
 				if (_projectileLauncher != null) {
 
 					_projectileComponent.Shoot();
@@ -181,9 +187,12 @@ public partial class Wasp : CharacterBody2D {
 			}
 
 			if (hasWings) {
-				velocity = _pathFinding.MoveCharacter(!hasWings, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
+				velocity = _pathFinding.MoveCharacter(false, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
 				velocity = _pathFinding.AvoidWallsAir(velocity, 60, 30, 40);
+			} else {
+				velocity = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
 			}
+
 			_sprite.FlipH = direction.X < 0;
 			if (hasWings) _wingsSprite.FlipH = _sprite.FlipH;
 
@@ -196,7 +205,11 @@ public partial class Wasp : CharacterBody2D {
 				_projectileLauncher.SetFlipH(_sprite.FlipH);
 			}
 
-			if (hasWings) _wingsSprite.Position = new Vector2(_wingsSprite.FlipH ? -wingsPosition.X : wingsPosition.X, wingsPosition.Y);
+			if (hasWings) {
+				_wingsSprite.Position = new Vector2(_wingsSprite.FlipH ? -wingsPosition.X : wingsPosition.X, wingsPosition.Y);
+			} else {
+				Rotation = Mathf.DegToRad(56 * Mathf.Sign(direction.X));
+			}
 		}
 
 		Velocity = velocity;
