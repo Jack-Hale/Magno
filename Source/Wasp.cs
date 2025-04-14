@@ -32,6 +32,7 @@ public partial class Wasp : CharacterBody2D {
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 
 	private Sprite2D _sprite;
+	private Sprite2D _wingsSpriteOriginal;
 	private Sprite2D _wingsSprite;
 	private Sprite2D _gunSprite;
 
@@ -42,13 +43,18 @@ public partial class Wasp : CharacterBody2D {
 	private float gunRotation;
 	private Vector2 gunPosition;
 	private Vector2 wingsPosition;
+	private float wingsRotation;
 	private ProjectileLauncher _projectileLauncher;
 	private AnimationPlayer _animationPlayer;
 	private RigidBody2D _wings;
-	bool hasWings = true;
-	bool hasGun = true;
-	bool collectedMagnetSprites = false;
-	bool collectedMagnetPlayers = false;
+	private bool hasWings = true;
+	private bool hasGun = true;
+	private bool collectedMagnetSprites = false;
+	private bool collectedMagnetPlayers = false;
+	private CollisionShape2D _collision;
+	private float collisionRotation;
+	private Vector2 collisionPosition;
+
 	public override void _Ready() {
 		foreach (var child in GetParent().GetChildren()) {
 			if (child is MagneticCharacterComponent) {
@@ -59,7 +65,11 @@ public partial class Wasp : CharacterBody2D {
 		_sprite = GetNode<Sprite2D>("Sprite2D");
 		_wings = GetNode<RigidBody2D>("Wings");
 		_wingsSprite = _wings.GetNode<Sprite2D>("Sprite2D");
+		_wingsSpriteOriginal = _wingsSprite;
 		_gun = GetNode<RigidBody2D>("Gun");
+		_collision = GetNode<CollisionShape2D>("CollisionShape2D");
+		collisionRotation = _collision.Rotation;
+		collisionPosition = _collision.Position;
 
 		_projectileLauncher = (ProjectileLauncher) magCharComp.GetPhysicsItems().Keys.First();
 		_projectileComponent = _projectileLauncher.GetProjectileComponent();
@@ -67,6 +77,7 @@ public partial class Wasp : CharacterBody2D {
 		_animationPlayer = _wings.GetNode<AnimationPlayer>("AnimationPlayer");
 
 		wingsPosition = _wingsSprite.Position;
+		wingsRotation = _wingsSprite.Rotation;
 	}
 
 	public override void _Process(double delta) {
@@ -113,7 +124,11 @@ public partial class Wasp : CharacterBody2D {
 		if (hasWings) {
 			if (GetNodeOrNull<RigidBody2D>("Wings") == null) {
 				_wings = null;
+				_wingsSpriteOriginal.FlipH = false;
+				_wingsSpriteOriginal.Position = wingsPosition;
+				_wingsSpriteOriginal.Rotation = wingsRotation;
 				_wingsSprite = null;
+				_wingsSpriteOriginal = null;
 				hasWings = false;
 
 				Rotation = Mathf.DegToRad(56);
@@ -192,8 +207,11 @@ public partial class Wasp : CharacterBody2D {
 			} else {
 				velocity = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
 			}
+			bool flip = direction.X < 0;
 
-			_sprite.FlipH = direction.X < 0;
+			_sprite.FlipH = flip;
+			_collision.Rotation = flip ? -collisionRotation : collisionRotation;
+			_collision.Position = flip ? new Vector2(-collisionPosition.X, collisionPosition.Y) : collisionPosition;
 			if (hasWings) _wingsSprite.FlipH = _sprite.FlipH;
 
 			if (direction == Vector2.Zero) {

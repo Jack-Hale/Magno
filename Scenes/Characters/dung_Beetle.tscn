@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="3_mu1ll"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wcgeo"]
+radius = 6.97229
 height = 34.0
 
 [node name="DungBeetle" type="CharacterBody2D"]
@@ -24,7 +25,7 @@ texture = ExtResource("2_cordj")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(-2, 5)
-rotation = 0.0890118
+rotation = 0.162316
 shape = SubResource("CapsuleShape2D_wcgeo")
 
 [node name="HealthComponent" type="Node2D" parent="."]

@@ -47,21 +47,24 @@ public partial class Bomb : RigidBody2D {
         }
     }
 
-
     public void Explode() {
         if (!exploded) {
+            exploded = true;
             _magneticComponent.DetachFromMagnet();
             Explosion explosion = (Explosion) _explosion.Duplicate();
             GetParent().AddChild(explosion);
             explosion.GlobalPosition = GlobalPosition;
             explosion.Visible = true;
             explosion.ProcessMode = ProcessModeEnum.Inherit;
-            exploded = true;
         }
     }
 
     public void StartTimer() {
         primed = true;
         timer = timerMaxTime;
+    }
+
+    public float GetTimer() {
+        return timerMaxTime;
     }
 }

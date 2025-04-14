@@ -225,6 +225,9 @@ public partial class Magnet : Area2D
 			if (activated) {
 				foreach (PhysicsBody2D body in attractedObjects.Keys) {
 					
+					if (!attractedObjects.ContainsKey(body)) {
+						break;
+					}
 					// Attach object that reaches the magnet
 					MagneticComponent magComp = attractedObjects[body];
 					
@@ -487,6 +490,7 @@ public partial class Magnet : Area2D
 
 	private void AttachObject(PhysicsBody2D body, MagneticComponent bodyMagComp) {
 		if (body.GetParent() != this && body is PhysicsBody2D && bodyMagComp.GetCanJoin()) {
+			DetachAll();
 			isObjectAttached = true;	
 			attachedObject = body;
 

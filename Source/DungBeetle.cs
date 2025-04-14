@@ -15,6 +15,9 @@ public partial class DungBeetle : CharacterBody2D {
 	private Vector2 jointPosition;
 	private bool bombThrown = false;
 	MagneticComponent bombMag;
+	private Vector2 throwPosition = Vector2.Zero;
+	private float runAwayTime;
+	private float runAwayTimer = 0;
 
     public override void _Ready() {
         _pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
@@ -25,13 +28,17 @@ public partial class DungBeetle : CharacterBody2D {
 		bombMag.DisableMagneticism(true);
 		player = _pathFinding.GetPlayer();
 		jointPosition = _pinJoint.Position;
+
+		runAwayTime = _bomb.GetTimer();
     }
-
-
 
 	public override void _PhysicsProcess(double delta) {
 		Vector2 velocity = Velocity;
 		Vector2 direction = Vector2.Zero;
+
+		if (runAwayTimer > 0) {
+			runAwayTimer -= (float)delta;
+		}
 
 		// Add the gravity.
 		if (!IsOnFloor()) {
@@ -41,23 +48,24 @@ public partial class DungBeetle : CharacterBody2D {
 		if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
 			direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
 			if (bombThrown) {
-				direction = new Vector2 (-direction.X, direction.Y);
+				direction = -direction;
 			}
 
 			float distance = _pathFinding.GetDistanceFromCollsionLayer(_pathFinding.veiwRadius, direction, 1u << 1);
 			if (_bomb != null) {
 				if (distance < 200 && distance != -1) {
 					ThrowBomb(direction * 500);
-					bombThrown = true;
 				}
 			}
 
-			_sprite2D.FlipH = direction.X < 0;
-		} else {
+		}
+		_sprite2D.FlipH = direction.X < 0;
 
+		if (bombThrown && runAwayTimer > 0) {
+			direction = -GlobalPosition.DirectionTo(throwPosition);
 		}
 
-		if (_bomb != null) {
+		if (!bombThrown) {
 			_bomb.ApplyTorque(1500 * Mathf.Sign(direction.X));
 		}
 
@@ -74,15 +82,17 @@ public partial class DungBeetle : CharacterBody2D {
 
 	public void ThrowBomb(Vector2 throwVector) {
 		if (_bomb != null) {
+			bombThrown = true;
+			runAwayTimer = runAwayTime;
 			_pinJoint.NodeB = null;
 			Vector2 globalPosition = _bomb.GlobalPosition;
 			float rotation = _bomb.Rotation;
 			RemoveChild(_bomb);
 			GetParent().AddChild(_bomb);
 			_bomb.GlobalPosition = globalPosition;
+			throwPosition = globalPosition + throwVector;
 			_bomb.Rotation = rotation;
 			bombMag.DisableMagneticism(false);
-
 			_bomb.ApplyImpulse(throwVector);
 			_bomb.StartTimer();
 			_bomb = null;
