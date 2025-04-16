@@ -191,7 +191,7 @@ metadata/_custom_type_script = "uid://dn3abb2bdasda"
 script = ExtResource("6_0cir8")
 weakMultiplier = 10.0
 strongMultiplier = 12.0
-exitCondition = 3
+exitCondition = 4
 metadata/_custom_type_script = "uid://dga5am8fpoq83"
 
 [node name="ProjectileLauncher" type="Node2D" parent="Wasp/Gun"]
@@ -233,7 +233,7 @@ collision_mask = 183
 
 [node name="MagneticComponent" type="Node2D" parent="Wasp/Wings"]
 script = ExtResource("6_0cir8")
-exitCondition = 3
+exitCondition = 4
 metadata/_custom_type_script = "uid://dga5am8fpoq83"
 
 [node name="Sprite2D" type="Sprite2D" parent="Wasp/Wings"]

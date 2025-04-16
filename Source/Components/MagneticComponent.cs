@@ -6,7 +6,8 @@ public enum ExitCondition {
 	CannotExit,
 	TimeLimit,
 	StrongForce,
-	Throw
+	Throw,
+	HitSurfaceAfterThrow
 }
 
 public partial class MagneticComponent : Node2D {
@@ -50,6 +51,7 @@ public partial class MagneticComponent : Node2D {
 	private Sprite2D rigidSprite;
 	private AnimationPlayer rigidPlayer;
 	private bool disableMagneticism = false;
+	private bool waitForHit = false;
 	
 	public MagneticComponent() {
 		Name = "MagneticComponent";
@@ -222,8 +224,22 @@ public partial class MagneticComponent : Node2D {
 						EnableRigidObject();
 					}
 					break;
+				case ExitCondition.HitSurfaceAfterThrow:
+					if (magCharComp.GetBodyCopyStrengthData().Item1) {
+						waitForHit = true;
+					}
+					break;
+			}
+
+			if (magCharComp.GetHitDetected()) {
+				if (waitForHit) {
+					EnableRigidObject();
+				} else {
+					magCharComp.ResetHitDetected();
+				}
 			}
 		}
+
 
 		canJoin = !disableMagneticism;
 

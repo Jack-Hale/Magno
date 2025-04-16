@@ -57,6 +57,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	private bool dettach = false;
 	public bool CanSwapToCharacter = true;
 	private bool waitForSwap = false;
+	private bool hitDetected = false;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -158,6 +159,7 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	private void OnBodyEntered(Node body) {
 		ragdollTimer = 0;
+		hitDetected = true;
 	}
 	public bool Dettach() {
 		return dettach;
@@ -486,5 +488,13 @@ public partial class MagneticCharacterComponent : Node2D {
 	}
 	public bool GetIsRagDoll() {
 		return ragdoll;
+	}
+
+	public bool GetHitDetected() {
+		return hitDetected;
+	}
+
+	public void ResetHitDetected() {
+		hitDetected = false;
 	}
 }
