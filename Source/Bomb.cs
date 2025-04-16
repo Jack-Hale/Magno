@@ -24,8 +24,8 @@ public partial class Bomb : RigidBody2D {
 
         _itemComponent = GetNode<ItemComponent>("ItemComponent");
 		
-		_itemComponent.OnUseItemLeft += Explode;
-		_itemComponent.OnUseItemRight += Explode;
+		_itemComponent.OnUseItemLeft += StartTimer;
+		_itemComponent.OnUseItemRight += StartTimer;
 
 		itemOwner = _itemComponent.GetItemOwner();
 

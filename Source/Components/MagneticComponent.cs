@@ -234,7 +234,7 @@ public partial class MagneticComponent : Node2D {
 	public void EnableRigidObject() {
 		if (characterObject != null) {
 			magCharComp.SwapToCharacter();
-			magCharComp.DettachMetalObject(rigidObject);
+			magCharComp.DetachMetalObject(rigidObject);
 
 			Node parent = rigidObject.GetParent();
 			parent.RemoveChild(rigidObject);
@@ -272,6 +272,7 @@ public partial class MagneticComponent : Node2D {
 
 			secondaryObject = false;
 
+			magCharComp.TryRemoveMagnetism();
 			magCharComp = null;
 		}
 	}
@@ -320,7 +321,6 @@ public partial class MagneticComponent : Node2D {
 			
 			if (!isRigidPhysics) {
 				if (rigidObject != null) {
-					rigidObject.Rotation = 0;
 					rigidObject.ApplyForce(force, position);
 				}
 			}

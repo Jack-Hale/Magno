@@ -55,6 +55,8 @@ public partial class MagneticCharacterComponent : Node2D {
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
 	private bool dettach = false;
+	public bool CanSwapToCharacter = true;
+	private bool waitForSwap = false;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -92,7 +94,6 @@ public partial class MagneticCharacterComponent : Node2D {
 			bodyCopy.ContactMonitor = ragdoll;
 		}
 
-		// GD.Print(ragdoll);
 		// Disables swapping to character if the timer is active
 		if (ragdoll) {
 
@@ -104,8 +105,11 @@ public partial class MagneticCharacterComponent : Node2D {
 
 			} else {
 				// Manually swaps to character once the timer has ended so it doesnt need to be triggered again
-				ragdoll = false;
-				SwapToCharacter();
+
+				if (CanSwapToCharacter) {
+					ragdoll = false;
+					SwapToCharacter();
+				}
 			}
 		} 
 
@@ -162,6 +166,10 @@ public partial class MagneticCharacterComponent : Node2D {
 	public void SwapToRigid() {
 		if (isCharacter && isRigidPhysics) {
 			isCharacter = false;
+			
+			foreach(Node2D item in physicsItems.Keys) {
+				item.ProcessMode = ProcessModeEnum.Disabled;
+			}
 
 			bodyCopy.ProcessMode = ProcessModeEnum.Inherit;
 			bodyCopy.GlobalPosition = character.GlobalPosition;
@@ -171,8 +179,8 @@ public partial class MagneticCharacterComponent : Node2D {
 			// bodyCopy.Rotation = character.Rotation;
 
 			ReplaceCollisions(character, true);
-			bodyCopy.Visible = true;
         	bodyCopy.Sleeping = false;
+			bodyCopy.Visible = true;
         	character.Visible = false;
 			ReplaceCollisions(bodyCopy, false);
 		}
@@ -181,15 +189,17 @@ public partial class MagneticCharacterComponent : Node2D {
 	// Swaps back to the character from the bodycopy
 	public void SwapToCharacter() {
 		if (!isCharacter && !ragdoll && isRigidPhysics) {
-
+			foreach(Node2D item in physicsItems.Keys) {
+				item.ProcessMode = ProcessModeEnum.Inherit;
+			}
 			character.Velocity = bodyCopy.LinearVelocity;
 			isCharacter = true;
 			character.GlobalPosition = bodyCopy.GlobalPosition;
 			character.Velocity = bodyCopy.LinearVelocity;
 
 			ReplaceCollisions(character, false);
-			bodyCopy.Visible = false;
         	bodyCopy.Sleeping = true;
+			bodyCopy.Visible = false;
         	character.Visible = true;
 			ReplaceCollisions(bodyCopy, true);
 
@@ -211,6 +221,11 @@ public partial class MagneticCharacterComponent : Node2D {
 			}
 
 			rotationDuration = 0.1f;
+			
+			// Ensures that if magnetism is being removed, it waits until swapped to character.
+			if (waitForSwap) {
+				StartRemoval();
+			}
 		}
 	}
 
@@ -218,86 +233,101 @@ public partial class MagneticCharacterComponent : Node2D {
 	/// Given an object, remove all nodes that are duplicates from that object from character.
 	/// <para>If object is the last magnetic object on character, remove all magneticism from character.</para>
 	/// </summary>
-	public void DettachMetalObject(Node2D objectRemove) {
-		// If the character still has magnet objects to dettach, don't remove magnetic abilities yet
-		if (CharacterHasMagnet()) {
-			
-			// This is a nightmare. I think I could make this way faster by utilising Paths more but it works for now.
-			int removeBodyIndex = int.MaxValue;
-			Array<Node> children = character.GetChildren();
-			Sprite2D objectSprite = null;
-			AnimationPlayer objectPlayer = null;
+	public void DetachMetalObject(Node2D objectRemove) {
 
-			// Getting the object on character to remove by comparing magnetic components.
-			for (int i = 0; i < children.Count; i++) {
-				if (children[i].IsInGroup("Magnetic")) {
-					MagneticComponent mc = children[i].GetNode<MagneticComponent>("MagneticComponent");
-					if (mc == objectRemove.GetNode<MagneticComponent>("MagneticComponent")) {
-						if (objectRemove.IsInGroup("ChildHasPhysics")) {
-							removeBodyIndex = i;
-						}
-						objectSprite = mc.GetRigidSprite();
-						objectPlayer = mc.GetRigidPlayer();
+		// This was a nightmare. I think I could make this way faster by utilising Paths more but it works for now.
+		int removeBodyIndex = int.MaxValue;
+		Array<Node> children = character.GetChildren();
+		Sprite2D objectSprite = null;
+		AnimationPlayer objectPlayer = null;
+
+		// Getting the object on character to remove by comparing magnetic components.
+		for (int i = 0; i < children.Count; i++) {
+			if (children[i].IsInGroup("Magnetic")) {
+				MagneticComponent mc = children[i].GetNode<MagneticComponent>("MagneticComponent");
+				if (mc == objectRemove.GetNode<MagneticComponent>("MagneticComponent")) {
+					if (objectRemove.IsInGroup("ChildHasPhysics")) {
+						removeBodyIndex = i;
 					}
+					objectSprite = mc.GetRigidSprite();
+					objectPlayer = mc.GetRigidPlayer();
 				}
 			}
-
-
-			// Removing duplicate sprites from character and bodyCopy.
-			for (int i = 0; i < children.Count; i++) {
-				if (objectSprite != null) {
-					if (children[i] is Sprite2D sprite) {
-						if (magnetSprites.ContainsKey(sprite)) {
-							if (magnetSprites[sprite] == objectSprite) {
-								bodyCopy.RemoveChild(GetBodyCopyDupeNode(objectSprite));
-								character.RemoveChild(sprite);
-								RemoveMagnetSprite(sprite);
-							}
-						}
-					}
-				}
-				
-				// Removing duplicate animation players from character and bodyCopy.
-				if (objectPlayer != null) {
-					if (children[i] is AnimationPlayer player) {
-						if (magnetPlayers.ContainsKey(player)) {
-							if (magnetPlayers[player] == objectPlayer) {
-								bodyCopy.RemoveChild(GetBodyCopyDupeNode(objectPlayer));
-								character.RemoveChild(player);
-								RemoveMagnetPlayer(player);
-							}
-						}
-					}	
-				}
-			}
-
-			// Removing duplicate physics items from character and bodyCopy.
-			if (removeBodyIndex != int.MaxValue) {
-				foreach (var key in physicsItems.Keys) {
-					Node2D physicsNode = children[removeBodyIndex].GetNode<Node2D>(physicsItems[key].Name.ToString());
-
-					if (physicsItems[key] == physicsNode) {
-						physicsItems[key].Position = new Vector2(0, 0);
-						bodyCopy.RemoveChild(GetBodyCopyDupeNode(physicsNode));
-						character.RemoveChild(key);
-						physicsItems.Remove(key);
-					}
-				}
-			}
-		// Deleting all trace of magnetic based components from character.
-		} else {
-			character.RemoveFromGroup("MagneticCharacter");
-			character.RemoveFromGroup("Magnetic");
-			SwapToCharacter();
-			Vector2 position = character.GlobalPosition;
-
-			parent.RemoveChild(character);
-			parent.GetParent().AddChild(character);
-			character.GlobalPosition = position;
-			dettach = true;
-
-			QueueFree();
 		}
+
+
+		// Removing duplicate sprites from character and bodyCopy.
+		for (int i = 0; i < children.Count; i++) {
+			if (objectSprite != null) {
+				if (children[i] is Sprite2D sprite) {
+					if (magnetSprites.ContainsKey(sprite)) {
+						if (magnetSprites[sprite] == objectSprite) {
+							bodyCopy.RemoveChild(GetBodyCopyDupeNode(objectSprite));
+							character.RemoveChild(sprite);
+							RemoveMagnetSprite(sprite);
+						}
+					}
+				}
+			}
+			
+			// Removing duplicate animation players from character and bodyCopy.
+			if (objectPlayer != null) {
+				if (children[i] is AnimationPlayer player) {
+					if (magnetPlayers.ContainsKey(player)) {
+						if (magnetPlayers[player] == objectPlayer) {
+							bodyCopy.RemoveChild(GetBodyCopyDupeNode(objectPlayer));
+							character.RemoveChild(player);
+							RemoveMagnetPlayer(player);
+						}
+					}
+				}	
+			}
+		}
+
+		// Removing duplicate physics items from character and bodyCopy.
+		if (removeBodyIndex != int.MaxValue) {
+			foreach (var key in physicsItems.Keys) {
+				Node2D physicsNode = children[removeBodyIndex].GetNode<Node2D>(physicsItems[key].Name.ToString());
+
+				if (physicsItems[key] == physicsNode) {
+					physicsItems[key].Position = new Vector2(0, 0);
+					bodyCopy.RemoveChild(GetBodyCopyDupeNode(physicsNode));
+					character.RemoveChild(key);
+					physicsItems.Remove(key);
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Will attempt at removing all magnetic nodes from character. 
+	/// <para>If magnetic object or component still exists in character tree, removal fails.</para>
+	/// <para>Removal won't occur until the next time SwapToCharacter() is called.</para>
+	/// </summary>
+	public void TryRemoveMagnetism() {
+		// If the character still has magnet objects to dettach, don't remove magnetic abilities yet
+		if (!CharacterHasMagnet()) {
+			waitForSwap = true;
+		}
+	}
+
+	/// <summary>
+	/// Starts the removal of all magnetism on character.
+	/// </summary>
+	public void StartRemoval() {
+		ragdoll = false;
+		SwapToCharacter();
+
+		// Deleting all trace of magnetic based components from character.
+		character.RemoveFromGroup("MagneticCharacter");
+		character.RemoveFromGroup("Magnetic");
+		Vector2 position = character.GlobalPosition;
+
+		parent.RemoveChild(character);
+		parent.GetParent().AddChild(character);
+		character.GlobalPosition = position;
+		dettach = true;
+		QueueFree();
 	}
 
 	/// <summary>
@@ -319,6 +349,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	/// </summary>
 	public bool CharacterHasMagnet() {
 		Array<Node> children = character.GetChildren();
+		
 		for (int i = 0; i < children.Count; i++) {
 			if (children[i].IsInGroup("Magnetic")) {
 				return true;

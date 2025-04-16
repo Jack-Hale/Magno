@@ -6,12 +6,11 @@
 [ext_resource type="Texture2D" uid="uid://j57vrlxkdink" path="res://Assets/Sprites/MagnoManIdleNA.png" id="4_utp2y"]
 [ext_resource type="Texture2D" uid="uid://cuubrya02b731" path="res://Assets/Sprites/MagnoManJumpNA.png" id="5_gdgf0"]
 [ext_resource type="Texture2D" uid="uid://dxmfvllypcvbw" path="res://Assets/Sprites/MagnoManIdle.png" id="5_wh4iq"]
-[ext_resource type="Texture2D" uid="uid://cjvl83c6nb6xt" path="res://Assets/Sprites/MagnoManRunNA.png" id="6_xo8ps"]
 [ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="7_bgp4g"]
+[ext_resource type="Texture2D" uid="uid://cjvl83c6nb6xt" path="res://Assets/Sprites/MagnoManRunNA.png" id="7_xo8ps"]
 [ext_resource type="Texture2D" uid="uid://ni2xttapt5qv" path="res://Assets/Sprites/MagnoManRunBackwardsNA.png" id="8_xo8ps"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_cwh6n"]
-radius = 16.0
 height = 32.0
 
 [sub_resource type="Animation" id="Animation_fqx4f"]
@@ -173,7 +172,7 @@ tracks/3/keys = {
 
 [sub_resource type="Animation" id="Animation_u6dye"]
 resource_name = "run"
-length = 0.8
+length = 0.75
 loop_mode = 1
 step = 0.1
 tracks/0/type = "value"
@@ -184,7 +183,7 @@ tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1e-05),
 "update": 0,
 "values": [0, 1, 2, 3, 4, 5, 6, 7]
 }
@@ -222,12 +221,12 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [ExtResource("6_xo8ps")]
+"values": [ExtResource("7_xo8ps")]
 }
 
 [sub_resource type="Animation" id="Animation_fcmex"]
 resource_name = "run_backwards"
-length = 0.8
+length = 0.75
 loop_mode = 1
 step = 0.1
 tracks/0/type = "value"
@@ -274,7 +273,7 @@ tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 0.000172632),
 "update": 0,
 "values": [0, 1, 2, 3, 4, 5, 6, 7]
 }

@@ -424,6 +424,7 @@ public partial class Magnet : Area2D
 						MagneticComponent newObject = (MagneticComponent) bodyCopy.GetNode("MagneticComponent");
 						if (!attractedObjects.ContainsKey(bodyCopy)) {
 							magCharComp.SwapToRigid();
+							magCharComp.CanSwapToCharacter = false;
 
 							attractedObjects.Add(bodyCopy, newObject);
 						}
@@ -465,6 +466,7 @@ public partial class Magnet : Area2D
 					if (magCharComp != null) {
 						magCharComp.GetCharacter().RemoveFromGroup("Affected");
 						magCharComp.SwapToCharacter();
+						magCharComp.CanSwapToCharacter = true;
 					}
 
 					attractedObjects.Remove(itemToRemove);
@@ -493,6 +495,11 @@ public partial class Magnet : Area2D
 			DetachAll();
 			isObjectAttached = true;	
 			attachedObject = body;
+			
+			MagneticCharacterComponent magCharComp = bodyMagComp.GetMagneticCharacterComponent();
+			if (magCharComp != null) {
+				magCharComp.CanSwapToCharacter = false;
+			}
 
 			isItem = attachedObject.IsInGroup("Item");
 			if (isItem) {
@@ -613,6 +620,7 @@ public partial class Magnet : Area2D
 
 			MagneticCharacterComponent magCharComp = attachedObjectMagComp.GetMagneticCharacterComponent();
 			if (magCharComp != null) {
+				magCharComp.CanSwapToCharacter = false;
 				magCharComp.GetCharacter().RemoveFromGroup("Affected");
 				magCharComp.SwapToCharacter();
 			}

@@ -25,9 +25,8 @@ height = 56.0
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ahunh"]
 height = 56.0
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_e83o0"]
-radius = 14.7689
-height = 64.601
+[sub_resource type="ConvexPolygonShape2D" id="ConvexPolygonShape2D_m1hlw"]
+points = PackedVector2Array(-33.256, -28.1965, 19.6573, -30.2422, 7.54667, 28.0187, -6.02162, 27.0692)
 
 [sub_resource type="Animation" id="Animation_m1hlw"]
 length = 0.1
@@ -144,6 +143,7 @@ _data = {
 
 [node name="Wasp" type="Node2D"]
 script = ExtResource("1_regco")
+weakMultiplier = 10.0
 strongMultiplier = 15.0
 metadata/_custom_type_script = "uid://cyfe7n8vtr5xk"
 
@@ -191,6 +191,7 @@ metadata/_custom_type_script = "uid://dn3abb2bdasda"
 script = ExtResource("6_0cir8")
 weakMultiplier = 10.0
 strongMultiplier = 12.0
+exitCondition = 3
 metadata/_custom_type_script = "uid://dga5am8fpoq83"
 
 [node name="ProjectileLauncher" type="Node2D" parent="Wasp/Gun"]
@@ -232,13 +233,19 @@ collision_mask = 183
 
 [node name="MagneticComponent" type="Node2D" parent="Wasp/Wings"]
 script = ExtResource("6_0cir8")
-exitCondition = 2
+exitCondition = 3
 metadata/_custom_type_script = "uid://dga5am8fpoq83"
 
+[node name="Sprite2D" type="Sprite2D" parent="Wasp/Wings"]
+position = Vector2(-9, -2)
+scale = Vector2(2, 2)
+texture = ExtResource("15_2mp5y")
+hframes = 2
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Wasp/Wings"]
-position = Vector2(25, 10)
+position = Vector2(20, 7.00005)
 rotation = 1.79943
-shape = SubResource("CapsuleShape2D_e83o0")
+shape = SubResource("ConvexPolygonShape2D_m1hlw")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Wasp/Wings"]
 root_node = NodePath("../..")
@@ -246,12 +253,6 @@ libraries = {
 &"": SubResource("AnimationLibrary_0bka1")
 }
 speed_scale = 4.0
-
-[node name="Sprite2D" type="Sprite2D" parent="Wasp/Wings"]
-position = Vector2(-9, -2)
-scale = Vector2(2, 2)
-texture = ExtResource("15_2mp5y")
-hframes = 2
 
 [node name="DamageComponent" type="Node2D" parent="Wasp/Wings"]
 script = ExtResource("17_m1hlw")
