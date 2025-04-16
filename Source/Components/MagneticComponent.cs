@@ -261,8 +261,10 @@ public partial class MagneticComponent : Node2D {
 			double characterSize = Math.Sqrt(Math.Pow(width/2, 2) + Math.Pow(height/2, 2));
 
 			// Ensures the rigidObject spawns in the direction of the magnet force when exiting character
-			var direction = (magCharComp.GetBodyCopyMagnetData().Item2 - characterObject.GlobalPosition).Normalized();
-			Vector2 spawnLocation = characterObject.GlobalPosition + (magCharComp.GetBodyCopyMagnetData().Item1 ? 1 : -1) * (direction * ((float)characterSize));
+			Vector2 characterPosition = magCharComp.isCharacter ? characterObject.GlobalPosition : magCharComp.GetBodyCopy().GlobalPosition;
+
+			var direction = (magCharComp.GetBodyCopyMagnetData().Item2 - characterPosition).Normalized();
+			Vector2 spawnLocation = characterPosition + (magCharComp.GetBodyCopyMagnetData().Item1 ? 1 : -1) * (direction * ((float)characterSize));
 
 			rigidObject.GlobalPosition = spawnLocation;
 			rigidObject.LinearVelocity = Vector2.Zero;

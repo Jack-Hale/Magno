@@ -222,7 +222,7 @@ public partial class MagneticCharacterComponent : Node2D {
 
 			rotationDuration = 0.1f;
 			
-			// Ensures that if magnetism is being removed, it waits until swapped to character.
+			// Ensures that if magneticism is being removed, it waits until swapped to character.
 			if (waitForSwap) {
 				StartRemoval();
 			}
@@ -312,7 +312,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	}
 
 	/// <summary>
-	/// Starts the removal of all magnetism on character.
+	/// Starts the removal of all magneticism on character.
 	/// </summary>
 	public void StartRemoval() {
 		ragdoll = false;
