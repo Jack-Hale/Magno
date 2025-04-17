@@ -52,7 +52,7 @@ public partial class MagneticCharacterParent : Node2D {
 
 		bodyCopy.AddToGroup("Magnetic");
 		bodyCopy.AddToGroup("BodyCopy");
-		bodyCopy.Name = "BODYCOPY";
+		bodyCopy.Name = $"{character.Name}_BODYCOPY";
 
 		// Disabling BodyCopy
 		bodyCopy.Visible = false;

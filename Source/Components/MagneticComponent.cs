@@ -49,9 +49,18 @@ public partial class MagneticComponent : Node2D {
 
 	private bool secondaryObject = false;
 	private Sprite2D rigidSprite;
+	private Sprite2D rigidSpriteDupe;
+	private Vector2 rigidSpriteDupePosition;
+	private bool collectedDupeSprite = false;
 	private AnimationPlayer rigidPlayer;
 	private bool disableMagneticism = false;
 	private bool waitForHit = false;
+	private bool magnetCharacter = false;
+	private bool isPhysicsItem = false;
+	private Node2D physicsItem = null;
+	private float shakeStrength = 0;
+	private float shakeAmount = 1;
+	private float shakeFade = -5;
 	
 	public MagneticComponent() {
 		Name = "MagneticComponent";
@@ -101,6 +110,8 @@ public partial class MagneticComponent : Node2D {
 					}
 
 					if (children[i].IsInGroup("HasPhysics")) {
+						isPhysicsItem = true;
+						physicsItem = (Node2D) children[i];
 						Array<Node> physChildren = children[i].GetChildren();
 						for (int j = 0; j < physChildren.Count; j++) {
 							if (physChildren[j] is Sprite2D physSprite) {
@@ -110,8 +121,12 @@ public partial class MagneticComponent : Node2D {
 					}
 				}
 
+				if (rigidSprite == null) {
+					GD.PrintErr($"{rigidObject} {rigidObject.Name}'s MagnetComponent needs to be below any physics objects in tree");
+					GD.PushError($"{rigidObject} {rigidObject.Name}'s MagnetComponent needs to be below any physics objects in tree");
+				}
+
 				rigidObject.AddToGroup("Magnetic");
-				bool magnetCharacter = false;
 				
 				if (objectParent is PhysicsBody2D op && objectParent is not StaticBody2D) {
 					objectParent = op;
@@ -191,6 +206,48 @@ public partial class MagneticComponent : Node2D {
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(double delta) {
+
+		// Waiting for duplicate sprite to exist to extract
+		if (!collectedDupeSprite && magnetCharacter) {
+			if (isPhysicsItem) {
+				Dictionary<Node2D, Node2D> items = magCharComp.GetPhysicsItems();
+
+				if (items != null && items.Keys.Count > 0) {
+					foreach (var item in items.Keys) {
+						if (items[item] == physicsItem) {
+							Array<Node> children = item.GetChildren();
+							for (int i = 0; i < children.Count; i++) {
+								if (children[i] is Sprite2D sprite) {
+									rigidSpriteDupe = sprite;
+									// rigidSpriteDupePosition = rigidSpriteDupe.Position;
+									collectedDupeSprite = true;
+								}
+							}
+						}
+					}
+				} 
+			} else {
+				Dictionary<Sprite2D, Sprite2D> sprites = magCharComp.GetDuplicateSprites();
+
+				// If none exist, arrays will be null
+				collectedDupeSprite = sprites == null;
+
+				if (sprites != null && sprites.Keys.Count > 0) {
+					foreach (var item in sprites.Keys) {
+						if (rigidSprite == sprites[item]) {
+							rigidSpriteDupe = item;
+							collectedDupeSprite = true;
+							// rigidSpriteDupePosition = rigidSpriteDupe.Position;
+							// GD.Print(rigidSpriteDupePosition);
+						}
+					}
+				}
+			}			
+		}
+		if (rigidObject.Name == "Wings") {
+			// GD.Print(rigidSpriteDupe.Position, rigidSpriteDupePosition);
+		}
+
 		if (characterObject != null && rigidObject != null) {
 			switch (exitCondition) {
 				case ExitCondition.CannotExit:
@@ -198,11 +255,28 @@ public partial class MagneticComponent : Node2D {
 				case ExitCondition.TimeLimit:
 					if (!inExitSequence && characterObject.IsInGroup("Affected")) {
 						exitTimer = exitTimerDefault;
+						shakeStrength = shakeAmount;
+						rigidSpriteDupePosition = rigidSpriteDupe.Position;
 						inExitSequence = true;
 					}
+
 					if (inExitSequence) {
 						if (exitTimer > 0) {
 							exitTimer -= (float) delta;
+							shakeFade = -exitTimer;
+
+							if (rigidSpriteDupe != null) {
+								// If sprite is out of range, reset and recollect sprite position.
+								if (ShakeSprite(rigidSpriteDupe, rigidSpriteDupePosition)) {
+									shakeStrength = 0;
+								} else {
+									if (shakeStrength == 0) {
+										rigidSpriteDupePosition = rigidSpriteDupe.Position;
+										shakeStrength = shakeAmount;
+									}
+								}
+							}
+
 						} else {
 							EnableRigidObject();
 							inExitSequence = false;
@@ -210,6 +284,15 @@ public partial class MagneticComponent : Node2D {
 
 						if (inExitSequence && !characterObject.IsInGroup("Affected")) {
 							inExitSequence = false;
+						}
+
+						if (!inExitSequence) {
+							if (rigidSpriteDupe != null) {
+								if (rigidSpriteDupe.Position != rigidSpriteDupePosition) {
+									rigidSpriteDupe.Position = rigidSpriteDupePosition;
+								}
+							}
+							shakeStrength = 0;
 						}
 					}
 
@@ -231,11 +314,13 @@ public partial class MagneticComponent : Node2D {
 					break;
 			}
 
-			if (magCharComp.GetHitDetected()) {
-				if (waitForHit) {
-					EnableRigidObject();
-				} else {
-					magCharComp.ResetHitDetected();
+			if (magCharComp != null) {
+				if (magCharComp.GetHitDetected()) {
+					if (waitForHit) {
+						EnableRigidObject();
+					} else {
+						magCharComp.ResetHitDetected();
+					}
 				}
 			}
 		}
@@ -246,7 +331,37 @@ public partial class MagneticComponent : Node2D {
 		QueueRedraw();
 	}
 
-	// Destroys connection between Character and Rigid objects and removes any ability for Character to be magnetic
+	/// <summary>
+	/// Causes a shaking effect on a sprite.
+	/// </summary>
+	/// <returns><para>If the sprite is outside of the range it should be, 
+	/// meaning the sprite's position has been updated outside of this function.</para></returns>
+	public bool ShakeSprite(Sprite2D sprite, Vector2 originalSpritePosition) {
+		float delta = (float) GetProcessDeltaTime();
+		RandomNumberGenerator rand = new();
+		float shakeMax = 5;
+		if (shakeStrength > shakeMax) {
+			shakeStrength = shakeMax;
+		}
+		bool findPosition = false;
+		if (shakeStrength > 0) {
+			shakeStrength = Mathf.Lerp(shakeStrength, 0, shakeFade * delta);
+			Vector2 newPosition = originalSpritePosition + new Vector2(
+				rand.RandfRange(-shakeStrength, shakeStrength), rand.RandfRange(-shakeStrength, shakeStrength)
+			);
+
+			// Checks if the sprite's position is outside of the range
+			// Range is defined as shakeStrength plus squareroot2 to account for extra length from diagonal movement
+			findPosition = sprite.Position.DistanceTo(newPosition) > Mathf.Abs(shakeStrength) + Mathf.Sqrt2 + 1;
+			sprite.Position = newPosition;
+		}
+
+		return findPosition;
+	}
+
+	/// <summary>
+	/// Destroys connection between Character and Rigid objects and removes any ability for Character to be magnetic.
+	/// </summary>
 	public void EnableRigidObject() {
 		if (characterObject != null) {
 			magCharComp.SwapToCharacter();

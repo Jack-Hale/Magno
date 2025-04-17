@@ -71,7 +71,7 @@ public partial class Wasp : CharacterBody2D {
 		collisionRotation = _collision.Rotation;
 		collisionPosition = _collision.Position;
 
-		_projectileLauncher = (ProjectileLauncher) magCharComp.GetPhysicsItems().Keys.First();
+		_projectileLauncher = (ProjectileLauncher) magCharComp.GeneratePhysicsItems().Keys.First();
 		_projectileComponent = _projectileLauncher.GetProjectileComponent();
 
 		_animationPlayer = _wings.GetNode<AnimationPlayer>("AnimationPlayer");
@@ -174,60 +174,62 @@ public partial class Wasp : CharacterBody2D {
 		}
 
 		if (affected) { // Handle behaviour when affected by a magnet
+
 		} else { // Handle behaviour when unaffected by a magnet
-			if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
-				if (hasWings) {
-					direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint() + Vector2.Up*200);
-				} else {
-					direction = -GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
-				}
 
-				if (_projectileLauncher != null) {
+		}
 
-					_projectileComponent.Shoot();
-					float angle = _pathFinding.GetAngle(GlobalPosition, _pathFinding.GetLastDetectionPoint());
-
-					if (angle < Mathf.Pi && angle > 0) {
-						_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
-					} else {
-						_projectileLauncher.Rotation = angle > 3*MathF.PI/2 ? 0 : Mathf.Pi;
-					}
-
-				}
-			} else {
-				float distanceFromGround = _pathFinding.GetDistanceFromCollsionLayer(1000, Vector2.Down, (1u << 0) | (1u << 7));
-				if (distanceFromGround < 200) {
-					direction = Vector2.Up;
-				}
-			}
-
+		if (IsInGroup("CanSeePlayer") || IsInGroup("LookingForPlayer")) {
 			if (hasWings) {
-				velocity = _pathFinding.MoveCharacter(false, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
-				velocity = _pathFinding.AvoidWallsAir(velocity, 60, 30, 40);
+				direction = GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint() + Vector2.Up*200);
 			} else {
-				velocity = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
+				direction = -GlobalPosition.DirectionTo(_pathFinding.GetLastDetectionPoint());
 			}
-			bool flip = direction.X < 0;
-
-			_sprite.FlipH = flip;
-			_collision.Rotation = flip ? -collisionRotation : collisionRotation;
-			_collision.Position = flip ? new Vector2(-collisionPosition.X, collisionPosition.Y) : collisionPosition;
-			if (hasWings) _wingsSprite.FlipH = _sprite.FlipH;
-
-			if (direction == Vector2.Zero) {
-				velocity = _pathFinding.ApplyFriction(!hasWings, velocity, friction, delta);
-			}
-			
-
 			if (_projectileLauncher != null) {
-				_projectileLauncher.SetFlipH(_sprite.FlipH);
-			}
 
-			if (hasWings) {
-				_wingsSprite.Position = new Vector2(_wingsSprite.FlipH ? -wingsPosition.X : wingsPosition.X, wingsPosition.Y);
-			} else {
-				Rotation = Mathf.DegToRad(56 * Mathf.Sign(direction.X));
+				_projectileComponent.Shoot();
+				float angle = _pathFinding.GetAngle(GlobalPosition, _pathFinding.GetLastDetectionPoint());
+
+				if (angle < Mathf.Pi && angle > 0) {
+					_projectileLauncher.LookAt(_pathFinding.GetLastDetectionPoint());
+				} else {
+					_projectileLauncher.Rotation = angle > 3*MathF.PI/2 ? 0 : Mathf.Pi;
+				}
+
 			}
+		} else {
+			float distanceFromGround = _pathFinding.GetDistanceFromCollsionLayer(1000, Vector2.Down, (1u << 0) | (1u << 7));
+			if (distanceFromGround < 200) {
+				direction = Vector2.Up;
+			}
+		}
+
+		if (hasWings) {
+			velocity = _pathFinding.MoveCharacter(false, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
+			velocity = _pathFinding.AvoidWallsAir(velocity, 60, 30, 40);
+		} else {
+			velocity = _pathFinding.MoveCharacter(true, velocity, direction, maxSpeed, acceleration, airAcceleration, delta);
+		}
+		bool flip = direction.X < 0;
+
+		_sprite.FlipH = flip;
+		_collision.Rotation = flip ? -collisionRotation : collisionRotation;
+		_collision.Position = flip ? new Vector2(-collisionPosition.X, collisionPosition.Y) : collisionPosition;
+		if (hasWings) _wingsSprite.FlipH = _sprite.FlipH;
+
+		if (direction == Vector2.Zero) {
+			velocity = _pathFinding.ApplyFriction(!hasWings, velocity, friction, delta);
+		}
+		
+
+		if (_projectileLauncher != null) {
+			_projectileLauncher.SetFlipH(_sprite.FlipH);
+		}
+
+		if (hasWings) {
+			_wingsSprite.Position = new Vector2(_wingsSprite.FlipH ? -wingsPosition.X : wingsPosition.X, wingsPosition.Y);
+		} else {
+			Rotation = Mathf.DegToRad(56 * Mathf.Sign(direction.X));
 		}
 
 		Velocity = velocity;

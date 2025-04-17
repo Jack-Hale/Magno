@@ -41,7 +41,7 @@ public const float speed = 300.0f;
 		}
 		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
 
-		_projectileLauncher = (ProjectileLauncher) magCharComp.GetPhysicsItems().Values.First();
+		_projectileLauncher = (ProjectileLauncher) magCharComp.GeneratePhysicsItems().Values.First();
 		_projectileComponent = _projectileLauncher.GetProjectileComponent();
 	}
 

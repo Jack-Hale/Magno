@@ -149,7 +149,7 @@ metadata/_custom_type_script = "uid://cyfe7n8vtr5xk"
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]
 script = ExtResource("2_o2sb4")
-ragDollOnAnyForce = true
+isRigidPhysics = false
 metadata/_custom_type_script = "uid://bv76e8qnymuee"
 
 [node name="Wasp" type="CharacterBody2D" parent="."]
@@ -187,13 +187,6 @@ script = ExtResource("6_oayp4")
 script = ExtResource("7_waw0e")
 metadata/_custom_type_script = "uid://dn3abb2bdasda"
 
-[node name="MagneticComponent" type="Node2D" parent="Wasp/Gun"]
-script = ExtResource("6_0cir8")
-weakMultiplier = 10.0
-strongMultiplier = 12.0
-exitCondition = 4
-metadata/_custom_type_script = "uid://dga5am8fpoq83"
-
 [node name="ProjectileLauncher" type="Node2D" parent="Wasp/Gun"]
 script = ExtResource("6_ahunh")
 flipOnParentSprite = true
@@ -225,16 +218,19 @@ position = Vector2(17, -4)
 rotation = 1.5708
 shape = SubResource("CapsuleShape2D_ahunh")
 
+[node name="MagneticComponent" type="Node2D" parent="Wasp/Gun"]
+script = ExtResource("6_0cir8")
+weakMultiplier = 10.0
+strongMultiplier = 12.0
+exitCondition = 1
+exitTimer = 3.0
+metadata/_custom_type_script = "uid://dga5am8fpoq83"
+
 [node name="Wings" type="RigidBody2D" parent="Wasp"]
 position = Vector2(-15, -9)
 rotation = 3.14159
 collision_layer = 4
 collision_mask = 183
-
-[node name="MagneticComponent" type="Node2D" parent="Wasp/Wings"]
-script = ExtResource("6_0cir8")
-exitCondition = 4
-metadata/_custom_type_script = "uid://dga5am8fpoq83"
 
 [node name="Sprite2D" type="Sprite2D" parent="Wasp/Wings"]
 position = Vector2(-9, -2)
@@ -259,3 +255,9 @@ script = ExtResource("17_m1hlw")
 velocityScaling = true
 velocityScalingThreshold = 2.0
 metadata/_custom_type_script = "uid://bs7evxlj3ifeb"
+
+[node name="MagneticComponent" type="Node2D" parent="Wasp/Wings"]
+script = ExtResource("6_0cir8")
+exitCondition = 1
+exitTimer = 3.0
+metadata/_custom_type_script = "uid://dga5am8fpoq83"

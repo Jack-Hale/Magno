@@ -11,21 +11,24 @@ public enum SwapCondition {
 }
 
 public partial class MagneticCharacterComponent : Node2D {
+	
+	/// <summary>
+	/// The condition that allows the character to swap back into a CharacterBody2D from body copy.
+	/// </summary>
+	[Export]
+	private SwapCondition swapCondition;
 
 	[Export]
-	public SwapCondition swapCondition;
+	private float swapTimeLimit = 0.5f;
 
 	[Export]
-	public float swapTimeLimit = 0.5f;
-
+	private bool isRigidPhysics = true;
 	[Export]
-	public bool isRigidPhysics = true;
+	private bool ragDollOnAnyForce = false;
 	[Export]
-	public bool ragDollOnAnyForce = false;
+	private SwapCondition anyForceSwapCondition;
 	[Export]
-	public SwapCondition anyForceSwapCondition;
-	[Export]
-	public float anyForceSwapTimeLimit = 0.5f;
+	private float anyForceSwapTimeLimit = 0.5f;
 	private Node2D parent;
 	private MagneticCharacterParent magCharPar;
 	private CharacterBody2D character;
@@ -135,7 +138,7 @@ public partial class MagneticCharacterComponent : Node2D {
 		}
 	}
 
-	public Dictionary<Node2D, Node2D> GetPhysicsItems() {
+	public Dictionary<Node2D, Node2D> GeneratePhysicsItems() {
 		Array<Node> children = character.GetChildren();
 
 		for (int i = 0; i < children.Count; i++) {
@@ -156,7 +159,10 @@ public partial class MagneticCharacterComponent : Node2D {
 		}
 		return physicsItems;
 	}
-
+	
+	public Dictionary<Node2D, Node2D> GetPhysicsItems() {
+		return physicsItems;
+	}
 	private void OnBodyEntered(Node body) {
 		ragdollTimer = 0;
 		hitDetected = true;

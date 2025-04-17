@@ -423,8 +423,11 @@ public partial class Magnet : Area2D
 						body.AddToGroup("Affected");
 						MagneticComponent newObject = (MagneticComponent) bodyCopy.GetNode("MagneticComponent");
 						if (!attractedObjects.ContainsKey(bodyCopy)) {
-							magCharComp.SwapToRigid();
-							magCharComp.CanSwapToCharacter = false;
+
+							if (magCharComp.GetIsRigidPhysics()) {
+								magCharComp.SwapToRigid();
+								magCharComp.CanSwapToCharacter = false;
+							}
 
 							attractedObjects.Add(bodyCopy, newObject);
 						}
