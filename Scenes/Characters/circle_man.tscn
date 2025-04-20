@@ -1,0 +1,71 @@
+[gd_scene load_steps=10 format=3 uid="uid://b0sb54tp8spe6"]
+
+[ext_resource type="Script" uid="uid://cyfe7n8vtr5xk" path="res://Source/Components/MagneticCharacterParent.cs" id="1_kpnsm"]
+[ext_resource type="Script" uid="uid://bv76e8qnymuee" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_pdojd"]
+[ext_resource type="Script" uid="uid://g81ni7odis2m" path="res://Source/CircleMan.cs" id="3_iw1gc"]
+[ext_resource type="Texture2D" uid="uid://dogsi7pkpindx" path="res://Assets/Sprites/circleMan.png" id="3_qldjo"]
+[ext_resource type="Texture2D" uid="uid://co4oadduo1bxp" path="res://Assets/Sprites/hand.png" id="4_iw1gc"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="5_t40qs"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_wavvd"]
+radius = 64.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hdlqb"]
+radius = 17.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_64tin"]
+radius = 17.0294
+
+[node name="CircleMan" type="Node2D"]
+script = ExtResource("1_kpnsm")
+metadata/_custom_type_script = "uid://cyfe7n8vtr5xk"
+
+[node name="MagneticCharacterComponent" type="Node2D" parent="."]
+script = ExtResource("2_pdojd")
+isRigidPhysics = false
+metadata/_custom_type_script = "uid://bv76e8qnymuee"
+
+[node name="CircleMan" type="CharacterBody2D" parent="."]
+collision_layer = 32
+collision_mask = 183
+script = ExtResource("3_iw1gc")
+
+[node name="Sprite2D" type="Sprite2D" parent="CircleMan"]
+texture = ExtResource("3_qldjo")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CircleMan"]
+shape = SubResource("CircleShape2D_wavvd")
+
+[node name="Hand1" type="RigidBody2D" parent="CircleMan"]
+position = Vector2(79, 1)
+collision_layer = 4
+collision_mask = 183
+
+[node name="Sprite2D" type="Sprite2D" parent="CircleMan/Hand1"]
+texture = ExtResource("4_iw1gc")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CircleMan/Hand1"]
+shape = SubResource("CircleShape2D_hdlqb")
+
+[node name="MagneticComponent" type="Node2D" parent="CircleMan/Hand1"]
+script = ExtResource("5_t40qs")
+exitTimer = 5.0
+metadata/_custom_type_script = "uid://dga5am8fpoq83"
+
+[node name="Hand2" type="RigidBody2D" parent="CircleMan"]
+position = Vector2(-80, 2)
+collision_layer = 4
+collision_mask = 183
+
+[node name="Sprite2D" type="Sprite2D" parent="CircleMan/Hand2"]
+scale = Vector2(-1, 1)
+texture = ExtResource("4_iw1gc")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CircleMan/Hand2"]
+shape = SubResource("CircleShape2D_64tin")
+
+[node name="MagneticComponent" type="Node2D" parent="CircleMan/Hand2"]
+script = ExtResource("5_t40qs")
+exitCondition = 1
+exitTimer = 5.0
+metadata/_custom_type_script = "uid://dga5am8fpoq83"

@@ -1,11 +1,10 @@
-[gd_scene load_steps=8 format=4 uid="uid://l55oyjoo6cul"]
+[gd_scene load_steps=7 format=4 uid="uid://l55oyjoo6cul"]
 
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_0rdck"]
 [ext_resource type="Texture2D" uid="uid://bucros67cnrfw" path="res://Assets/BackgroundSprites/LabBackground.png" id="1_x4x4f"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/Characters/player.tscn" id="2_5mf3d"]
-[ext_resource type="PackedScene" uid="uid://bsraimoejo1h6" path="res://Scenes/Items/bomb.tscn" id="6_k8g1k"]
-[ext_resource type="PackedScene" uid="uid://dpsb1s8ycc81d" path="res://Scenes/Characters/dung_Beetle.tscn" id="6_x4x4f"]
-[ext_resource type="PackedScene" uid="uid://xcrlbcscygw2" path="res://Scenes/Characters/wasp.tscn" id="7_x4x4f"]
+[ext_resource type="PackedScene" uid="uid://b0sb54tp8spe6" path="res://Scenes/Characters/circle_man.tscn" id="5_npfmg"]
+[ext_resource type="PackedScene" uid="uid://xcrlbcscygw2" path="res://Scenes/Characters/wasp.tscn" id="6_k8g1k"]
 [ext_resource type="PackedScene" uid="uid://drkhjxgguqgtd" path="res://Scenes/Objects/Lamp.tscn" id="8_l7ek2"]
 
 [node name="TestLevel" type="Node2D"]
@@ -420,11 +419,8 @@ position = Vector2(3018, -64.23)
 [node name="Player" parent="." instance=ExtResource("2_5mf3d")]
 position = Vector2(166, 653)
 
-[node name="Bomb" parent="." instance=ExtResource("6_k8g1k")]
-position = Vector2(749, 556)
+[node name="CircleMan" parent="." instance=ExtResource("5_npfmg")]
+position = Vector2(739, 573)
 
-[node name="DungBeetle" parent="." instance=ExtResource("6_x4x4f")]
-position = Vector2(2219, 581)
-
-[node name="Wasp" parent="." instance=ExtResource("7_x4x4f")]
-position = Vector2(555, 461)
+[node name="Wasp" parent="." instance=ExtResource("6_k8g1k")]
+position = Vector2(368, 498)

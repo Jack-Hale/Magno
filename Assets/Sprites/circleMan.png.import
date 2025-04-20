@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://deu1ed01aj68l"
-path="res://.godot/imported/Untitled.png-01fedade6b86c8cdb6cc7198dd30e39b.ctex"
+uid="uid://dogsi7pkpindx"
+path="res://.godot/imported/circleMan.png-84850d9e32fde2a0ac88b0126874a241.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Asesprites/Untitled.png"
-dest_files=["res://.godot/imported/Untitled.png-01fedade6b86c8cdb6cc7198dd30e39b.ctex"]
+source_file="res://Assets/Sprites/circleMan.png"
+dest_files=["res://.godot/imported/circleMan.png-84850d9e32fde2a0ac88b0126874a241.ctex"]
 
 [params]
 

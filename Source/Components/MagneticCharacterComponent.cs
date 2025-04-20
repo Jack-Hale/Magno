@@ -242,68 +242,25 @@ public partial class MagneticCharacterComponent : Node2D {
 	/// <para>If object is the last magnetic object on character, remove all magneticism from character.</para>
 	/// </summary>
 	public void DetachMetalObject(Node2D objectRemove) {
-
-		// This was a nightmare. I think I could make this way faster by utilising Paths more but it works for now.
-		int removeBodyIndex = int.MaxValue;
-		Array<Node> children = character.GetChildren();
-		Sprite2D objectSprite = null;
-		AnimationPlayer objectPlayer = null;
-
-		// Getting the object on character to remove by comparing magnetic components.
-		for (int i = 0; i < children.Count; i++) {
-			if (children[i].IsInGroup("Magnetic")) {
-				MagneticComponent mc = children[i].GetNode<MagneticComponent>("MagneticComponent");
-				if (mc == objectRemove.GetNode<MagneticComponent>("MagneticComponent")) {
-					if (objectRemove.IsInGroup("ChildHasPhysics")) {
-						removeBodyIndex = i;
-					}
-					objectSprite = mc.GetRigidSprite();
-					objectPlayer = mc.GetRigidPlayer();
-				}
+		
+		Dictionary<Area2D, NodePath> duplicateObjects = magCharPar.GetDuplicateObjects();
+		Area2D copyRemove = null;
+		foreach (var item in duplicateObjects.Keys) {
+			if (duplicateObjects[item] == magCharPar.GetPathTo(objectRemove)) {
+				copyRemove = item;
+				break;
 			}
 		}
 
-
-		// Removing duplicate sprites from character and bodyCopy.
-		for (int i = 0; i < children.Count; i++) {
-			if (objectSprite != null) {
-				if (children[i] is Sprite2D sprite) {
-					if (magnetSprites.ContainsKey(sprite)) {
-						if (magnetSprites[sprite] == objectSprite) {
-							bodyCopy.RemoveChild(GetBodyCopyDupeNode(objectSprite));
-							character.RemoveChild(sprite);
-							RemoveMagnetSprite(sprite);
-						}
-					}
+		if (copyRemove != null) {
+			Array<Node> childrenRemove = copyRemove.GetChildren();
+			for (int i = 0; i < childrenRemove.Count; i++) {
+				Node node = GetBodyCopyDupeNode2(childrenRemove[i]);
+				if (node != null) {
+					bodyCopy.RemoveChild(node);
 				}
 			}
-			
-			// Removing duplicate animation players from character and bodyCopy.
-			if (objectPlayer != null) {
-				if (children[i] is AnimationPlayer player) {
-					if (magnetPlayers.ContainsKey(player)) {
-						if (magnetPlayers[player] == objectPlayer) {
-							bodyCopy.RemoveChild(GetBodyCopyDupeNode(objectPlayer));
-							character.RemoveChild(player);
-							RemoveMagnetPlayer(player);
-						}
-					}
-				}	
-			}
-		}
-
-		// Removing duplicate physics items from character and bodyCopy.
-		if (removeBodyIndex != int.MaxValue) {
-			foreach (var key in physicsItems.Keys) {
-				Node2D physicsNode = children[removeBodyIndex].GetNode<Node2D>(physicsItems[key].Name.ToString());
-
-				if (physicsItems[key] == physicsNode) {
-					physicsItems[key].Position = new Vector2(0, 0);
-					bodyCopy.RemoveChild(GetBodyCopyDupeNode(physicsNode));
-					character.RemoveChild(key);
-					physicsItems.Remove(key);
-				}
-			}
+			character.RemoveChild(copyRemove);
 		}
 	}
 
@@ -346,6 +303,15 @@ public partial class MagneticCharacterComponent : Node2D {
 		Array<Node> children = bodyCopy.GetChildren();
 		for (int i = 0; i < children.Count; i++) {
 			if (children[i].IsInGroup(character.GetPathTo(node).ToString())) {
+				return children[i];
+			}
+		}
+		return null;
+	}
+	public Node GetBodyCopyDupeNode2(Node node) {
+		Array<Node> children = bodyCopy.GetChildren();
+		for (int i = 0; i < children.Count; i++) {
+			if (children[i].Name == node.Name) {
 				return children[i];
 			}
 		}
@@ -429,15 +395,6 @@ public partial class MagneticCharacterComponent : Node2D {
 		this.magnetPlayers = magnetPlayers;
 	}
 
-	public void RemoveMagnetSprite(Sprite2D spriteKey) {
-		magCharPar.RemoveDuplicateSprite(spriteKey);
-		magnetSprites.Remove(spriteKey);
-	}
-	public void RemoveMagnetPlayer(AnimationPlayer playerKey) {
-		magCharPar.RemoveDuplicatePlayer(playerKey);
-		magnetPlayers.Remove(playerKey);
-	}
-
 	public Vector2 GetCharacterVelocity() {
 		return character.Velocity;
 	}
@@ -481,14 +438,6 @@ public partial class MagneticCharacterComponent : Node2D {
 		bodyCopy.ApplyTorque(torque);
 	}
 
-	public Dictionary<Sprite2D, Sprite2D> GetDuplicateSprites() {
-		return magCharPar.GetDuplicateSprites();
-	}
-
-	public Dictionary<AnimationPlayer, AnimationPlayer> GetDuplicatePlayers() {
-		return magCharPar.GetDuplicatePlayers();
-	}
-
 	public bool GetRagDollOnAnyForce() {
 		return ragDollOnAnyForce;
 	}
@@ -502,5 +451,9 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	public void ResetHitDetected() {
 		hitDetected = false;
+	}
+
+	public Dictionary<Area2D, NodePath> GetDuplicateObjects() {
+		return magCharPar.GetDuplicateObjects();
 	}
 }

@@ -25,8 +25,8 @@ height = 56.0
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ahunh"]
 height = 56.0
 
-[sub_resource type="ConvexPolygonShape2D" id="ConvexPolygonShape2D_m1hlw"]
-points = PackedVector2Array(-33.256, -28.1965, 19.6573, -30.2422, 7.54667, 28.0187, -6.02162, 27.0692)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_m1hlw"]
+size = Vector2(66.5, 26.1555)
 
 [sub_resource type="Animation" id="Animation_m1hlw"]
 length = 0.1
@@ -239,9 +239,9 @@ texture = ExtResource("15_2mp5y")
 hframes = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Wasp/Wings"]
-position = Vector2(20, 7.00005)
-rotation = 1.79943
-shape = SubResource("ConvexPolygonShape2D_m1hlw")
+position = Vector2(23, 3.00006)
+rotation = 0.127409
+shape = SubResource("RectangleShape2D_m1hlw")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Wasp/Wings"]
 root_node = NodePath("../..")

@@ -14,10 +14,12 @@ public partial class MagneticCharacterParent : Node2D {
 	private bool canJoin = true;
 	CharacterBody2D character;
 	MagneticCharacterComponent component;
-	Node magnetObject;
 	Sprite2D originalSprite;
 	Dictionary<Sprite2D, Sprite2D> duplicateSprites = new();
 	Dictionary<AnimationPlayer, AnimationPlayer> duplicatePlayers = new();
+	Dictionary<CollisionShape2D, NodePath> duplicateShapes = new();
+
+	Dictionary<Area2D, NodePath> duplicateObjects = new();
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -31,10 +33,8 @@ public partial class MagneticCharacterParent : Node2D {
 		character = component.GetCharacter();
 
 		component.SetBodyCopy(InitialiseBodyCopy());
-		component.SetCharacterSprites(duplicateSprites);
-		component.SetCharacterPlayers(duplicatePlayers);
 
-		InitialiseCharacterSprite();
+		InitialiseCharacterChildren();
 	}
 
 	/// <summary>
@@ -61,11 +61,20 @@ public partial class MagneticCharacterParent : Node2D {
 
 		bodyCopy.ProcessMode = ProcessModeEnum.Disabled;
 
-		bool hasPlayers = false;
-		bool hasSprites = false;
-		
+		bool collisionTransfer = false;		
+
 		foreach (Node child in character.GetChildren()) {
+			Area2D duplicateObject = new();
+			bool useDuplicate = false;
+
 			if (!child.IsInGroup("MagneticComponent")) {
+				MagneticComponent childMagComp = child.GetNodeOrNull<MagneticComponent>("MagneticComponent");
+				
+				if (childMagComp != null) {
+					if (childMagComp.GetExitCondition() != ExitCondition.CannotExit) {
+						collisionTransfer = true;
+					}
+				}
 
 				// Duplicating all children of character into bodyCopy except the metal object(s)
 				if (!child.IsInGroup("Magnetic")) {
@@ -75,6 +84,7 @@ public partial class MagneticCharacterParent : Node2D {
 							duplicateNode.Name = $"{child.Name}_Duplicate";
 							duplicateNode.AddToGroup(character.GetPathTo(child).ToString());
 							bodyCopy.AddChild(duplicateNode);
+
 						// If child is a physics item it would have been duplicated from a magnetic body
 						} else {
 							// Ensure duplication is off the original magnetic body and not off the duplicated physics item
@@ -96,17 +106,19 @@ public partial class MagneticCharacterParent : Node2D {
 						}
 					}
 				} else {
+					duplicateObject.Name = $"Duplicate{GetPathTo(child)}";
+					useDuplicate = true;
 					// Extracting sprites and animation players from metal object(s)
 					Array<Node> children = child.GetChildren();
+
 					Sprite2D animationSprite = null;
-					Sprite2D newAnimationSprite = null;
-					Sprite2D newCharacterAnimationSprite = null;
+					Sprite2D bodyCopyAnimSprite = null;
+					Sprite2D characterCopyAnimSprite = null;
 					AnimationPlayer animationPlayer = null;
 
-					// Checking if any AnimationPlayers exist
 					for (int i = 0; i < children.Count; i++) {
+						// Checking if any AnimationPlayers exist
 						if (children[i] is AnimationPlayer animPlayer) {
-							hasPlayers = true;
 							animationPlayer = animPlayer;
 
 							// Storing the sprite used in the animation player
@@ -114,58 +126,73 @@ public partial class MagneticCharacterParent : Node2D {
 						}
 					}
 
-					// Extracting Sprite2Ds from metal object(s)
 					for (int i = 0; i < children.Count; i++) {
-						if (children[i] is Sprite2D && child is PhysicsBody2D metalObject) {
-							hasSprites = true;
+						if (collisionTransfer) {
+							if (children[i] is CollisionShape2D collShape) {
+								CollisionShape2D characterCopyShape = (CollisionShape2D) collShape.Duplicate();
+								duplicateObject.AddChild(characterCopyShape);
+							}
+						}
 
+					
+						// Extracting Sprite2Ds from metal object(s)
+						if (children[i] is Sprite2D && child is PhysicsBody2D metalObject) {
 							originalSprite = (Sprite2D) children[i];
-							Sprite2D duplicateSprite = (Sprite2D) originalSprite.Duplicate();
+							Sprite2D bodyCopySprite = (Sprite2D) originalSprite.Duplicate();
+							Sprite2D characterSprite = (Sprite2D) originalSprite.Duplicate();
 							// duplicateSprite.Position = bodyCopy.ToLocal(originalSprite.GlobalPosition);
-							duplicateSprite.Name = $"{originalSprite.Name}_{child.Name}_Duplicate";
-							duplicateSprite.AddToGroup(character.GetPathTo(children[i]).ToString());
-							duplicateSprite.Rotation = metalObject.Rotation + originalSprite.Rotation;
+							bodyCopySprite.Name = $"{originalSprite.Name}_{child.Name}_Duplicate";
+							bodyCopySprite.AddToGroup(character.GetPathTo(children[i]).ToString());
+
+							bodyCopySprite.Scale = originalSprite.Scale;
+							bodyCopySprite.Rotation = metalObject.Rotation + originalSprite.Rotation;
 							
-							duplicateSprite.Position = metalObject.Position.Rotated(metalObject.Rotation) + originalSprite.Position.Rotated(originalSprite.Rotation);
-							duplicateSprite.Position = duplicateSprite.Position.Rotated(duplicateSprite.Rotation);
+							bodyCopySprite.Position = metalObject.Position.Rotated(metalObject.Rotation) + originalSprite.Position.Rotated(originalSprite.Rotation);
+							bodyCopySprite.Position = bodyCopySprite.Position.Rotated(bodyCopySprite.Rotation);
 
 							// Getting the duplicate of the sprite used in the animation player
 							if (animationPlayer != null) {
 								if (animationSprite == originalSprite) {
-									newAnimationSprite = duplicateSprite;
+									bodyCopyAnimSprite = bodyCopySprite;
 								}
 							}
 
-							Sprite2D characterSprite = (Sprite2D) duplicateSprite.Duplicate();
 							characterSprite.AddToGroup(child.Name);
-							newCharacterAnimationSprite = characterSprite;
+							characterCopyAnimSprite = characterSprite;
+
+							duplicateObject.AddChild(characterCopyAnimSprite);
 							
-							duplicateSprites.Add(characterSprite, originalSprite);
-							bodyCopy.AddChild(duplicateSprite);
+							bodyCopy.AddChild(bodyCopySprite);
 						} 
 					}
 					
 					// Doing a deep duplication of the animation player
 					if (animationSprite != null && animationPlayer != null) {
-						AnimationPlayer duplicatePlayer = DuplicatedAnimationPlayer(animationPlayer, newAnimationSprite, animationSprite, bodyCopy);
-						duplicatePlayer.Name = $"{animationPlayer.Name}_{animationPlayer.GetParent().Name}_Duplicate";
-						duplicatePlayer.AddToGroup(character.GetPathTo(animationPlayer).ToString());
-						bodyCopy.AddChild(duplicatePlayer);
+						AnimationPlayer bodyCopyPlayer = DuplicatedAnimationPlayer(animationPlayer, bodyCopyAnimSprite, animationSprite, bodyCopy.Name.ToString());
+						bodyCopyPlayer.Name = $"{animationPlayer.Name}_{animationPlayer.GetParent().Name}_Duplicate";
+						bodyCopyPlayer.AddToGroup(character.GetPathTo(animationPlayer).ToString());
+						bodyCopy.AddChild(bodyCopyPlayer);
 
-						AnimationPlayer characterPlayer = DuplicatedAnimationPlayer(animationPlayer, newCharacterAnimationSprite, animationSprite, character);
-						duplicatePlayers.Add(characterPlayer, animationPlayer);
+						AnimationPlayer characterCopyPlayer = DuplicatedAnimationPlayer(animationPlayer, characterCopyAnimSprite, animationSprite, duplicateObject.Name.ToString());
+						duplicateObject.AddChild(characterCopyPlayer);
+						characterCopyPlayer.Play("RESET");
 
 						// Defaults to playing RESET. Will need to update if other animations need to be played
-						duplicatePlayer.Play("RESET");
+						bodyCopyPlayer.Play("RESET");
 					}
 				}
 			}
+
+			if (useDuplicate && duplicateObject.GetChildCount() > 0) {
+				duplicateObject.Position = ((Node2D)child).Position;
+				duplicateObject.Rotation = ((Node2D)child).Rotation;
+				duplicateObjects.Add(duplicateObject, GetPathTo(child));
+			}
 		}
 
-		// If no sprites or animation players are found setting the dictionaries to null
-		if (!hasPlayers) duplicatePlayers = null;
-		if (!hasSprites) duplicateSprites = null;
-
+		if (duplicateObjects.Count == 0) {
+			duplicateObjects = null;
+		}
 
 		// Adds a magnetic component to the rigidbody so it can be moved with magnets
 		MagneticComponent magComp = new MagneticComponent(component, weakMultiplier, strongMultiplier, blastMultiplier, canJoin);
@@ -177,13 +204,13 @@ public partial class MagneticCharacterParent : Node2D {
 
 	/// <summary>
 	/// Duplicates an AnimationPlayer using newAnimationSprite for the texture key.
-	/// <para>originalPlayer is the player being duplicated.</para>
-	/// <para>newAnimationSprite is the sprite being used in the duplicated player.</para>
-	/// <para>oldAnimationSprite used to get the key paths.</para>
-	/// <para>recipient is the node that will have the new player added. Used to get proper pathing</para>
+	/// <para>originalPlayer: The player being duplicated.</para>
+	/// <para>newAnimationSprite: The sprite being used in the duplicated player.</para>
+	/// <para>oldAnimationSprite: Used to get the key paths.</para>
+	/// <para>recipient: The node that will have the new player added. Used to get proper pathing</para>
 	/// </summary>
 	/// <returns>The duplicated AnimationPlayer</returns>
-	private AnimationPlayer DuplicatedAnimationPlayer(AnimationPlayer originalPlayer, Sprite2D newAnimationSprite, Sprite2D oldAnimationSprite, PhysicsBody2D recipient) {
+	private AnimationPlayer DuplicatedAnimationPlayer(AnimationPlayer originalPlayer, Sprite2D newAnimationSprite, Sprite2D oldAnimationSprite, NodePath recipientPath) {
 
 		AnimationPlayer duplicatePlayer = (AnimationPlayer) originalPlayer.Duplicate((int) DuplicateFlags.Groups);
 		
@@ -207,7 +234,7 @@ public partial class MagneticCharacterParent : Node2D {
 				// Only update tracks that point to the old Sprite2D
 				if (nodePath == character.GetPathTo(oldAnimationSprite).ToString()) {
 
-					NodePath relativePath = $"{recipient.Name}/{newAnimationSprite.Name}";
+					NodePath relativePath = $"{recipientPath}/{newAnimationSprite.Name}";
 					var property = path.ToString().Split(':', StringSplitOptions.None).Last(); // from the old track
 					NodePath newPath = new NodePath($"{relativePath}:{property}");
 					anim.TrackSetPath(j, newPath);
@@ -269,40 +296,23 @@ public partial class MagneticCharacterParent : Node2D {
 	/// Initialises the character to have all the sprites and animation players from metal objects
 	/// added to the character.
 	/// </summary>
-	public void InitialiseCharacterSprite() {
-		foreach (var child in character.GetChildren()) {
-			if (child.IsInGroup("Magnetic") && duplicateSprites.Keys.Count > 0) {
-				Array<Sprite2D> sprites = (Array<Sprite2D>) duplicateSprites.Keys;
-				for (int i = 0; i < sprites.Count; i++) {
-					if (sprites[i].IsInGroup(child.Name)) {
-						character.AddChild(sprites[i]);
-						character.MoveChild(sprites[i], child.GetIndex());
-					}
-				}
+	public void InitialiseCharacterChildren() {
+		if (duplicateObjects.Count > 0) {
+			foreach (var item in duplicateObjects.Keys) {
+				character.AddChild(item);
 			}
 		}
-		
-		if (duplicatePlayers.Keys.Count > 0) {
-			Array<AnimationPlayer> players = (Array<AnimationPlayer>) duplicatePlayers.Keys;
-			for (int i = 0; i < players.Count; i++) {
-				character.AddChild(players[i]);
-				players[i].Play("RESET");
-			}
-		}
+		// GD.Print(character.GetTreeStringPretty());
 	}
 
-	public Dictionary<Sprite2D, Sprite2D> GetDuplicateSprites() {
-		return duplicateSprites;
+	public void RemoveDuplicateShape(CollisionShape2D shapeKey) {
+		duplicateShapes.Remove(shapeKey);
+	}
+	public Dictionary<Area2D, NodePath> GetDuplicateObjects() {
+		return duplicateObjects;
 	}
 
-	public Dictionary<AnimationPlayer, AnimationPlayer> GetDuplicatePlayers() {
-		return duplicatePlayers;
-	}
-
-	public void RemoveDuplicateSprite(Sprite2D spriteKey) {
-		duplicateSprites.Remove(spriteKey);
-	}
-	public void RemoveDuplicatePlayer(AnimationPlayer playerKey) {
-		duplicatePlayers.Remove(playerKey);
+	public void RemoveDuplicateObject(Area2D objectKey) {
+		duplicateObjects.Remove(objectKey);
 	}
 }

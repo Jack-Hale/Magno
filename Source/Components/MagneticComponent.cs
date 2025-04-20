@@ -51,6 +51,7 @@ public partial class MagneticComponent : Node2D {
 	private Sprite2D rigidSprite;
 	private Sprite2D rigidSpriteDupe;
 	private Vector2 rigidSpriteDupePosition;
+	private Vector2 rigidSpriteResetPosition;
 	private bool collectedDupeSprite = false;
 	private AnimationPlayer rigidPlayer;
 	private bool disableMagneticism = false;
@@ -200,6 +201,15 @@ public partial class MagneticComponent : Node2D {
 		}
 	}
 
+
+	// Need to change the way duplicate nodes work so that they connect to the original via
+	// a nodepath to the original and all duplicates from the same child are part of an Area2D
+	// Need to ensure that all positional changes are made to the area rather than just the sprite
+	// so that the collision shape stays with the sprite. 
+
+
+
+
 	public override void _Draw() {
         // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 4.0f);
 	}
@@ -227,25 +237,21 @@ public partial class MagneticComponent : Node2D {
 					}
 				} 
 			} else {
-				Dictionary<Sprite2D, Sprite2D> sprites = magCharComp.GetDuplicateSprites();
-
-				// If none exist, arrays will be null
-				collectedDupeSprite = sprites == null;
-
-				if (sprites != null && sprites.Keys.Count > 0) {
-					foreach (var item in sprites.Keys) {
-						if (rigidSprite == sprites[item]) {
-							rigidSpriteDupe = item;
-							collectedDupeSprite = true;
-							// rigidSpriteDupePosition = rigidSpriteDupe.Position;
-							// GD.Print(rigidSpriteDupePosition);
+				Dictionary<Area2D, NodePath> objects = magCharComp.GetDuplicateObjects();
+				
+				foreach (var item in objects.Keys) {
+					if (objects[item] == magCharComp.GetParent().GetPathTo(rigidObject)) {
+						Array<Node> children = item.GetChildren();
+						for (int i = 0; i < children.Count; i++) {
+							if (children[i] is Sprite2D sprite) {
+								collectedDupeSprite = true;
+								rigidSpriteDupe = sprite;
+								rigidSpriteResetPosition = rigidSpriteDupe.Position;
+							}
 						}
 					}
 				}
 			}			
-		}
-		if (rigidObject.Name == "Wings") {
-			// GD.Print(rigidSpriteDupe.Position, rigidSpriteDupePosition);
 		}
 
 		if (characterObject != null && rigidObject != null) {
@@ -288,8 +294,8 @@ public partial class MagneticComponent : Node2D {
 
 						if (!inExitSequence) {
 							if (rigidSpriteDupe != null) {
-								if (rigidSpriteDupe.Position != rigidSpriteDupePosition) {
-									rigidSpriteDupe.Position = rigidSpriteDupePosition;
+								if (rigidSpriteDupe.Position != rigidSpriteResetPosition) {
+									rigidSpriteDupe.Position = rigidSpriteResetPosition;
 								}
 							}
 							shakeStrength = 0;
@@ -518,5 +524,9 @@ public partial class MagneticComponent : Node2D {
 
 	public void DisableMagneticism(bool disable) {
 		disableMagneticism = disable;
+	}
+
+	public ExitCondition GetExitCondition() {
+		return exitCondition;
 	}
 }
