@@ -67,8 +67,9 @@ public partial class MagneticCharacterParent : Node2D {
 			Area2D duplicateObject = new();
 			bool useDuplicate = false;
 
+			MagneticComponent childMagComp = null;
 			if (!child.IsInGroup("MagneticComponent")) {
-				MagneticComponent childMagComp = child.GetNodeOrNull<MagneticComponent>("MagneticComponent");
+				childMagComp = child.GetNodeOrNull<MagneticComponent>("MagneticComponent");
 				
 				if (childMagComp != null) {
 					if (childMagComp.GetExitCondition() != ExitCondition.CannotExit) {
@@ -106,7 +107,6 @@ public partial class MagneticCharacterParent : Node2D {
 						}
 					}
 				} else {
-					duplicateObject.Name = $"Duplicate{GetPathTo(child)}";
 					useDuplicate = true;
 					// Extracting sprites and animation players from metal object(s)
 					Array<Node> children = child.GetChildren();
@@ -186,6 +186,14 @@ public partial class MagneticCharacterParent : Node2D {
 			if (useDuplicate && duplicateObject.GetChildCount() > 0) {
 				duplicateObject.Position = ((Node2D)child).Position;
 				duplicateObject.Rotation = ((Node2D)child).Rotation;
+				duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(child)}-0";
+
+				if (childMagComp != null && collisionTransfer) {
+					duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(childMagComp)}-1";
+					duplicateObject.CollisionLayer = 1u << 8;
+					duplicateObject.AddToGroup("DuplicateMagnetChild");
+				}
+
 				duplicateObjects.Add(duplicateObject, GetPathTo(child));
 			}
 		}
@@ -302,7 +310,6 @@ public partial class MagneticCharacterParent : Node2D {
 				character.AddChild(item);
 			}
 		}
-		// GD.Print(character.GetTreeStringPretty());
 	}
 
 	public void RemoveDuplicateShape(CollisionShape2D shapeKey) {

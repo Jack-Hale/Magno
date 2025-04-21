@@ -49,6 +49,7 @@ shape = SubResource("CircleShape2D_hdlqb")
 
 [node name="MagneticComponent" type="Node2D" parent="CircleMan/Hand1"]
 script = ExtResource("5_t40qs")
+exitCondition = 1
 exitTimer = 5.0
 metadata/_custom_type_script = "uid://dga5am8fpoq83"
 

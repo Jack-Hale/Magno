@@ -28,10 +28,11 @@ public partial class MagneticComponent : Node2D {
 	private CharacterBody2D characterObject;
 	private Magnet magnetParent;
 	private MagneticCharacterComponent magCharComp;
+	private bool exitTriggered = false;
 
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
-	private bool inExitSequence = false;
+	private bool inTimeLimitExit = false;
 	private bool isRigidPhysics;
 	private float exitTimerDefault;
 
@@ -62,7 +63,7 @@ public partial class MagneticComponent : Node2D {
 	private float shakeStrength = 0;
 	private float shakeAmount = 1;
 	private float shakeFade = -5;
-	
+	private Area2D objectDuplicate = null;
 	public MagneticComponent() {
 		Name = "MagneticComponent";
 		AddToGroup("MagneticComponent");
@@ -201,15 +202,6 @@ public partial class MagneticComponent : Node2D {
 		}
 	}
 
-
-	// Need to change the way duplicate nodes work so that they connect to the original via
-	// a nodepath to the original and all duplicates from the same child are part of an Area2D
-	// Need to ensure that all positional changes are made to the area rather than just the sprite
-	// so that the collision shape stays with the sprite. 
-
-
-
-
 	public override void _Draw() {
         // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Red, 4.0f);
 	}
@@ -256,58 +248,6 @@ public partial class MagneticComponent : Node2D {
 
 		if (characterObject != null && rigidObject != null) {
 			switch (exitCondition) {
-				case ExitCondition.CannotExit:
-					break;
-				case ExitCondition.TimeLimit:
-					if (!inExitSequence && characterObject.IsInGroup("Affected")) {
-						exitTimer = exitTimerDefault;
-						shakeStrength = shakeAmount;
-						rigidSpriteDupePosition = rigidSpriteDupe.Position;
-						inExitSequence = true;
-					}
-
-					if (inExitSequence) {
-						if (exitTimer > 0) {
-							exitTimer -= (float) delta;
-							shakeFade = -exitTimer;
-
-							if (rigidSpriteDupe != null) {
-								// If sprite is out of range, reset and recollect sprite position.
-								if (ShakeSprite(rigidSpriteDupe, rigidSpriteDupePosition)) {
-									shakeStrength = 0;
-								} else {
-									if (shakeStrength == 0) {
-										rigidSpriteDupePosition = rigidSpriteDupe.Position;
-										shakeStrength = shakeAmount;
-									}
-								}
-							}
-
-						} else {
-							EnableRigidObject();
-							inExitSequence = false;
-						}
-
-						if (inExitSequence && !characterObject.IsInGroup("Affected")) {
-							inExitSequence = false;
-						}
-
-						if (!inExitSequence) {
-							if (rigidSpriteDupe != null) {
-								if (rigidSpriteDupe.Position != rigidSpriteResetPosition) {
-									rigidSpriteDupe.Position = rigidSpriteResetPosition;
-								}
-							}
-							shakeStrength = 0;
-						}
-					}
-
-					break;
-				case ExitCondition.StrongForce:
-					if (magCharComp.GetBodyCopyStrengthData().Item2) {
-						EnableRigidObject();
-					}
-					break;
 				case ExitCondition.Throw:
 					if (magCharComp.GetBodyCopyStrengthData().Item1) {
 						EnableRigidObject();
@@ -320,6 +260,63 @@ public partial class MagneticComponent : Node2D {
 					break;
 			}
 
+			if (exitTriggered || inTimeLimitExit) {
+				switch (exitCondition) {
+					case ExitCondition.CannotExit:
+						break;
+					case ExitCondition.TimeLimit:
+						if (!inTimeLimitExit && characterObject.IsInGroup("Affected")) {
+							exitTimer = exitTimerDefault;
+							shakeStrength = shakeAmount;
+							rigidSpriteDupePosition = rigidSpriteDupe.Position;
+							inTimeLimitExit = true;
+						}
+
+						if (inTimeLimitExit) {
+							if (exitTimer > 0) {
+								exitTimer -= (float) GetProcessDeltaTime();
+								shakeFade = -exitTimer;
+
+								if (rigidSpriteDupe != null) {
+									// If sprite is out of range, reset and recollect sprite position.
+									if (ShakeSprite(rigidSpriteDupe, rigidSpriteDupePosition)) {
+										shakeStrength = 0;
+									} else {
+										if (shakeStrength == 0) {
+											rigidSpriteDupePosition = rigidSpriteDupe.Position;
+											shakeStrength = shakeAmount;
+										}
+									}
+								}
+
+							} else {
+								EnableRigidObject();
+								inTimeLimitExit = false;
+							}
+
+							if (inTimeLimitExit && !exitTriggered) {
+								inTimeLimitExit = false;
+							}
+
+							if (!inTimeLimitExit) {
+								if (rigidSpriteDupe != null) {
+									if (rigidSpriteDupe.Position != rigidSpriteResetPosition) {
+										rigidSpriteDupe.Position = rigidSpriteResetPosition;
+									}
+								}
+								shakeStrength = 0;
+							}
+						}
+
+						break;
+					case ExitCondition.StrongForce:
+						if (magCharComp.GetBodyCopyStrengthData().Item2) {
+							EnableRigidObject();
+						}
+						break;
+				}
+			}
+
 			if (magCharComp != null) {
 				if (magCharComp.GetHitDetected()) {
 					if (waitForHit) {
@@ -330,7 +327,6 @@ public partial class MagneticComponent : Node2D {
 				}
 			}
 		}
-
 
 		canJoin = !disableMagneticism;
 
@@ -363,6 +359,14 @@ public partial class MagneticComponent : Node2D {
 		}
 
 		return findPosition;
+	}
+
+	public void TriggerExitCase() {
+		exitTriggered = true;
+	}
+
+	public void StopExitCase() {
+		exitTriggered = false;
 	}
 
 	/// <summary>
@@ -473,14 +477,32 @@ public partial class MagneticComponent : Node2D {
 		}
 	}
 
+	/// <summary>
+	/// Gets the data representing the parameters of a magnet affecting parent.
+	/// <para>bool Item1 = pull mode of magnet (true = pull, false = push)</para>
+	/// <para>Vector2 Item2 = position the magnet is affecting parent</para>
+	/// </summary>
+	/// <returns>Tuple containing both bool and vector.</returns>
 	public Tuple<bool, Vector2> GetMagnetData() {
 		return magnetData;
 	}
 
+	/// <summary>
+	/// Gets the data representing the force of a magnet affecting parent.
+	/// <para>Vector2 Item1 = force vector</para>
+	/// <para>Vector2 Item2 = position force is being applied</para>
+	/// </summary>
+	/// <returns>Tuple containing both vectors.</returns>
 	public Tuple<Vector2, Vector2> GetForceData() {
 		return forceData;
 	}
 
+	/// <summary>
+	/// Gets the data representing the strength of a magnet affecting parent.
+	/// <para>bool Item1 = if blast</para>
+	/// <para>bool Item2 = if strong magnet</para>
+	/// </summary>
+	/// <returns>Tuple containing both booleans.</returns>
 	public Tuple<bool, bool> GetStrengthData() {
 		return strengthData;
 	}

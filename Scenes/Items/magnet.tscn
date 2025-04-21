@@ -55,7 +55,7 @@ collision_mask = 22
 position = Vector2(34, 0)
 disable_mode = 1
 collision_layer = 0
-collision_mask = 182
+collision_mask = 438
 
 [node name="BeamArea" type="CollisionPolygon2D" parent="MagnetBeam"]
 polygon = PackedVector2Array(0, 4, 0, -4, 289, -15, 289, 15)

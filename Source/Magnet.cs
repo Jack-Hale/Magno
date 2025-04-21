@@ -39,7 +39,8 @@ public partial class Magnet : Area2D
 	
 	private PhysicsBody2D attachedObject;
 	private MagneticComponent attachedObjectMagComp;
-	private Dictionary<PhysicsBody2D, MagneticComponent> attractedObjects = new Dictionary<PhysicsBody2D, MagneticComponent>{};
+	private Dictionary<PhysicsBody2D, MagneticComponent> attractedObjects = new();
+	private Dictionary<Area2D, MagneticComponent> affectedDuplicates = new();
 	private Sprite2D _beamSpriteWeak;
 	private Sprite2D _beamSpriteStrong;
 
@@ -83,6 +84,9 @@ public partial class Magnet : Area2D
 
 		_magnetBeam.Connect("body_entered", new Callable(this, MethodName.OnBodyEnteredBeam));
 		_magnetBeam.Connect("body_exited", new Callable(this, MethodName.OnBodyExitedBeam));
+
+		_magnetBeam.Connect("area_entered", new Callable(this, MethodName.OnAreaEnteredBeam));
+		_magnetBeam.Connect("area_exited", new Callable(this, MethodName.OnAreaExitedBeam));
 
 		Connect("body_entered", new Callable(this, MethodName.OnBodyEntered));
 		Connect("body_exited", new Callable(this, MethodName.OnBodyExited));
@@ -395,7 +399,42 @@ public partial class Magnet : Area2D
 			}
 		}
 
+
+		if (!activated) {
+			foreach (var item in affectedDuplicates.Keys) {
+				affectedDuplicates[item].StopExitCase();
+				affectedDuplicates.Remove(item);
+			}
+		}
+
+		foreach (var item in affectedDuplicates.Keys) {
+			affectedDuplicates[item].TriggerExitCase();
+		}
+
+
 		QueueRedraw();
+	}
+
+	private void OnAreaEnteredBeam(Area2D area) {
+		if (area.IsInGroup("DuplicateMagnetChild")) {
+			string[] namePath = area.Name.ToString().Split('-')[2].Split('_');
+			string path = "";
+			for (int i = 0; i < namePath.Length; i++) {
+				path += namePath[i];
+				if (i != namePath.Length - 1) {
+					path += "/";
+				}
+			} 
+			MagneticComponent magComp = area.GetParent().GetNode<MagneticComponent>(path);
+			
+			affectedDuplicates.Add(area, magComp);
+		}
+	}
+	private void OnAreaExitedBeam(Area2D area) {
+		if (affectedDuplicates.ContainsKey(area)) {
+			affectedDuplicates[area].StopExitCase();
+			affectedDuplicates.Remove(area);
+		}
 	}
 
 	// Called when object touches the magnet beam

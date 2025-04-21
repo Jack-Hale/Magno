@@ -2,6 +2,7 @@ using Godot;
 using Godot.Collections;
 using System;
 using System.IO;
+using System.Linq;
 using System.Security.Principal;
 
 public enum SwapCondition {
@@ -243,6 +244,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	/// </summary>
 	public void DetachMetalObject(Node2D objectRemove) {
 		
+		// Finding the copy of the object on the character
 		Dictionary<Area2D, NodePath> duplicateObjects = magCharPar.GetDuplicateObjects();
 		Area2D copyRemove = null;
 		foreach (var item in duplicateObjects.Keys) {
@@ -252,15 +254,32 @@ public partial class MagneticCharacterComponent : Node2D {
 			}
 		}
 
+		// Finding the copy on the bodyCopy.
 		if (copyRemove != null) {
 			Array<Node> childrenRemove = copyRemove.GetChildren();
 			for (int i = 0; i < childrenRemove.Count; i++) {
-				Node node = GetBodyCopyDupeNode2(childrenRemove[i]);
+				Node node = GetBodyCopyDupeNode(childrenRemove[i]);
 				if (node != null) {
 					bodyCopy.RemoveChild(node);
 				}
 			}
 			character.RemoveChild(copyRemove);
+		}
+
+		// If object to remove has a physics item duplicated, remove it.
+		if (objectRemove.IsInGroup("ChildHasPhysics")) {
+			Array<Node> children = objectRemove.GetChildren();
+			for (int i = 0; i < children.Count; i++) {
+				if (children[i].IsInGroup("HasPhysics")) {
+					foreach (var item in physicsItems.Keys) {
+						if (children[i] == physicsItems[item]) {
+							character.RemoveChild(item);
+							physicsItems.Remove(item);
+						}
+					}
+				}
+			}
+
 		}
 	}
 
@@ -299,16 +318,16 @@ public partial class MagneticCharacterComponent : Node2D {
 	/// Given a node, find the node duplicated onto bodyCopy.
 	/// </summary>
 	/// <returns>Duplicated node</returns>
+	// public Node GetBodyCopyDupeNode(Node node) {
+	// 	Array<Node> children = bodyCopy.GetChildren();
+	// 	for (int i = 0; i < children.Count; i++) {
+	// 		if (children[i].IsInGroup(character.GetPathTo(node).ToString())) {
+	// 			return children[i];
+	// 		}
+	// 	}
+	// 	return null;
+	// }
 	public Node GetBodyCopyDupeNode(Node node) {
-		Array<Node> children = bodyCopy.GetChildren();
-		for (int i = 0; i < children.Count; i++) {
-			if (children[i].IsInGroup(character.GetPathTo(node).ToString())) {
-				return children[i];
-			}
-		}
-		return null;
-	}
-	public Node GetBodyCopyDupeNode2(Node node) {
 		Array<Node> children = bodyCopy.GetChildren();
 		for (int i = 0; i < children.Count; i++) {
 			if (children[i].Name == node.Name) {
@@ -418,14 +437,32 @@ public partial class MagneticCharacterComponent : Node2D {
 		}
 	}
 
+	/// <summary>
+	/// Gets the data representing the parameters of a magnet affecting bodyCopy.
+	/// <para>bool Item1 = pull mode of magnet (true = pull, false = push)</para>
+	/// <para>Vector2 Item2 = position the magnet is affecting parent</para>
+	/// </summary>
+	/// <returns>Tuple containing both bool and vector.</returns>
 	public Tuple<bool, Vector2> GetBodyCopyMagnetData() {
 		return bodyCopyMagComp.GetMagnetData();
 	}
 
+	/// <summary>
+	/// Gets the data representing the force of a magnet affecting bodyCopy.
+	/// <para>Vector2 Item1 = force vector</para>
+	/// <para>Vector2 Item2 = position force is being applied</para>
+	/// </summary>
+	/// <returns>Tuple containing both vectors.</returns>
 	public Tuple<Vector2, Vector2> GetBodyCopyForceData() {
 		return bodyCopyMagComp.GetForceData();
 	}
 
+	/// <summary>
+	/// Gets the data representing the strength of a magnet affecting bodyCopy.
+	/// <para>bool Item1 = if blast</para>
+	/// <para>bool Item2 = if strong magnet</para>
+	/// </summary>
+	/// <returns>Tuple containing both booleans.</returns>
 	public Tuple<bool, bool> GetBodyCopyStrengthData() {
 		return bodyCopyMagComp.GetStrengthData();
 	}
