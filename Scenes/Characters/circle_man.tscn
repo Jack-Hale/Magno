@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://b0sb54tp8spe6"]
+[gd_scene load_steps=11 format=3 uid="uid://b0sb54tp8spe6"]
 
 [ext_resource type="Script" uid="uid://cyfe7n8vtr5xk" path="res://Source/Components/MagneticCharacterParent.cs" id="1_kpnsm"]
 [ext_resource type="Script" uid="uid://bv76e8qnymuee" path="res://Source/Components/MagneticCharacterComponent.cs" id="2_pdojd"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://dogsi7pkpindx" path="res://Assets/Sprites/circleMan.png" id="3_qldjo"]
 [ext_resource type="Texture2D" uid="uid://co4oadduo1bxp" path="res://Assets/Sprites/hand.png" id="4_iw1gc"]
 [ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="5_t40qs"]
+[ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="7_iw1gc"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_wavvd"]
 radius = 64.0
@@ -70,3 +71,7 @@ script = ExtResource("5_t40qs")
 exitCondition = 1
 exitTimer = 5.0
 metadata/_custom_type_script = "uid://dga5am8fpoq83"
+
+[node name="PathFindingComponent" type="Node2D" parent="CircleMan"]
+script = ExtResource("7_iw1gc")
+metadata/_custom_type_script = "uid://dfgsiwyixd82h"

@@ -784,11 +784,11 @@ public partial class Magnet : Area2D
 		}
 	}
 
-	// Given a CollisionShape2D, return a Vector2 representing the size of the shape
-	/*
-		If the size of the shape can only be represented by a float, return a Vector2 
-		with X being the value and Y being 0
-	*/
+	/// <summary>
+	/// Given a CollisionShape2D, return a Vector2 representing the size of the shape.
+	/// <para> If the size of the shape can only be represented by a float, return a Vector2 
+	/// with X being the value and Y being 0.</para>
+	/// </summary>
 	public Vector2 GetShapeSize(CollisionShape2D collisionShape) {
 		// Rectangle
 		if (collisionShape.Shape is RectangleShape2D rectangleShape) {

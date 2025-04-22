@@ -137,8 +137,8 @@ public partial class Wasp : CharacterBody2D {
 		}
 
 		if (magCharComp != null) {
-			if (magCharComp.Dettach()) {
-				DettachProjectile();
+			if (magCharComp.Detach()) {
+				_projectileLauncher = null;
 			}
 		}
 	}
@@ -269,9 +269,5 @@ public partial class Wasp : CharacterBody2D {
 			Velocity = velocity;
 			MoveAndSlide();
 		}
-	}
-
-	private void DettachProjectile() {
-		_projectileLauncher = null;
 	}
 }

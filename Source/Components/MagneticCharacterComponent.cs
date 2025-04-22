@@ -58,7 +58,7 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
-	private bool dettach = false;
+	private bool detach = false;
 	public bool CanSwapToCharacter = true;
 	private bool waitForSwap = false;
 	private bool hitDetected = false;
@@ -168,8 +168,8 @@ public partial class MagneticCharacterComponent : Node2D {
 		ragdollTimer = 0;
 		hitDetected = true;
 	}
-	public bool Dettach() {
-		return dettach;
+	public bool Detach() {
+		return detach;
 	}
 	// Swaps the CharacterBody2D with the Rigidbody2D bodyCopy
 	public void SwapToRigid() {
@@ -310,7 +310,7 @@ public partial class MagneticCharacterComponent : Node2D {
 		parent.RemoveChild(character);
 		parent.GetParent().AddChild(character);
 		character.GlobalPosition = position;
-		dettach = true;
+		detach = true;
 		QueueFree();
 	}
 
