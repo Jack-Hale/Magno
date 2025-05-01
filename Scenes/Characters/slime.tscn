@@ -42,4 +42,5 @@ metadata/_custom_type_script = "uid://dfgsiwyixd82h"
 
 [node name="DamageComponent" type="Node2D" parent="Slime"]
 script = ExtResource("8_dvwxt")
+onlyDamagePlayer = true
 metadata/_custom_type_script = "uid://bs7evxlj3ifeb"

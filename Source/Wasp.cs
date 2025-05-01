@@ -166,6 +166,7 @@ public partial class Wasp : CharacterBody2D {
 
 			if (hasGun) {
 				if (GetNodeOrNull<RigidBody2D>("Gun") == null) {
+					magCharComp.isRigidPhysics = true;
 					_gun = null;
 					_projectileLauncher = null;
 					hasGun = false;

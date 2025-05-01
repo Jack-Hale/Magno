@@ -20,6 +20,8 @@ public partial class DamageComponent : Node2D {
 
 	[Export]
 	public float scaledDamageMax = 40;
+	[Export]
+	public bool onlyDamagePlayer = false;
 	private bool canDamage = true;
 	private CollisionObject2D parent = null;
 	private CollisionObject2D greaterParent = null;
@@ -110,6 +112,10 @@ public partial class DamageComponent : Node2D {
 	}
 
 	public void OnBodyShapeEntered(Rid bodyRid, Node body, int bodyShapeIndex, int localShapeIndex) {
+		if (onlyDamagePlayer && body is not Player) {
+			return;
+		}
+		
 		bool isException = false;
 		for (int i = 0; i < exceptions.Count; i++) {
 			if (exceptions[i] == body) {

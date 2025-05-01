@@ -411,7 +411,6 @@ public partial class Magnet : Area2D
 			affectedDuplicates[item].TriggerExitCase();
 		}
 
-
 		QueueRedraw();
 	}
 
@@ -430,6 +429,7 @@ public partial class Magnet : Area2D
 			affectedDuplicates.Add(area, magComp);
 		}
 	}
+
 	private void OnAreaExitedBeam(Area2D area) {
 		if (affectedDuplicates.ContainsKey(area)) {
 			affectedDuplicates[area].StopExitCase();
@@ -487,7 +487,7 @@ public partial class Magnet : Area2D
 	// Removes object from dict of attracted objects
 	private void OnBodyExitedBeam(Node body) {
 		// Body can only be detached if it's being pushed by the beam but not attached to the magnet
-		if (body != attachedObject) {
+		if (body != EnteredBody) {
 			if (body is PhysicsBody2D) {
 
 				PhysicsBody2D itemToRemove = null;
@@ -498,7 +498,6 @@ public partial class Magnet : Area2D
 						itemToRemove = item;
 					}
 				}
-
 
 				// If body was in dict, remove from dict
 				if (itemToRemove != null) {

@@ -71,6 +71,14 @@ public partial class MagneticCharacterParent : Node2D {
 			if (!child.IsInGroup("MagneticComponent")) {
 				childMagComp = child.GetNodeOrNull<MagneticComponent>("MagneticComponent");
 				
+				duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(child)}-0";
+				
+				if (childMagComp != null && collisionTransfer) {
+					duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(childMagComp)}-1";
+					duplicateObject.CollisionLayer = 1u << 8;
+					duplicateObject.AddToGroup("DuplicateMagnetChild");
+				}
+				
 				if (childMagComp != null) {
 					if (childMagComp.GetExitCondition() != ExitCondition.CannotExit) {
 						collisionTransfer = true;
@@ -168,16 +176,16 @@ public partial class MagneticCharacterParent : Node2D {
 					
 					// Doing a deep duplication of the animation player
 					if (animationSprite != null && animationPlayer != null) {
-						AnimationPlayer bodyCopyPlayer = DuplicatedAnimationPlayer(animationPlayer, bodyCopyAnimSprite, animationSprite, bodyCopy.Name.ToString());
+						AnimationPlayer bodyCopyPlayer = DuplicateAnimationPlayer(animationPlayer, bodyCopyAnimSprite, animationSprite, bodyCopy.Name.ToString());
 						bodyCopyPlayer.Name = $"{animationPlayer.Name}_{animationPlayer.GetParent().Name}_Duplicate";
 						bodyCopyPlayer.AddToGroup(character.GetPathTo(animationPlayer).ToString());
 						bodyCopy.AddChild(bodyCopyPlayer);
 
-						AnimationPlayer characterCopyPlayer = DuplicatedAnimationPlayer(animationPlayer, characterCopyAnimSprite, animationSprite, duplicateObject.Name.ToString());
+						AnimationPlayer characterCopyPlayer = DuplicateAnimationPlayer(animationPlayer, characterCopyAnimSprite, animationSprite, duplicateObject.Name.ToString());
 						duplicateObject.AddChild(characterCopyPlayer);
-						characterCopyPlayer.Play("RESET");
 
 						// Defaults to playing RESET. Will need to update if other animations need to be played
+						characterCopyPlayer.Play("RESET");
 						bodyCopyPlayer.Play("RESET");
 					}
 				}
@@ -186,13 +194,7 @@ public partial class MagneticCharacterParent : Node2D {
 			if (useDuplicate && duplicateObject.GetChildCount() > 0) {
 				duplicateObject.Position = ((Node2D)child).Position;
 				duplicateObject.Rotation = ((Node2D)child).Rotation;
-				duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(child)}-0";
-
-				if (childMagComp != null && collisionTransfer) {
-					duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(childMagComp)}-1";
-					duplicateObject.CollisionLayer = 1u << 8;
-					duplicateObject.AddToGroup("DuplicateMagnetChild");
-				}
+				
 
 				duplicateObjects.Add(duplicateObject, GetPathTo(child));
 			}
@@ -218,7 +220,7 @@ public partial class MagneticCharacterParent : Node2D {
 	/// <para>recipient: The node that will have the new player added. Used to get proper pathing</para>
 	/// </summary>
 	/// <returns>The duplicated AnimationPlayer</returns>
-	private AnimationPlayer DuplicatedAnimationPlayer(AnimationPlayer originalPlayer, Sprite2D newAnimationSprite, Sprite2D oldAnimationSprite, NodePath recipientPath) {
+	private AnimationPlayer DuplicateAnimationPlayer(AnimationPlayer originalPlayer, Sprite2D newAnimationSprite, Sprite2D oldAnimationSprite, NodePath recipientPath) {
 
 		AnimationPlayer duplicatePlayer = (AnimationPlayer) originalPlayer.Duplicate((int) DuplicateFlags.Groups);
 		

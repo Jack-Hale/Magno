@@ -23,7 +23,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	private float swapTimeLimit = 0.5f;
 
 	[Export]
-	private bool isRigidPhysics = true;
+	public bool isRigidPhysics = true;
 	[Export]
 	private bool ragDollOnAnyForce = false;
 	[Export]
@@ -110,7 +110,6 @@ public partial class MagneticCharacterComponent : Node2D {
 
 			} else {
 				// Manually swaps to character once the timer has ended so it doesnt need to be triggered again
-
 				if (CanSwapToCharacter) {
 					ragdoll = false;
 					SwapToCharacter();
@@ -139,6 +138,10 @@ public partial class MagneticCharacterComponent : Node2D {
 		}
 	}
 
+	/// <summary>
+	/// Takes all physics based objects on character and creates a copy of just the physics node.
+	/// </summary>
+	/// <returns>Dictionary containing the copy of the physics node as the key and the original as the value.</returns>
 	public Dictionary<Node2D, Node2D> GeneratePhysicsItems() {
 		Array<Node> children = character.GetChildren();
 

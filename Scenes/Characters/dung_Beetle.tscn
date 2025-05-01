@@ -18,7 +18,6 @@ script = ExtResource("1_mu1ll")
 [node name="Bomb" parent="." instance=ExtResource("1_cordj")]
 position = Vector2(0, -8)
 mass = 2.0
-damageAmount = 100.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_cordj")

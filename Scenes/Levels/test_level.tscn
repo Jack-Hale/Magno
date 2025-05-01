@@ -3,7 +3,7 @@
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_0rdck"]
 [ext_resource type="Texture2D" uid="uid://bucros67cnrfw" path="res://Assets/BackgroundSprites/LabBackground.png" id="1_x4x4f"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/Characters/player.tscn" id="2_5mf3d"]
-[ext_resource type="PackedScene" uid="uid://b0sb54tp8spe6" path="res://Scenes/Characters/circle_man.tscn" id="5_npfmg"]
+[ext_resource type="PackedScene" uid="uid://c4cdcu4q84oud" path="res://Scenes/Characters/slime.tscn" id="5_k8g1k"]
 [ext_resource type="PackedScene" uid="uid://drkhjxgguqgtd" path="res://Scenes/Objects/Lamp.tscn" id="8_l7ek2"]
 
 [node name="TestLevel" type="Node2D"]
@@ -418,5 +418,20 @@ position = Vector2(3018, -64.23)
 [node name="Player" parent="." instance=ExtResource("2_5mf3d")]
 position = Vector2(166, 653)
 
-[node name="CircleMan" parent="." instance=ExtResource("5_npfmg")]
-position = Vector2(739, 573)
+[node name="Slime" parent="." instance=ExtResource("5_k8g1k")]
+position = Vector2(1241, 581)
+
+[node name="Slime2" parent="." instance=ExtResource("5_k8g1k")]
+position = Vector2(1408, 619)
+
+[node name="Slime3" parent="." instance=ExtResource("5_k8g1k")]
+position = Vector2(1279, 627)
+
+[node name="Slime4" parent="." instance=ExtResource("5_k8g1k")]
+position = Vector2(1341, 589)
+
+[node name="Slime5" parent="." instance=ExtResource("5_k8g1k")]
+position = Vector2(1345, 539)
+
+[node name="Slime6" parent="." instance=ExtResource("5_k8g1k")]
+position = Vector2(1475, 594)
