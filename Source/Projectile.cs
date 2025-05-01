@@ -73,7 +73,6 @@ public partial class Projectile : CharacterBody2D {
 
 	public void CreateExplosion() {
 		if (explosiveBullets) {
-			
 			Explosion explosion = (Explosion) this.explosion.Instantiate(); 
 			explosion.GlobalPosition = GlobalPosition;
 			GetParent().CallDeferred("add_child", explosion);

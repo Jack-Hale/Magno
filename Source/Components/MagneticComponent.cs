@@ -250,12 +250,17 @@ public partial class MagneticComponent : Node2D {
 			switch (exitCondition) {
 				case ExitCondition.Throw:
 					if (magCharComp.GetBodyCopyStrengthData().Item1) {
-						EnableRigidObject();
+						EnableRigidObject(true);
 					}
 					break;
 				case ExitCondition.HitSurfaceAfterThrow:
 					if (magCharComp.GetBodyCopyStrengthData().Item1) {
 						waitForHit = true;
+					}
+					break;
+				case ExitCondition.StrongForce:
+					if (magCharComp.GetBodyCopyStrengthData().Item2) {
+						EnableRigidObject(true);
 					}
 					break;
 			}
@@ -290,7 +295,7 @@ public partial class MagneticComponent : Node2D {
 								}
 
 							} else {
-								EnableRigidObject();
+								EnableRigidObject(true);
 								inTimeLimitExit = false;
 							}
 
@@ -309,18 +314,13 @@ public partial class MagneticComponent : Node2D {
 						}
 
 						break;
-					case ExitCondition.StrongForce:
-						if (magCharComp.GetBodyCopyStrengthData().Item2) {
-							EnableRigidObject();
-						}
-						break;
 				}
 			}
 
 			if (magCharComp != null) {
 				if (magCharComp.GetHitDetected()) {
 					if (waitForHit) {
-						EnableRigidObject();
+						EnableRigidObject(false);
 					} else {
 						magCharComp.ResetHitDetected();
 					}
@@ -372,7 +372,7 @@ public partial class MagneticComponent : Node2D {
 	/// <summary>
 	/// Destroys connection between Character and Rigid objects and removes any ability for Character to be magnetic.
 	/// </summary>
-	public void EnableRigidObject() {
+	public void EnableRigidObject(bool magnetCause) {
 		if (characterObject != null) {
 			magCharComp.SwapToCharacter();
 			magCharComp.DetachMetalObject(rigidObject);
@@ -404,8 +404,15 @@ public partial class MagneticComponent : Node2D {
 			// Ensures the rigidObject spawns in the direction of the magnet force when exiting character
 			Vector2 characterPosition = magCharComp.isCharacter ? characterObject.GlobalPosition : magCharComp.GetBodyCopy().GlobalPosition;
 
-			var direction = (magCharComp.GetBodyCopyMagnetData().Item2 - characterPosition).Normalized();
-			Vector2 spawnLocation = characterPosition + (magCharComp.GetBodyCopyMagnetData().Item1 ? 1 : -1) * (direction * ((float)characterSize));
+			var direction = Vector2.Up;
+			bool magnetMode = true;
+
+			if (magnetCause) {
+				direction = (magCharComp.GetBodyCopyMagnetData().Item2 - characterPosition).Normalized();
+				magnetMode = magCharComp.GetBodyCopyMagnetData().Item1;
+			}
+
+			Vector2 spawnLocation = characterPosition + ((magnetMode ? 1 : -1) * (direction * ((float)characterSize)));
 
 			rigidObject.GlobalPosition = spawnLocation;
 			rigidObject.LinearVelocity = Vector2.Zero;

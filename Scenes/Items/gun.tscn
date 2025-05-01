@@ -1,9 +1,20 @@
-[gd_scene load_steps=5 format=3 uid="uid://c02ortdkcmv7x"]
+[gd_scene load_steps=10 format=3 uid="uid://c02ortdkcmv7x"]
 
 [ext_resource type="Script" uid="uid://drej4upqy6kkw" path="res://Source/Gun.cs" id="1_o2ukw"]
 [ext_resource type="Script" uid="uid://dn3abb2bdasda" path="res://Source/Components/ItemComponent.cs" id="2_pq3s3"]
 [ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="3_pq3s3"]
-[ext_resource type="Script" uid="uid://dx10ddc7s71oq" path="res://Source/Components/ProjectileLauncher.cs" id="4_a3t6l"]
+[ext_resource type="Script" uid="uid://5wibdv2faylk" path="res://Source/Components/ProjectileComponent.cs" id="4_8pdl1"]
+[ext_resource type="Texture2D" uid="uid://cvqdp7u0bi6ww" path="res://Assets/Sprites/gunItem.png" id="4_o2ukw"]
+[ext_resource type="PackedScene" uid="uid://cw68htgtmsams" path="res://Scenes/Perishable Objects/projectile.tscn" id="6_35o2a"]
+[ext_resource type="Texture2D" uid="uid://bndpu71fqofpt" path="res://Assets/Sprites/DamageBall.png" id="7_hylu5"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_8pdl1"]
+radius = 5.0
+height = 22.3427
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_35o2a"]
+radius = 4.5
+height = 28.0
 
 [node name="Gun" type="RigidBody2D"]
 collision_layer = 4
@@ -14,10 +25,34 @@ script = ExtResource("1_o2ukw")
 script = ExtResource("2_pq3s3")
 metadata/_custom_type_script = "uid://dn3abb2bdasda"
 
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("4_o2ukw")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-9, 5)
+rotation = 0.219911
+shape = SubResource("CapsuleShape2D_8pdl1")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+position = Vector2(2, -2.5)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_35o2a")
+
 [node name="MagneticComponent" type="Node2D" parent="."]
 script = ExtResource("3_pq3s3")
 metadata/_custom_type_script = "uid://dga5am8fpoq83"
 
-[node name="ProjectileLauncher" type="Node2D" parent="."]
-script = ExtResource("4_a3t6l")
-metadata/_custom_type_script = "uid://dx10ddc7s71oq"
+[node name="ProjectileComponent" type="Node2D" parent="."]
+position = Vector2(14, -3)
+script = ExtResource("4_8pdl1")
+damage = 50.0
+shootCooldown = 0.1
+metadata/_custom_type_script = "uid://5wibdv2faylk"
+
+[node name="Projectile" parent="ProjectileComponent" instance=ExtResource("6_35o2a")]
+
+[node name="Sprite2D" type="Sprite2D" parent="ProjectileComponent/Projectile"]
+scale = Vector2(0.28125, 0.28125)
+texture = ExtResource("7_hylu5")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ProjectileComponent/Projectile"]

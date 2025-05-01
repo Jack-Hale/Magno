@@ -12,14 +12,10 @@ public partial class MagneticCharacterParent : Node2D {
 	private float blastMultiplier = 800;
 	[Export]
 	private bool canJoin = true;
-	CharacterBody2D character;
-	MagneticCharacterComponent component;
-	Sprite2D originalSprite;
-	Dictionary<Sprite2D, Sprite2D> duplicateSprites = new();
-	Dictionary<AnimationPlayer, AnimationPlayer> duplicatePlayers = new();
-	Dictionary<CollisionShape2D, NodePath> duplicateShapes = new();
-
-	Dictionary<Area2D, NodePath> duplicateObjects = new();
+	private CharacterBody2D character;
+	private MagneticCharacterComponent component;
+	private Sprite2D originalSprite;
+	private Dictionary<Area2D, NodePath> duplicateObjects = new();
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -40,7 +36,7 @@ public partial class MagneticCharacterParent : Node2D {
 	/// <summary>
 	/// Creates the RigidBody2D copy of the character
 	/// </summary>
-	/// <returns>BodyCopy</returns>
+	/// <returns>Body copy</returns>
 	public RigidBody2D InitialiseBodyCopy() {
 		RigidBody2D bodyCopy = new RigidBody2D();
 		bodyCopy.MaxContactsReported = 1;
@@ -72,7 +68,7 @@ public partial class MagneticCharacterParent : Node2D {
 				childMagComp = child.GetNodeOrNull<MagneticComponent>("MagneticComponent");
 				
 				duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(child)}-0";
-				
+
 				if (childMagComp != null && collisionTransfer) {
 					duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(childMagComp)}-1";
 					duplicateObject.CollisionLayer = 1u << 8;
@@ -141,7 +137,6 @@ public partial class MagneticCharacterParent : Node2D {
 								duplicateObject.AddChild(characterCopyShape);
 							}
 						}
-
 					
 						// Extracting Sprite2Ds from metal object(s)
 						if (children[i] is Sprite2D && child is PhysicsBody2D metalObject) {
@@ -195,7 +190,6 @@ public partial class MagneticCharacterParent : Node2D {
 				duplicateObject.Position = ((Node2D)child).Position;
 				duplicateObject.Rotation = ((Node2D)child).Rotation;
 				
-
 				duplicateObjects.Add(duplicateObject, GetPathTo(child));
 			}
 		}
@@ -314,14 +308,27 @@ public partial class MagneticCharacterParent : Node2D {
 		}
 	}
 
-	public void RemoveDuplicateShape(CollisionShape2D shapeKey) {
-		duplicateShapes.Remove(shapeKey);
-	}
 	public Dictionary<Area2D, NodePath> GetDuplicateObjects() {
 		return duplicateObjects;
 	}
 
 	public void RemoveDuplicateObject(Area2D objectKey) {
 		duplicateObjects.Remove(objectKey);
+	}
+
+	public void RunFullExit() {
+		foreach (var item in duplicateObjects.Keys) {
+			Node2D node = GetNode<Node2D>(duplicateObjects[item]);
+
+			Array<Node> children = node.GetChildren();
+			
+			for (int i = 0; i < children.Count; i++) {
+				if (children[i] is MagneticComponent magChar) {
+					magChar.EnableRigidObject(false);
+				}
+			}
+
+			RemoveDuplicateObject(item);
+		}
 	}
 }

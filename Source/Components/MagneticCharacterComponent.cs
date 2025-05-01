@@ -292,9 +292,11 @@ public partial class MagneticCharacterComponent : Node2D {
 	/// <para>Removal won't occur until the next time SwapToCharacter() is called.</para>
 	/// </summary>
 	public void TryRemoveMagnetism() {
-		// If the character still has magnet objects to dettach, don't remove magnetic abilities yet
-		if (!CharacterHasMagnet()) {
+		// If the character still has magnet objects to detach, don't remove magnetic abilities yet
+		if (CharacterHasMagnet() && !isCharacter) {
 			waitForSwap = true;
+		} else {
+			StartRemoval();
 		}
 	}
 

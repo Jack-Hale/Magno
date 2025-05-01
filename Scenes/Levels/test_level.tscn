@@ -1,9 +1,11 @@
-[gd_scene load_steps=6 format=4 uid="uid://l55oyjoo6cul"]
+[gd_scene load_steps=8 format=4 uid="uid://l55oyjoo6cul"]
 
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_0rdck"]
 [ext_resource type="Texture2D" uid="uid://bucros67cnrfw" path="res://Assets/BackgroundSprites/LabBackground.png" id="1_x4x4f"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/Characters/player.tscn" id="2_5mf3d"]
 [ext_resource type="PackedScene" uid="uid://c4cdcu4q84oud" path="res://Scenes/Characters/slime.tscn" id="5_k8g1k"]
+[ext_resource type="PackedScene" uid="uid://c02ortdkcmv7x" path="res://Scenes/Items/gun.tscn" id="6_k8g1k"]
+[ext_resource type="PackedScene" uid="uid://3rk5mpt6d7p3" path="res://Scenes/Characters/large_slime.tscn" id="7_x4x4f"]
 [ext_resource type="PackedScene" uid="uid://drkhjxgguqgtd" path="res://Scenes/Objects/Lamp.tscn" id="8_l7ek2"]
 
 [node name="TestLevel" type="Node2D"]
@@ -419,19 +421,10 @@ position = Vector2(3018, -64.23)
 position = Vector2(166, 653)
 
 [node name="Slime" parent="." instance=ExtResource("5_k8g1k")]
-position = Vector2(1241, 581)
+position = Vector2(1611, 635)
 
-[node name="Slime2" parent="." instance=ExtResource("5_k8g1k")]
-position = Vector2(1408, 619)
+[node name="Gun" parent="." instance=ExtResource("6_k8g1k")]
+position = Vector2(291, 636)
 
-[node name="Slime3" parent="." instance=ExtResource("5_k8g1k")]
-position = Vector2(1279, 627)
-
-[node name="Slime4" parent="." instance=ExtResource("5_k8g1k")]
-position = Vector2(1341, 589)
-
-[node name="Slime5" parent="." instance=ExtResource("5_k8g1k")]
-position = Vector2(1345, 539)
-
-[node name="Slime6" parent="." instance=ExtResource("5_k8g1k")]
-position = Vector2(1475, 594)
+[node name="LargeSlime" parent="." instance=ExtResource("7_x4x4f")]
+position = Vector2(493, 584)

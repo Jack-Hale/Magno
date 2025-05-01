@@ -80,7 +80,9 @@ public partial class ProjectileComponent : Node2D {
 	}
 
 	public void AddException(Node2D exception) {
-		excludeArray.Add(exception);
+		if (!excludeArray.Contains(exception)) {
+			excludeArray.Add(exception);
+		}
 	}
 
 	public void RemoveException(Node2D exception) {
@@ -88,7 +90,6 @@ public partial class ProjectileComponent : Node2D {
 	}
 
 	public void Shoot() {
-		
 		if (cooldownTimer <= 0) {
 			Projectile projectile;
 			if (useTemplate) {

@@ -16,7 +16,9 @@ public partial class Gun : RigidBody2D {
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)	{
-
+		if (_itemComponent.GetItemOwner() != null) {
+			_projectileComponent.AddException(_itemComponent.GetItemOwner());
+		}
 	}
 
 	private void Shoot() {

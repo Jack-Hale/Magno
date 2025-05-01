@@ -161,13 +161,18 @@ public partial class HealthComponent : Node2D {
 				passThroughHC.RunDeathSequence();
 			} else {
 				if (character.IsInGroup("MagneticCharacter")) {
-					
-				}
-				if (!hasDied) {
-					RigidBody2D body = CreateBodyCopy();
-					
-					body.ApplyTorqueImpulse(1000);
-					hasDied = true;
+					Node parent = character.GetParent();
+
+					if (parent is MagneticCharacterParent magCharPar) {
+						magCharPar.RunFullExit();
+					}
+				} else {
+					if (!hasDied) {
+						RigidBody2D body = CreateBodyCopy();
+						
+						body.ApplyTorqueImpulse(1000);
+						hasDied = true;
+					}
 				}
 			}
 		}

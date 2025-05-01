@@ -17,6 +17,7 @@ script = ExtResource("1_swckp")
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]
 script = ExtResource("2_l4q5u")
+isRigidPhysics = false
 
 [node name="Slime" type="CharacterBody2D" parent="."]
 collision_layer = 32
