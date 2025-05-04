@@ -19,6 +19,7 @@ shape = SubResource("RectangleShape2D_20c16")
 
 [node name="MagneticComponent" type="Node2D" parent="."]
 script = ExtResource("2_y434g")
+exitCondition = 1
 
 [node name="DamageComponent" type="Node2D" parent="."]
 script = ExtResource("3_4gmbd")

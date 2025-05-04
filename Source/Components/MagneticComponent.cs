@@ -265,6 +265,7 @@ public partial class MagneticComponent : Node2D {
 					break;
 			}
 
+			// GD.Print(exitTriggered, inTimeLimitExit);
 			if (exitTriggered || inTimeLimitExit) {
 				switch (exitCondition) {
 					case ExitCondition.CannotExit:

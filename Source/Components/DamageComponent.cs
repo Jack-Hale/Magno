@@ -50,6 +50,7 @@ public partial class DamageComponent : Node2D {
 				characterParent = charNode;
 				CollisionShape2D parentCollision = characterParent.GetNode<CollisionShape2D>("CollisionShape2D");
 				Area2D area2D = new();
+				area2D.Name = "DamageArea";
 				area2D.AddChild(parentCollision.Duplicate());
 				characterParent.CallDeferred("add_child", area2D);
 				area2D.CollisionLayer = characterParent.CollisionLayer;

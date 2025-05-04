@@ -18,13 +18,12 @@ metadata/_edit_horizontal_guides_ = [-64.0]
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]
 script = ExtResource("2_f2f13")
-exitCondition = 1
-exitTimer = 0.1
-isRigidPhysics = false
+swapCondition = 2
+swapTimeLimit = 1.0
 
 [node name="LargeSlime" type="CharacterBody2D" parent="."]
 collision_layer = 32
-collision_mask = 45
+collision_mask = 173
 script = ExtResource("2_7ule6")
 
 [node name="HealthComponent" type="Node2D" parent="LargeSlime"]

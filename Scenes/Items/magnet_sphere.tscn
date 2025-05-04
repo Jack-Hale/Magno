@@ -1,0 +1,89 @@
+[gd_scene load_steps=7 format=3 uid="uid://dqtuees0oilf0"]
+
+[ext_resource type="Texture2D" uid="uid://bqrrw65bssv5b" path="res://Assets/Sprites/LargeDonut.png" id="1_0sdq2"]
+[ext_resource type="Script" uid="uid://0k6fcoidmpxy" path="res://Source/MagnetSphere.cs" id="1_cxmrt"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="2_cxmrt"]
+[ext_resource type="Script" uid="uid://dn3abb2bdasda" path="res://Source/Components/ItemComponent.cs" id="3_o7meo"]
+[ext_resource type="PackedScene" uid="uid://cv122wmaloumx" path="res://Scenes/Items/magnet.tscn" id="4_wf1wh"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cxeqn"]
+size = Vector2(9, 20)
+
+[node name="MagnetSphere" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 183
+script = ExtResource("1_cxmrt")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_0sdq2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-28, 0)
+shape = SubResource("RectangleShape2D_cxeqn")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+position = Vector2(28, 0)
+shape = SubResource("RectangleShape2D_cxeqn")
+
+[node name="MagneticComponent" type="Node2D" parent="."]
+script = ExtResource("2_cxmrt")
+metadata/_custom_type_script = "uid://dga5am8fpoq83"
+
+[node name="ItemComponent" type="Node2D" parent="."]
+script = ExtResource("3_o7meo")
+metadata/_custom_type_script = "uid://dn3abb2bdasda"
+
+[node name="Magnet" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("4_wf1wh")]
+position = Vector2(40, 0)
+activated = true
+pullMode = false
+parent = NodePath("..")
+
+[node name="Magnet2" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("4_wf1wh")]
+position = Vector2(-40, 0)
+rotation = 3.14159
+activated = true
+pullMode = false
+parent = NodePath("..")
+
+[node name="Magnet3" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("4_wf1wh")]
+position = Vector2(0, 40)
+rotation = 1.5708
+activated = true
+pullMode = false
+parent = NodePath("..")
+
+[node name="Magnet4" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("4_wf1wh")]
+position = Vector2(0, -40)
+rotation = -1.5708
+activated = true
+pullMode = false
+parent = NodePath("..")
+
+[node name="Magnet5" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("4_wf1wh")]
+position = Vector2(28, 28)
+rotation = 0.785398
+activated = true
+pullMode = false
+parent = NodePath("..")
+
+[node name="Magnet6" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("4_wf1wh")]
+position = Vector2(28, -28)
+rotation = -0.785398
+activated = true
+pullMode = false
+parent = NodePath("..")
+
+[node name="Magnet7" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("4_wf1wh")]
+position = Vector2(-28, 28)
+rotation = 2.35619
+activated = true
+pullMode = false
+parent = NodePath("..")
+
+[node name="Magnet8" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("4_wf1wh")]
+position = Vector2(-28, -28)
+rotation = -2.35619
+activated = true
+pullMode = false
+parent = NodePath("..")

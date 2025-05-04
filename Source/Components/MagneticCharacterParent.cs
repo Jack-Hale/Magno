@@ -57,7 +57,7 @@ public partial class MagneticCharacterParent : Node2D {
 
 		bodyCopy.ProcessMode = ProcessModeEnum.Disabled;
 
-		bool collisionTransfer = false;		
+		bool collisionTransfer = false;
 
 		foreach (Node child in character.GetChildren()) {
 			Area2D duplicateObject = new();
@@ -67,18 +67,18 @@ public partial class MagneticCharacterParent : Node2D {
 			if (!child.IsInGroup("MagneticComponent")) {
 				childMagComp = child.GetNodeOrNull<MagneticComponent>("MagneticComponent");
 				
-				duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(child)}-0";
+				duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(child)}-0-{child.GetIndex()}";
 
-				if (childMagComp != null && collisionTransfer) {
-					duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(childMagComp)}-1";
-					duplicateObject.CollisionLayer = 1u << 8;
-					duplicateObject.AddToGroup("DuplicateMagnetChild");
-				}
-				
 				if (childMagComp != null) {
 					if (childMagComp.GetExitCondition() != ExitCondition.CannotExit) {
 						collisionTransfer = true;
 					}
+				}
+				
+				if (childMagComp != null && collisionTransfer) {
+					duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(childMagComp)}-1";
+					duplicateObject.CollisionLayer = 1u << 8;
+					duplicateObject.AddToGroup("DuplicateMagnetChild");
 				}
 
 				// Duplicating all children of character into bodyCopy except the metal object(s)
@@ -304,6 +304,9 @@ public partial class MagneticCharacterParent : Node2D {
 		if (duplicateObjects.Count > 0) {
 			foreach (var item in duplicateObjects.Keys) {
 				character.AddChild(item);
+
+				// Object that has been duplicated has it's index stored at end of duplicated object's name.
+				character.MoveChild(item, item.Name.ToString().Split('-').Last().ToInt());
 			}
 		}
 	}

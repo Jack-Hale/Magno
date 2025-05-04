@@ -60,17 +60,35 @@ public partial class ItemComponent : Node
 		}
 	}
 
+	private PhysicsBody2D GetPhysicsParent(Node node) {
+		while (true) {
+			if (node.GetParent() is PhysicsBody2D physicsBody) {
+				return physicsBody;
+			} else {
+				node = node.GetParent();
+			}
+
+			if (node == GetTree().Root) {
+				return null;
+			}
+		}
+	}
+
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)	{
 		if (parent.GetParent() is Marker2D anchor) {
 			magnet = (Magnet) anchor.GetParent();
 
-			if (magnet.GetParent() is CharacterBody2D character) {
-				itemParentChar = character;
-				itemParentRig = null;
-			} else if (magnet.GetParent() is RigidBody2D rigid) {
-				itemParentRig = rigid;
-				itemParentChar = null;
+			Node parent = GetPhysicsParent(magnet);
+
+			if (parent != null) {
+				if (parent is CharacterBody2D character) {
+					itemParentChar = character;
+					itemParentRig = null;
+				} else if (parent is RigidBody2D rigid) {
+					itemParentRig = rigid;
+					itemParentChar = null;
+				}
 			} else {
 				itemParentRig = null;
 				itemParentChar = null;

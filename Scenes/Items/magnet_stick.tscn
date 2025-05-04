@@ -1,0 +1,90 @@
+[gd_scene load_steps=8 format=3 uid="uid://bq63mimck6fbp"]
+
+[ext_resource type="Script" uid="uid://bor5fsaitrivn" path="res://Source/MagnetStick.cs" id="1_a5spf"]
+[ext_resource type="Script" uid="uid://dn3abb2bdasda" path="res://Source/Components/ItemComponent.cs" id="1_p4cfw"]
+[ext_resource type="Texture2D" uid="uid://4ib1si87w2h7" path="res://Assets/Sprites/Pull.png" id="2_a5spf"]
+[ext_resource type="PackedScene" uid="uid://cv122wmaloumx" path="res://Scenes/Items/magnet.tscn" id="3_47oit"]
+[ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="5_47oit"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rf5eb"]
+size = Vector2(64, 8)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ugky5"]
+size = Vector2(7, 32)
+
+[node name="MagnetStick" type="RigidBody2D"]
+collision_layer = 4
+collision_mask = 191
+script = ExtResource("1_a5spf")
+
+[node name="ItemComponent" type="Node2D" parent="."]
+script = ExtResource("1_p4cfw")
+metadata/_custom_type_script = "uid://dn3abb2bdasda"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_a5spf")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_rf5eb")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+position = Vector2(28.5, 0)
+shape = SubResource("RectangleShape2D_ugky5")
+
+[node name="Magnet" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("3_47oit")]
+position = Vector2(40, 0)
+pullMode = false
+strongMagnet = true
+parent = NodePath("..")
+
+[node name="Magnet2" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("3_47oit")]
+position = Vector2(40, -16)
+pullMode = false
+strongMagnet = true
+parent = NodePath("..")
+
+[node name="Magnet3" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("3_47oit")]
+position = Vector2(40, 16)
+pullMode = false
+strongMagnet = true
+parent = NodePath("..")
+
+[node name="Magnet4" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("3_47oit")]
+position = Vector2(40, -48)
+pullMode = false
+strongMagnet = true
+parent = NodePath("..")
+
+[node name="Magnet5" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("3_47oit")]
+position = Vector2(40, -64)
+pullMode = false
+strongMagnet = true
+parent = NodePath("..")
+
+[node name="Magnet6" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("3_47oit")]
+position = Vector2(40, -32)
+pullMode = false
+strongMagnet = true
+parent = NodePath("..")
+
+[node name="Magnet7" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("3_47oit")]
+position = Vector2(40, 48)
+pullMode = false
+strongMagnet = true
+parent = NodePath("..")
+
+[node name="Magnet8" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("3_47oit")]
+position = Vector2(40, 32)
+pullMode = false
+strongMagnet = true
+parent = NodePath("..")
+
+[node name="Magnet9" parent="." node_paths=PackedStringArray("parent") instance=ExtResource("3_47oit")]
+position = Vector2(40, 64)
+pullMode = false
+strongMagnet = true
+parent = NodePath("..")
+
+[node name="MagneticComponent" type="Node2D" parent="."]
+script = ExtResource("5_47oit")
+metadata/_custom_type_script = "uid://dga5am8fpoq83"

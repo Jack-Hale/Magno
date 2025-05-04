@@ -123,6 +123,8 @@ public partial class Magnet : Area2D
 		}
 
 		canJoin = pullMode;
+
+		SetActivation(activated && !strongMagnet, activated && strongMagnet);
 	}
 
 	public override void _Draw()
@@ -729,6 +731,14 @@ public partial class Magnet : Area2D
 		return null;
 	}
 
+	public void ToggleActivation(bool weak, bool strong) {
+		if (activated) {
+			SetActivation(false, false);
+		} else {
+			SetActivation(weak, strong);
+		}
+	}
+
 	public void SetActivation(bool weak, bool strong) {
 		activated = weak || strong;
 		strongMagnet = strong;
@@ -781,6 +791,16 @@ public partial class Magnet : Area2D
 			
 			parentRigid.ApplyForce(pushForce * magnetStrength * multiplier * (float)delta, collisionPoint - GlobalPosition);
 		}
+	}
+
+	public void SetRigidParent(RigidBody2D parent) {
+		parentRigid = parent;
+		parentCharacter = null;
+	}
+
+	public void SetCharacterParent(CharacterBody2D parent) {
+		parentCharacter = parent;
+		parentRigid = null;
 	}
 
 	/// <summary>

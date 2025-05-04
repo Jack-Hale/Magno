@@ -36,7 +36,7 @@ public partial class Player : CharacterBody2D
 	private const float jumpBufferTimerMax = 0.05f;
 	private float jumpBufferTimer = 0f;
 	Vector2 Input = Vector2.Zero;
-
+	private Node2D _magnetOffset;
 	private Magnet _magnet;
 	private CollisionShape2D _collisionShape;
 	private Vector2 drawVector1 = Vector2.Zero;
@@ -78,7 +78,8 @@ public partial class Player : CharacterBody2D
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
 
 	public override void _Ready() {
-		_magnet = GetNode<Magnet>("Magnet");
+		_magnetOffset = GetNode<Node2D>("MagnetOffset");
+		_magnet = GetNode<Magnet>("MagnetOffset/Magnet");
 		_animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
 		_sprite2D = GetNode<Sprite2D>("Sprite2D");
 		_label = GetNode<Label>("Label");
@@ -198,11 +199,11 @@ public partial class Player : CharacterBody2D
 				}
 			}
 			float targetRotation = direction.Angle();
-			_magnet.Rotation = Mathf.LerpAngle(_magnet.Rotation, targetRotation, turnSpeed * (float)GetPhysicsProcessDeltaTime());
+			_magnetOffset.Rotation = Mathf.LerpAngle(_magnetOffset.Rotation, targetRotation, turnSpeed * (float)GetPhysicsProcessDeltaTime());
 			
 			// _magnet.LookAt(GetGlobalMousePosition());
 		} else {
-			_magnet.Rotation = stickAimVector.Angle();
+			_magnetOffset.Rotation = stickAimVector.Angle();
 		}
 	
 		if (Godot.Input.IsActionJustPressed("UseItemLeft")) {
@@ -353,7 +354,7 @@ public partial class Player : CharacterBody2D
 	}
 
 	public float GetMagnetRotation() {
-		return _magnet.Rotation;
+		return _magnetOffset.Rotation;
 	}
 
 	public bool GetIsOnFloor() {
@@ -423,7 +424,7 @@ public partial class Player : CharacterBody2D
 	public void UpdateAnimations() {
         string run = "run";
 
-		float angle = (_magnet.Rotation % (2 * Mathf.Pi) + (2 * Mathf.Pi)) % (2 * Mathf.Pi);
+		float angle = (_magnetOffset.Rotation % (2 * Mathf.Pi) + (2 * Mathf.Pi)) % (2 * Mathf.Pi);
 		bool angleCheck = angle >= (3 * Mathf.Pi / 2) || angle <= (Mathf.Pi / 2);
 		if (Velocity.X > 0) {
 			if (!angleCheck) {

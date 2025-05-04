@@ -149,7 +149,7 @@ metadata/_custom_type_script = "uid://cyfe7n8vtr5xk"
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]
 script = ExtResource("2_o2sb4")
-ragDollOnAnyForce = true
+isRigidPhysics = false
 metadata/_custom_type_script = "uid://bv76e8qnymuee"
 
 [node name="Wasp" type="CharacterBody2D" parent="."]
@@ -230,7 +230,7 @@ metadata/_custom_type_script = "uid://dga5am8fpoq83"
 position = Vector2(-15, -9)
 rotation = 3.14159
 collision_layer = 4
-collision_mask = 183
+collision_mask = 247
 
 [node name="Sprite2D" type="Sprite2D" parent="Wasp/Wings"]
 position = Vector2(-9, -2)
