@@ -3,8 +3,10 @@ using System;
 
 public partial class SadMan : CharacterBody2D
 {
-public const float speed = 300.0f;
-	public const float jumpVelocity = -400.0f;
+	private float maxSpeed = 300.0f;
+	private float acceleration = 1000;
+	private float jumpVelocity = -400.0f;
+	public float friction = 2200f;
 
 	private bool affected = true;
 
@@ -21,23 +23,65 @@ public const float speed = 300.0f;
 	private Vector2 magnetForce = Vector2.Zero;
 
 	// Position on the enemy the force is being applied
-	private Vector2 magnetForcePosition = Vector2.Zero;  
+	private Vector2 magnetForcePosition = Vector2.Zero;
+
+
+	private float weakMultiplier;
+	private float strongMultiplier;
+	private float blastMultiplier;
+	private bool canJoin;
+	private SwapCondition swapCondition;
+
+	private float swapTimeLimit;
+
+	public bool isRigidPhysics;
+
+	private bool ragDollOnAnyForce;
+
+	private SwapCondition anyForceSwapCondition;
+	private float anyForceSwapTimeLimit;
+
 
 	private Sprite2D _Happy;
-	private Sprite2D _Sad;
+	private Sprite2D _Sad;	
+	private PathFindingComponent _pathFinding;
+	private RigidBody2D ball;
+	private MagneticCharacterParent magneticCharacterParent = new();
+	private bool lookingForBall = false;
+	private Vector2 initialBallPosition;
+	private bool inPickup = false;
+
+	private float pickupCooldown = 2f;
+	private float pickupCooldownTimer = 0;
 
 	// Get the gravity from the project settings to be synced with RigidBody nodes.
 	public float gravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
-
 	public override void _Ready() {
+		_pathFinding = GetNode<PathFindingComponent>("PathFindingComponent");
 		_Happy = GetNode<Sprite2D>("Sprite2D");
 		_Sad = GetNode<Sprite2D>("Sad");
+		ball = GetNode<RigidBody2D>("Ball");
+		initialBallPosition = ball.Position;
 
-		foreach (var child in GetParent().GetChildren()) {
+		MagneticCharacterParent magCharPar = (MagneticCharacterParent) GetParent();
+
+		foreach (var child in magCharPar.GetChildren()) {
 			if (child is MagneticCharacterComponent) {
 				magCharComp = (MagneticCharacterComponent) child;
 			}
 		}
+
+		weakMultiplier = magCharPar.GetWeakMultiplier();
+		strongMultiplier = magCharPar.GetStrongMultiplier();
+		blastMultiplier = magCharPar.GetBlastMultiplier();
+		canJoin = magCharPar.GetCanJoin();
+
+		swapCondition = magCharComp.GetSwapCondition();
+		swapTimeLimit = magCharComp.GetSwapTimeLimit();
+		isRigidPhysics = magCharComp.GetIsRigidPhysics();
+		ragDollOnAnyForce = magCharComp.GetRagDollOnAnyForce();
+		anyForceSwapCondition = magCharComp.GetAnyForceSwapCondition();
+		anyForceSwapTimeLimit = magCharComp.GetAnyForceSwapTimeLimit();
 	}
 
 	public override void _PhysicsProcess(double delta) {
@@ -45,6 +89,10 @@ public const float speed = 300.0f;
 		
 		// Handles magnetic states
 		if (IsInGroup("Magnetic")) {
+			_Sad.Visible = false;
+			_Happy.Visible = true;
+			inPickup = false;
+			lookingForBall = false;
 			if (magCharComp == null) {
 				GD.PrintErr($"No MagneticCharacterComponent found on magnetic character {this} {Name}");
 				GD.PushError($"No MagneticCharacterComponent found on magnetic character {this} {Name}");
@@ -64,11 +112,38 @@ public const float speed = 300.0f;
 				magnetAttractionPoint = Vector2.Zero;
 			}
 		} else {
+			if (!lookingForBall) {
+				pickupCooldownTimer = pickupCooldown;
+			}
+			lookingForBall = true;
 			_Sad.Visible = true;
 			_Happy.Visible = false;
 			affected = false;
-			magCharComp = null;
 		}
+
+		if (lookingForBall) {
+			Tuple<Vector2, Vector2> search = new Tuple<Vector2, Vector2>(new Vector2(0, -72), ToLocal(ball.GlobalPosition).LimitLength(500));
+
+			Vector2 ballPosition = _pathFinding.SearchForObject([search], "", ball);
+
+			if (ballPosition != Vector2.Zero) {
+				velocity = _pathFinding.MoveCharacter(true, velocity, ToLocal(ballPosition), maxSpeed, acceleration, 1, delta);
+			}
+
+			if (!inPickup && pickupCooldownTimer <= 0) {
+				if (GlobalPosition.DistanceTo(ballPosition) < 175) {
+					PickUpBall();
+					inPickup = true;
+					pickupCooldownTimer = pickupCooldown;
+				}
+			}
+		}
+
+		if (pickupCooldownTimer > 0) {
+			pickupCooldownTimer -= (float) delta;
+		}
+
+		velocity = _pathFinding.ApplyFriction(true, velocity, friction, delta);
 
 		// Add the gravity.
 		if (!IsOnFloor())
@@ -84,5 +159,13 @@ public const float speed = 300.0f;
 
 		Velocity = velocity;
 		MoveAndSlide();
+	}
+
+	public void PickUpBall() {
+		if (lookingForBall) {
+			MagneticParentStruct magneticParentStruct = new MagneticParentStruct(weakMultiplier, strongMultiplier, blastMultiplier, canJoin);
+			MagneticComponentStruct magneticComponentStruct = new MagneticComponentStruct(swapCondition, swapTimeLimit, isRigidPhysics, ragDollOnAnyForce, anyForceSwapCondition, anyForceSwapTimeLimit);
+			magneticCharacterParent.RemagnifyCharater(initialBallPosition, ball, this, magneticParentStruct, magneticComponentStruct);
+		}
 	}
 }

@@ -9,7 +9,7 @@ radius = 33.0
 
 [node name="Ball" type="RigidBody2D"]
 collision_layer = 4
-collision_mask = 31
+collision_mask = 151
 angular_damp = 9.41
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
@@ -22,6 +22,8 @@ shape = SubResource("CircleShape2D_kicfi")
 
 [node name="MagneticComponent" type="Node2D" parent="."]
 script = ExtResource("2_7amqe")
+exitCondition = 1
+exitTimer = 1.0
 
 [node name="DamageComponent" type="Node2D" parent="."]
 script = ExtResource("3_t38s3")

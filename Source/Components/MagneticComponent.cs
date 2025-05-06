@@ -68,6 +68,21 @@ public partial class MagneticComponent : Node2D {
 		Name = "MagneticComponent";
 		AddToGroup("MagneticComponent");
 	}
+
+	public MagneticComponent(MagneticCharacterComponent magneticCharacterComponent, float weakMultiplier, float strongMultiplier, float blastMultiplier, bool canJoin, ExitCondition exitCondition, float exitTimer) {
+		magCharComp = magneticCharacterComponent;
+		Name = "MagneticComponent";
+		AddToGroup("MagneticComponent");
+		isRigidPhysics = magCharComp.GetIsRigidPhysics();
+
+		this.weakMultiplier = weakMultiplier;
+		this.strongMultiplier = strongMultiplier;
+		this.blastMultiplier = blastMultiplier;
+		this.canJoin = canJoin;
+		this.exitCondition = exitCondition;
+		this.exitTimer = exitTimer;
+	}
+	
 	public MagneticComponent(MagneticCharacterComponent magneticCharacterComponent, float weakMultiplier, float strongMultiplier, float blastMultiplier, bool canJoin) {
 		magCharComp = magneticCharacterComponent;
 		Name = "MagneticComponent";
@@ -130,49 +145,7 @@ public partial class MagneticComponent : Node2D {
 
 				rigidObject.AddToGroup("Magnetic");
 				
-				if (objectParent is PhysicsBody2D op && objectParent is not StaticBody2D) {
-					objectParent = op;
-
-					if (objectParent is CharacterBody2D) {
-						foreach (var child in objectParent.GetParent().GetChildren()) {
-							if (child is MagneticCharacterComponent) {
-								magCharComp = (MagneticCharacterComponent)child;
-								magnetCharacter = true;
-								break;
-							}
-						}
-					}
-
-					if (magnetCharacter) {
-						// Disabling the rigid object while it is within the larger object
-						collisionL = rigidObject.CollisionLayer;
-						collisionM = rigidObject.CollisionMask;
-
-						rigidObject.CollisionLayer = 0;
-						rigidObject.CollisionMask = 0;
-						
-						rigidObject.Visible = false;
-						rigidObject.Sleeping = true;
-					}
-				}
-
-				// Character contains a magnetic object that imparts its magneticism onto the character
-				if (magnetCharacter) {
-					if (magCharComp == null) {
-						GD.PrintErr(objectParent, " requires MagneticCharacterComponent");
-						GD.PushError(objectParent, " requires MagneticCharacterComponent");
-					}
-
-					exitTimerDefault = exitTimer;
-					isRigidPhysics = magCharComp.GetIsRigidPhysics();
-					rigidObjectParent = magCharComp.GetParent().GetParent();
-
-					characterObject = (CharacterBody2D) objectParent;
-					if (characterObject.IsInGroup("Magnetic")) {
-						secondaryObject = true;
-					}
-					characterObject.AddToGroup("Magnetic");
-				}
+				InitialiseForCharacterOwner(objectParent, null);
 
 				if (parent != null && parent is RigidBody2D rigid) {
 					rigid.ContinuousCd = RigidBody2D.CcdMode.CastShape;
@@ -267,6 +240,7 @@ public partial class MagneticComponent : Node2D {
 
 			// GD.Print(exitTriggered, inTimeLimitExit);
 			if (exitTriggered || inTimeLimitExit) {
+				
 				switch (exitCondition) {
 					case ExitCondition.CannotExit:
 						break;
@@ -296,6 +270,8 @@ public partial class MagneticComponent : Node2D {
 								}
 
 							} else {
+								exitTimer = exitTimerDefault;
+								
 								EnableRigidObject(true);
 								inTimeLimitExit = false;
 							}
@@ -422,6 +398,8 @@ public partial class MagneticComponent : Node2D {
 			isRigidPhysics = true;
 
 			secondaryObject = false;
+			collectedDupeSprite = false;
+			magnetCharacter = false;
 
 			magCharComp.TryRemoveMagnetism();
 			magCharComp = null;
@@ -515,6 +493,57 @@ public partial class MagneticComponent : Node2D {
 		return strengthData;
 	}
 
+	public void InitialiseForCharacterOwner(Node objectParent, Node sceneParent) {
+		if (objectParent is PhysicsBody2D op && objectParent is not StaticBody2D) {
+			objectParent = op;
+
+			if (objectParent is CharacterBody2D) {
+				foreach (var child in objectParent.GetParent().GetChildren()) {
+					if (child is MagneticCharacterComponent) {
+						magCharComp = (MagneticCharacterComponent)child;
+						magnetCharacter = true;
+						break;
+					}
+				}
+			}
+
+			if (magnetCharacter) {
+				// Disabling the rigid object while it is within the larger object
+				collisionL = rigidObject.CollisionLayer;
+				collisionM = rigidObject.CollisionMask;
+
+				rigidObject.CollisionLayer = 0;
+				rigidObject.CollisionMask = 0;
+				
+				rigidObject.Visible = false;
+				rigidObject.Sleeping = true;
+			}
+		}
+
+		// Character contains a magnetic object that imparts its magneticism onto the character
+		if (magnetCharacter) {
+			if (magCharComp == null) {
+				GD.PrintErr(objectParent, " requires MagneticCharacterComponent");
+				GD.PushError(objectParent, " requires MagneticCharacterComponent");
+			}
+
+			exitTimerDefault = exitTimer;
+			isRigidPhysics = magCharComp.GetIsRigidPhysics();
+
+			if (sceneParent == null) {
+				sceneParent = magCharComp.GetParent().GetParent();
+			}
+
+			rigidObjectParent = sceneParent;
+
+			characterObject = (CharacterBody2D) objectParent;
+			if (characterObject.IsInGroup("Magnetic")) {
+				secondaryObject = true;
+			}
+			characterObject.AddToGroup("Magnetic");
+		}
+	}
+
 	public MagneticCharacterComponent GetMagneticCharacterComponent() {
 		return magCharComp;
 	}
@@ -534,10 +563,6 @@ public partial class MagneticComponent : Node2D {
 	public bool GetIsRigidPhysics() {
 		return isRigidPhysics;
 	}
-
-	public bool GetCanJoin() {
-		return canJoin;
-	}
 	public Sprite2D GetRigidSprite() {
 		return rigidSprite;
 	}
@@ -556,7 +581,22 @@ public partial class MagneticComponent : Node2D {
 		disableMagneticism = disable;
 	}
 
+	public float GetWeakMultiplier() {
+		return weakMultiplier;
+	}
+	public float GetStrongMultiplier() {
+		return strongMultiplier;
+	}
+	public float GetBlastMultiplier() {
+		return blastMultiplier;
+	}
+	public bool GetCanJoin() {
+		return canJoin;
+	}
 	public ExitCondition GetExitCondition() {
 		return exitCondition;
+	}
+	public float GetExitTimer() {
+		return exitTimer;
 	}
 }

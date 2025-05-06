@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dfb1yy2rehbyp"]
+[gd_scene load_steps=12 format=3 uid="uid://dfb1yy2rehbyp"]
 
 [ext_resource type="Script" uid="uid://cyfe7n8vtr5xk" path="res://Source/Components/MagneticCharacterParent.cs" id="1_3jsrk"]
 [ext_resource type="Texture2D" uid="uid://buecc67mwix1c" path="res://Assets/Sprites/SadMan.png" id="2_1ul4k"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://b145p5mykonho" path="res://Scenes/Objects/ball.tscn" id="3_riyyy"]
 [ext_resource type="Texture2D" uid="uid://pf3jj8kvknsc" path="res://Assets/Sprites/SadMan1.png" id="5_2wvmy"]
 [ext_resource type="Script" uid="uid://mqaot311ny8c" path="res://Source/Components/HealthComponent.cs" id="6_18a6b"]
+[ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="8_1uahk"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_sg3ei"]
 radius = 64.0
@@ -24,13 +25,11 @@ script = ExtResource("1_3jsrk")
 
 [node name="MagneticCharacterComponent" type="Node2D" parent="."]
 script = ExtResource("2_xktru")
-exitCondition = 1
-exitTimer = 5.0
 isRigidPhysics = false
 
 [node name="SadMan" type="CharacterBody2D" parent="."]
 collision_layer = 32
-collision_mask = 45
+collision_mask = 165
 script = ExtResource("2_ncm33")
 
 [node name="Sprite2D" type="Sprite2D" parent="SadMan"]
@@ -59,3 +58,7 @@ position = Vector2(11, 36)
 position = Vector2(-88, -165)
 scale = Vector2(2.96, 2.345)
 script = ExtResource("6_18a6b")
+
+[node name="PathFindingComponent" type="Node2D" parent="SadMan"]
+script = ExtResource("8_1uahk")
+metadata/_custom_type_script = "uid://dfgsiwyixd82h"

@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Linq;
 
 // [Tool]
 public partial class PathFindingComponent : Node2D {
@@ -224,7 +225,7 @@ public partial class PathFindingComponent : Node2D {
     /// </summary>
     /// <returns>Updated vector with movement applied.</returns>
     public Vector2 MoveCharacter(bool justX, Vector2 velocity, Vector2 direction, float maxSpeed, float acceleration, float airAcceleration, double delta) {
-		Vector2 NewVelocity = Vector2.Zero;
+		Vector2 NewVelocity;
         float friction = 100;
 	
         NewVelocity = velocity;
@@ -454,6 +455,28 @@ public partial class PathFindingComponent : Node2D {
     public float GetAngle(Vector2 from, Vector2 to) {
         float angleToTarget = from.DirectionTo(to).Angle();
         return angleToTarget - 2 * Mathf.Pi * Mathf.Floor(angleToTarget / (2 * Mathf.Pi));
+    }
+
+    public Vector2 SearchForObject(Tuple<Vector2, Vector2>[] searchVectors, string searchGroup, RigidBody2D searchObject) {
+        for (int i = 0; i < searchVectors.Count(); i++) {
+            var result = FireRayCast(parent.ToGlobal(searchVectors[i].Item1), parent.ToGlobal(searchVectors[i].Item2), (1u << 2) | (1u << 3));
+
+            if (result.Count > 0) {
+                Node2D collider = (Node2D) result["collider"];
+                if (searchGroup != "") {
+                    if (collider.IsInGroup(searchGroup)) {
+                        return collider.GlobalPosition;
+                    }
+                }
+
+                if (searchObject != null) {
+                    if (collider == searchObject) {
+                        return collider.GlobalPosition;
+                    }
+                }
+            }
+        }
+        return Vector2.Zero;
     }
 
     private Dictionary FireRayCast(Vector2 from, Vector2 to, uint collisions) {

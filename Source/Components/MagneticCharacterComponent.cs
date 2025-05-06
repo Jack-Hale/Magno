@@ -1,10 +1,64 @@
 using Godot;
 using Godot.Collections;
 using System;
-using System.IO;
-using System.Linq;
-using System.Security.Principal;
 
+public struct MagneticComponentStruct {
+	private SwapCondition swapCondition;
+	private float swapTimeLimit;
+	private bool isRigidPhysics;
+	private bool ragDollOnAnyForce;
+	private SwapCondition anyForceSwapCondition;
+	private float anyForceSwapTimeLimit;
+
+    public MagneticComponentStruct(SwapCondition swapCondition, float swapTimeLimit, bool isRigidPhysics, bool ragDollOnAnyForce, 
+		SwapCondition anyForceSwapCondition, float anyForceSwapTimeLimit) {
+        this.swapCondition = swapCondition;
+		this.swapTimeLimit = swapTimeLimit;
+		this.isRigidPhysics = isRigidPhysics;
+		this.ragDollOnAnyForce = ragDollOnAnyForce;
+		this.anyForceSwapCondition = anyForceSwapCondition;
+		this.anyForceSwapTimeLimit = anyForceSwapTimeLimit;
+    }
+
+	public SwapCondition GetSwapCondition() {
+		return swapCondition;
+	}
+	public float GetSwapTimeLimit() {
+		return swapTimeLimit;
+	}
+	public bool GetIsRigidPhysics() {
+		return isRigidPhysics;
+	}
+	public bool GetRagDollOnAnyForce() {
+		return ragDollOnAnyForce;
+	}
+	public SwapCondition GetAnyForceSwapCondition() {
+		return anyForceSwapCondition;
+	}
+	public float GetAnyForceSwapTimeLimit() {
+		return anyForceSwapTimeLimit;
+	}
+
+
+	public void SetSwapCondition(SwapCondition swapCondition) {
+		this.swapCondition = swapCondition;
+	}
+	public void SetSwapTimeLimit(float swapTimeLimit) {
+		this.swapTimeLimit = swapTimeLimit;
+	}
+	public void SetIsRigidPhysics(bool isRigidPhysics) {
+		this.isRigidPhysics = isRigidPhysics;
+	}
+	public void SetRagDollOnAnyForce(bool ragDollOnAnyForce) {
+		this.ragDollOnAnyForce = ragDollOnAnyForce;
+	}
+	public void SetAnyForceSwapCondition(SwapCondition anyForceSwapCondition) {
+		this.anyForceSwapCondition = anyForceSwapCondition;
+	}
+	public void SetAnyForceSwapTimeLimit(float anyForceSwapTimeLimit) {
+		this.anyForceSwapTimeLimit = anyForceSwapTimeLimit;
+	}
+}
 public enum SwapCondition {
 	SwapWhenHitSurface,
 	SwapWhenLetGo,
@@ -63,6 +117,18 @@ public partial class MagneticCharacterComponent : Node2D {
 	private bool waitForSwap = false;
 	private bool hitDetected = false;
 
+	public MagneticCharacterComponent() {}
+
+	public MagneticCharacterComponent(string name, MagneticComponentStruct magneticComponentStruct) {
+		Name = name;
+		swapCondition = magneticComponentStruct.GetSwapCondition();
+		swapTimeLimit = magneticComponentStruct.GetSwapTimeLimit();
+		isRigidPhysics = magneticComponentStruct.GetIsRigidPhysics();
+		ragDollOnAnyForce = magneticComponentStruct.GetRagDollOnAnyForce();
+		anyForceSwapCondition = magneticComponentStruct.GetAnyForceSwapCondition();
+		anyForceSwapTimeLimit = magneticComponentStruct.GetAnyForceSwapTimeLimit();
+	}
+	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
 		parent = (Node2D)GetParent();
@@ -426,10 +492,6 @@ public partial class MagneticCharacterComponent : Node2D {
 	public Vector2 GetBodyVelocity() {
 		return bodyCopy.LinearVelocity;
 	}
-	
-	public bool GetIsRigidPhysics() {
-		return isRigidPhysics;
-	}
 
 	// Replaces collision layer/mask with either no collisions or the original collisions
 	private void ReplaceCollisions(PhysicsBody2D body, bool noCollisions) {
@@ -479,10 +541,6 @@ public partial class MagneticCharacterComponent : Node2D {
 	public void ApplyTorqueBodyCopy(float torque) {
 		bodyCopy.ApplyTorque(torque);
 	}
-
-	public bool GetRagDollOnAnyForce() {
-		return ragDollOnAnyForce;
-	}
 	public bool GetIsRagDoll() {
 		return ragdoll;
 	}
@@ -497,5 +555,24 @@ public partial class MagneticCharacterComponent : Node2D {
 
 	public Dictionary<Area2D, NodePath> GetDuplicateObjects() {
 		return magCharPar.GetDuplicateObjects();
+	}
+
+	public SwapCondition GetSwapCondition() {
+		return swapCondition;
+	}
+	public float GetSwapTimeLimit() {
+		return swapTimeLimit;
+	}
+	public bool GetIsRigidPhysics() {
+		return isRigidPhysics;
+	}
+	public bool GetRagDollOnAnyForce() {
+		return ragDollOnAnyForce;
+	}
+	public SwapCondition GetAnyForceSwapCondition() {
+		return anyForceSwapCondition;
+	}
+	public float GetAnyForceSwapTimeLimit() {
+		return anyForceSwapTimeLimit;
 	}
 }

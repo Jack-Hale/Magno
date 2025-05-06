@@ -67,6 +67,7 @@ public partial class Magnet : Area2D
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
 		_anchor = GetNode<Marker2D>("Anchor");
+		_anchor.AddToGroup("MagnetAnchor");
 		anchorPositionDefault = _anchor.Position;
 		_magnetBeam = GetNode<Area2D>("MagnetBeam");
 		_magnetBeam.AddToGroup("NoRagdollInclusion");
@@ -209,6 +210,7 @@ public partial class Magnet : Area2D
 
 					// Adjust the collision by 1 depending on whether the magnet is above or below the collision point
 					collisionPoint.Y -= GlobalPosition.Y > collisionPoint.Y ? 1 : -1;
+					collisionPoint.X -= GlobalPosition.X > collisionPoint.X ? 1 : -1;
 
 					Vector2 localCollision = tileMap.ToLocal(collisionPoint);
 
@@ -461,16 +463,20 @@ public partial class Magnet : Area2D
 					if (magCharComp != null) {
 						
 						RigidBody2D bodyCopy = magCharComp.GetBodyCopy();
-						body.AddToGroup("Affected");
-						MagneticComponent newObject = (MagneticComponent) bodyCopy.GetNode("MagneticComponent");
-						if (!attractedObjects.ContainsKey(bodyCopy)) {
+						if (bodyCopy != null) {
+							body.AddToGroup("Affected");
+						
+							MagneticComponent newObject = bodyCopy.GetNodeOrNull<MagneticComponent>("MagneticComponent");
 
-							if (magCharComp.GetIsRigidPhysics()) {
-								magCharComp.SwapToRigid();
-								magCharComp.CanSwapToCharacter = false;
+							if (!attractedObjects.ContainsKey(bodyCopy)) {
+
+								if (magCharComp.GetIsRigidPhysics()) {
+									magCharComp.SwapToRigid();
+									magCharComp.CanSwapToCharacter = false;
+								}
+
+								attractedObjects.Add(bodyCopy, newObject);
 							}
-
-							attractedObjects.Add(bodyCopy, newObject);
 						}
 					}
 				} else {
