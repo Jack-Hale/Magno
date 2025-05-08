@@ -63,6 +63,9 @@ public partial class SadMan : CharacterBody2D
 		ball = GetNode<RigidBody2D>("Ball");
 		initialBallPosition = ball.Position;
 
+		MagneticComponent ballMagComp = GetNode<MagneticComponent>("Ball/MagneticComponent");
+		ballMagComp.SetExitCondition(ExitCondition.TimeLimit);
+
 		MagneticCharacterParent magCharPar = (MagneticCharacterParent) GetParent();
 
 		foreach (var child in magCharPar.GetChildren()) {

@@ -20,9 +20,9 @@ public partial class MagneticComponent : Node2D {
 	[Export]
 	private bool canJoin = true;
 	[Export]
-	public ExitCondition exitCondition;
+	private ExitCondition exitCondition;
 	[Export]
-	public float exitTimer = 2;
+	private float exitTimer = 2;
 
 	private RigidBody2D rigidObject;
 	private CharacterBody2D characterObject;
@@ -598,5 +598,24 @@ public partial class MagneticComponent : Node2D {
 	}
 	public float GetExitTimer() {
 		return exitTimer;
+	}
+
+	public void SetWeakMultiplier(float weakMultiplier) {
+		this.weakMultiplier = weakMultiplier;
+	}
+	public void SetStrongMultiplier(float strongMultiplier) {
+		this.strongMultiplier = strongMultiplier;
+	}
+	public void SetBlastMultiplier(float blastMultiplier) {
+		this.blastMultiplier = blastMultiplier;
+	}
+	public void SetCanJoin(bool canJoin) {
+		this.canJoin = canJoin;
+	}
+	public void SetExitCondition(ExitCondition exitCondition) {
+		this.exitCondition = exitCondition;
+	}
+	public void SetExitTimer(float exitTimer) {
+		this.exitTimer = exitTimer;
 	}
 }

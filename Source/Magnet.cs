@@ -63,6 +63,7 @@ public partial class Magnet : Area2D
 	private Vector2 draw4 = Vector2.Zero;
 	private Vector2 draw5 = Vector2.Zero;
 	private Vector2 draw6 = Vector2.Zero;
+	private Vector2 magnetBeamPosition;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -88,6 +89,8 @@ public partial class Magnet : Area2D
 
 		_magnetBeam.Connect("area_entered", new Callable(this, MethodName.OnAreaEnteredBeam));
 		_magnetBeam.Connect("area_exited", new Callable(this, MethodName.OnAreaExitedBeam));
+
+		magnetBeamPosition = _magnetBeam.Position;
 
 		Connect("body_entered", new Callable(this, MethodName.OnBodyEntered));
 		Connect("body_exited", new Callable(this, MethodName.OnBodyExited));
@@ -164,8 +167,8 @@ public partial class Magnet : Area2D
 			attachedObject = null;
 		}
 
-		if (_magnetBeam.Position != new Vector2(32, 0)) {
-			_magnetBeam.Position = new Vector2(32, 0);
+		if (_magnetBeam.Position != magnetBeamPosition) {
+			_magnetBeam.Position = magnetBeamPosition;
 		}
 	}
 
@@ -250,6 +253,7 @@ public partial class Magnet : Area2D
 
 					if (magComp.GetMagneticCharacterComponent() == null || magComp.GetIsRigidPhysics()) {
 						// Ensures walls block magnet beam
+						GD.Print($"_beamCheck1:{_beamCheck1.GetCollider()} _beamCheck2:{_beamCheck2.GetCollider()} _beamCheck3:{_beamCheck3.GetCollider()}");
 						if (_beamCheck1.GetCollider() == body || _beamCheck2.GetCollider() == body || _beamCheck3.GetCollider() == body) {
 
 							// Fire two raycasts along both edges of the magnet beam
@@ -376,9 +380,9 @@ public partial class Magnet : Area2D
 
 		// Failsafe for if object is not in beam but is still included in the attractedObjects Dict
 		// TODO: Make this never actually occur 
-		if (!_beamCheck1.IsColliding() && !_beamCheck2.IsColliding() && !_beamCheck3.IsColliding() && attractedObjects.Count > 0 && !isObjectAttached) {
-			DetachAll();
-		} 
+		// if (!_beamCheck1.IsColliding() && !_beamCheck2.IsColliding() && !_beamCheck3.IsColliding() && attractedObjects.Count > 0 && !isObjectAttached) {
+		// 	DetachAll();
+		// } 
 
 		// Failsafe for if OnBodyEnteredBeam isnt triggered correctly. Helps the magnet push enemies more consistently.
 		if (activated && (_beamCheck1.IsColliding() || _beamCheck2.IsColliding() || _beamCheck3.IsColliding())) {
