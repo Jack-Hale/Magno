@@ -2,8 +2,7 @@ using Godot;
 using Godot.Collections;
 using System;
 
-public partial class Magnet : Area2D
-{
+public partial class Magnet : Area2D {
 	[Export]
 	private bool activated = false;
 	[Export]
@@ -36,7 +35,7 @@ public partial class Magnet : Area2D
 	private RayCast2D _beamCheck2;
 	private RayCast2D _beamCheck3;
 	private StaticBody2D _physicsObject;
-	
+
 	private PhysicsBody2D attachedObject;
 	private MagneticComponent attachedObjectMagComp;
 	private Dictionary<PhysicsBody2D, MagneticComponent> attractedObjects = new();
@@ -56,7 +55,7 @@ public partial class Magnet : Area2D
 	private bool isItem = false;
 
 	private uint objectCollisionLayer = 0;
-	
+
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
 	private Vector2 draw3 = Vector2.Zero;
@@ -108,12 +107,12 @@ public partial class Magnet : Area2D
 		parent.CallDeferred("add_child", collision);
 		collision.Position = _physicsObject.Position;
 
-		
+
 		_beamArea = _magnetBeam.GetNode<CollisionPolygon2D>("BeamArea");
-		
+
 		float minX = float.MaxValue;
 		float maxX = float.MinValue;
-		
+
 		foreach (Vector2 vector in _beamArea.Polygon) {
 			if (vector.X > maxX) maxX = vector.X;
 			if (vector.X < minX) minX = vector.X;
@@ -131,8 +130,7 @@ public partial class Magnet : Area2D
 		SetActivation(activated && !strongMagnet, activated && strongMagnet);
 	}
 
-	public override void _Draw()
-	{
+	public override void _Draw() {
 		// DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
 		// DrawLine(ToLocal(draw3), ToLocal(draw4), Colors.Blue, 4.0f);
 		// DrawLine(ToLocal(draw5), ToLocal(draw6), Colors.Blue, 3.0f);
@@ -142,13 +140,13 @@ public partial class Magnet : Area2D
 	public override void _Process(double delta) {
 		// Removing velocity on first tick object is removed
 		if (!isObjectAttached && attachedObject != null) {
-			
+
 			if (attachedObject is RigidBody2D rigidBody) {
 				rigidBody.AngularVelocity = 0;
 				rigidBody.LinearVelocity = parentCharacter != null ? parentCharacter.Velocity : parentRigid != null ? parentRigid.LinearVelocity : Vector2.Zero;
 			}
 
-			MagneticComponent magneticComponent = (MagneticComponent) attachedObject.GetNode("MagneticComponent");
+			MagneticComponent magneticComponent = (MagneticComponent)attachedObject.GetNode("MagneticComponent");
 			MagneticCharacterComponent magCharComp = magneticComponent.GetMagneticCharacterComponent();
 
 			if (blast) {
@@ -159,7 +157,7 @@ public partial class Magnet : Area2D
 				if (magCharComp != null) {
 					magCharComp.StartRagDollTimer();
 				}
-				
+
 				OnBodyExitedBeam(attachedObject);
 
 				blast = false;
@@ -173,7 +171,7 @@ public partial class Magnet : Area2D
 	}
 
 	public override void _PhysicsProcess(double delta) {
-		
+
 		collision.Rotation = Rotation;
 		collision.GlobalPosition = _physicsObject.GlobalPosition;
 
@@ -189,7 +187,8 @@ public partial class Magnet : Area2D
 			// Disabling beam sprite if object attached
 			if (strongMagnet) {
 				_beamSpriteStrong.Visible = false;
-			} else {
+			}
+			else {
 				_beamSpriteWeak.Visible = false;
 			}
 			if (!activated || !canJoin) {
@@ -203,7 +202,8 @@ public partial class Magnet : Area2D
 			// Reenabling beam sprite if no object attached
 			if (strongMagnet) {
 				_beamSpriteStrong.Visible = activated;
-			} else {
+			}
+			else {
 				_beamSpriteWeak.Visible = activated;
 			}
 			// Checking if there are tiles in the beam
@@ -226,7 +226,7 @@ public partial class Magnet : Area2D
 					TileData data = tileMap.GetCellTileData(collisionCoords);
 
 					// Moving magnet holder if terrain is magnetic
-					if (data != null && (bool) data.GetCustomData("Magnetic")) {
+					if (data != null && (bool)data.GetCustomData("Magnetic")) {
 						ForceObject(_tileBeamCast.GetCollisionPoint(), delta);
 					}
 				}
@@ -235,13 +235,13 @@ public partial class Magnet : Area2D
 			// Iterate through all attracted objects to process attraction physics
 			if (activated) {
 				foreach (PhysicsBody2D body in attractedObjects.Keys) {
-					
+
 					if (!attractedObjects.ContainsKey(body)) {
 						break;
 					}
 					// Attach object that reaches the magnet
 					MagneticComponent magComp = attractedObjects[body];
-					
+
 					if (EnteredBody == body && attachedObject != body && canJoin) {
 						// Detaching object from any magnet that is already holding it
 						if (magComp.IsBeingHeld()) {
@@ -266,7 +266,7 @@ public partial class Magnet : Area2D
 
 							var query1 = PhysicsRayQueryParameters2D.Create(start1, end1, _magnetBeam.CollisionMask);
 							var query2 = PhysicsRayQueryParameters2D.Create(start2, end2, _magnetBeam.CollisionMask);
-						
+
 							query1.Exclude = new Array<Rid>();
 							query2.Exclude = new Array<Rid>();
 
@@ -276,14 +276,14 @@ public partial class Magnet : Area2D
 							bool breakCheck1 = true;
 							bool breakCheck2 = true;
 
-							Array<Rid> exclusionArray1 = new Array<Rid>{};
-							Array<Rid> exclusionArray2 = new Array<Rid>{};
+							Array<Rid> exclusionArray1 = new Array<Rid> { };
+							Array<Rid> exclusionArray2 = new Array<Rid> { };
 
 							const int maxIterations = 40;
 							int iterationCount = 0;
 
 							while (breakCheck1 || breakCheck2) {
-								
+
 								if (breakCheck1) {
 									// Add list of objects found that aren't the target to exclusion list
 									query1.Exclude = exclusionArray1;
@@ -296,15 +296,15 @@ public partial class Magnet : Area2D
 										Rid currentRid1 = (Rid)result1["rid"];
 
 										// If the current collider is the target body, close off query track
-										if (currentRid1 == body.GetRid())
-										{
+										if (currentRid1 == body.GetRid()) {
 											finalResult1 = result1;
 											breakCheck1 = false;
 										}
-										
+
 										// Exclude the current collider from the next query
 										exclusionArray1.Add(currentRid1);
-									} else {
+									}
+									else {
 										// Target not found
 										breakCheck1 = false;
 									}
@@ -313,24 +313,24 @@ public partial class Magnet : Area2D
 								if (breakCheck2) {
 									// Add list of objects found that aren't the target to exclusion list
 									query2.Exclude = exclusionArray2;
-									
+
 									// Generate new query result
 									var result2 = spaceState.IntersectRay(query2);
 
 									// Check if the result contains a valid collider
 									if (result2.Count != 0 && breakCheck2) {
 										Rid currentRid2 = (Rid)result2["rid"];
-										
+
 										// If the current collider is the target body, close off query track
-										if (currentRid2 == body.GetRid())
-										{
+										if (currentRid2 == body.GetRid()) {
 											finalResult2 = result2;
 											breakCheck2 = false;
 										}
-										
+
 										// Exclude the current collider from the next query
 										exclusionArray2.Add(currentRid2);
-									} else {
+									}
+									else {
 										// Target not found
 										breakCheck2 = false;
 									}
@@ -338,7 +338,7 @@ public partial class Magnet : Area2D
 								// If maximum interations reached, exit the loop
 								iterationCount++;
 								if (iterationCount >= maxIterations) {
-									break; 
+									break;
 								}
 							}
 
@@ -348,11 +348,13 @@ public partial class Magnet : Area2D
 							if (finalResult1 != null && finalResult2 == null) {
 								collisionPoint = (Vector2)finalResult1["position"];
 
-							} else if (finalResult1 == null && finalResult2 != null) {
+							}
+							else if (finalResult1 == null && finalResult2 != null) {
 								collisionPoint = (Vector2)finalResult2["position"];
-								
-							// If both queries found target, get position between both points
-							} else if (finalResult1 != null && finalResult2 != null) {
+
+								// If both queries found target, get position between both points
+							}
+							else if (finalResult1 != null && finalResult2 != null) {
 								Vector2 position1 = (Vector2)finalResult1["position"];
 								Vector2 position2 = (Vector2)finalResult2["position"];
 								collisionPoint = position1.Lerp(position2, 0.5f);
@@ -360,7 +362,7 @@ public partial class Magnet : Area2D
 
 							if (magComp.GetRagDollOnAnyForce()) {
 								MagneticCharacterComponent magCharComp = magComp.GetMagneticCharacterComponent();
-								
+
 								if (magCharComp != null) {
 									if (magCharComp.GetRagDollOnAnyForce() && !magCharComp.GetIsRagDoll()) {
 										magCharComp.StartAnyForceRagDollTimer();
@@ -369,7 +371,8 @@ public partial class Magnet : Area2D
 							}
 							magComp.ForceObject(collisionPoint, GlobalPosition, beamLength, pullMode, strongMagnet, false, delta, false);
 						}
-					} else {
+					}
+					else {
 						// No forces applied if object is part of a large character, only magnet data is shared
 						magComp.ForceObject(Vector2.Zero, GlobalPosition, beamLength, pullMode, strongMagnet, false, delta, true);
 					}
@@ -391,13 +394,15 @@ public partial class Magnet : Area2D
 						OnBodyEnteredBeam(body1);
 					}
 				}
-			} else if (_beamCheck2.IsColliding() && _beamCheck2.GetCollider() is PhysicsBody2D body2) {
+			}
+			else if (_beamCheck2.IsColliding() && _beamCheck2.GetCollider() is PhysicsBody2D body2) {
 				if (body2.IsInGroup("Magnetic")) {
 					if (!attractedObjects.ContainsKey(body2)) {
 						OnBodyEnteredBeam(body2);
 					}
 				}
-			} else if (_beamCheck3.IsColliding() && _beamCheck3.GetCollider() is PhysicsBody2D body3) {
+			}
+			else if (_beamCheck3.IsColliding() && _beamCheck3.GetCollider() is PhysicsBody2D body3) {
 				if (body3.IsInGroup("Magnetic")) {
 					if (!attractedObjects.ContainsKey(body3)) {
 						OnBodyEnteredBeam(body3);
@@ -430,9 +435,9 @@ public partial class Magnet : Area2D
 				if (i != namePath.Length - 1) {
 					path += "/";
 				}
-			} 
+			}
 			MagneticComponent magComp = area.GetParent().GetNode<MagneticComponent>(path);
-			
+
 			affectedDuplicates.Add(area, magComp);
 		}
 	}
@@ -450,7 +455,7 @@ public partial class Magnet : Area2D
 		if (!isObjectAttached) {
 			// Only adds objects with Magnetic group
 			if (body.IsInGroup("Magnetic")) {
-				
+
 				// Magnetic rigidbodies and characterbodies are treated differently
 				if (body.IsInGroup("MagneticCharacter")) {
 					MagneticCharacterComponent magCharComp = null;
@@ -464,11 +469,11 @@ public partial class Magnet : Area2D
 
 					// Uses the magcharcomp to get the bodycopy of the character before switching to rigid
 					if (magCharComp != null) {
-						
+
 						RigidBody2D bodyCopy = magCharComp.GetBodyCopy();
 						if (bodyCopy != null) {
 							body.AddToGroup("Affected");
-						
+
 							MagneticComponent newObject = bodyCopy.GetNodeOrNull<MagneticComponent>("MagneticComponent");
 
 							if (!attractedObjects.ContainsKey(bodyCopy)) {
@@ -482,10 +487,11 @@ public partial class Magnet : Area2D
 							}
 						}
 					}
-				} else {
+				}
+				else {
 					// Just adds the rigidbody and its magnetic component to the list
-					MagneticComponent newObject = (MagneticComponent) body.GetNode("MagneticComponent");
-					
+					MagneticComponent newObject = (MagneticComponent)body.GetNode("MagneticComponent");
+
 					if (!attractedObjects.ContainsKey((PhysicsBody2D)body)) {
 						attractedObjects.Add((PhysicsBody2D)body, newObject);
 					}
@@ -502,7 +508,7 @@ public partial class Magnet : Area2D
 			if (body is PhysicsBody2D) {
 
 				PhysicsBody2D itemToRemove = null;
-				
+
 				// Find item in dict with the exited body as the key
 				foreach (PhysicsBody2D item in attractedObjects.Keys) {
 					if (item == ((PhysicsBody2D)body)) {
@@ -526,12 +532,12 @@ public partial class Magnet : Area2D
 			}
 		}
 	}
-	
+
 	// Called when object touches the magnet itself
 	private void OnBodyEntered(Node2D body) {
 		// Store body if it is magnetic, the magnet is activated and there is no other object attached
 		if (body.IsInGroup("Magnetic") && activated && !isObjectAttached) {
-			EnteredBody = (PhysicsBody2D) body;
+			EnteredBody = (PhysicsBody2D)body;
 		}
 	}
 
@@ -545,9 +551,14 @@ public partial class Magnet : Area2D
 	private void AttachObject(PhysicsBody2D body, MagneticComponent bodyMagComp) {
 		if (body.GetParent() != this && body is PhysicsBody2D && bodyMagComp.GetCanJoin()) {
 			DetachAll();
-			isObjectAttached = true;	
+			isObjectAttached = true;
 			attachedObject = body;
-			
+
+			// GD.Print(attachedObject.GlobalPosition.DistanceTo(_anchor.GlobalPosition));
+			// GD.Print(_anchor.ToLocal(attachedObject.GlobalPosition));
+			float objectRotationLocal = attachedObject.GlobalRotation;
+			Vector2 objectPositionLocal = _anchor.ToLocal(attachedObject.GlobalPosition);
+
 			MagneticCharacterComponent magCharComp = bodyMagComp.GetMagneticCharacterComponent();
 			if (magCharComp != null) {
 				magCharComp.CanSwapToCharacter = false;
@@ -559,7 +570,7 @@ public partial class Magnet : Area2D
 			}
 			objectCollisionLayer = attachedObject.CollisionLayer;
 			attachedObject.CollisionLayer = 1u << 3;
-			
+
 			// Remove object from original parent and add to this
 			objectParent = attachedObject.GetParent();
 			objectParent.RemoveChild(attachedObject);
@@ -579,43 +590,45 @@ public partial class Magnet : Area2D
 			}
 
 			// Get the collision shape from the attracted object
-			CollisionShape2D mainObjectCollision = null;
+			// CollisionShape2D mainObjectCollision = null;
 			objectCollisions = new();
 
 			// If a main collision shape is set, use that to create the anchor offset
 			foreach (Node node in attachedObject.GetChildren()) {
 				if (node is CollisionShape2D shape) {
-					if (shape.IsInGroup("MainCollisionShape")) {
-						mainObjectCollision = shape;
-					}
+					// if (shape.IsInGroup("MainCollisionShape")) {
+					// 	mainObjectCollision = shape;
+					// }
 					objectCollisions.Add(shape);
 				}
 			}
 
-			if (mainObjectCollision == null) {
-				mainObjectCollision = objectCollisions[0];
-			}
-			
+			// if (mainObjectCollision == null) {
+			// 	mainObjectCollision = objectCollisions[0];
+			// }
+
 
 			// Get the size of the object to offset the anchor point
 			// This keeps the object sitting next to the magnet without overlapping
-			if (mainObjectCollision != null) {
-				Vector2 shapeSize = GetShapeSize(mainObjectCollision);
-				anchorOffset = shapeSize.X >= shapeSize.Y ? shapeSize.X : shapeSize.Y;
-			}
+			// if (mainObjectCollision != null) {
+			// 	Vector2 shapeSize = GetShapeSize(mainObjectCollision);
+			// 	anchorOffset = shapeSize.X >= shapeSize.Y ? shapeSize.X : shapeSize.Y;
+			// }
 
-			
-			attachedObject.Position = new Vector2(anchorOffset / 2, anchorPositionDefault.Y) - mainObjectCollision.Position;
-			attachedObject.Rotation = _anchor.Rotation;
+			// attachedObject.Position = new Vector2(anchorOffset / 2, anchorPositionDefault.Y) - mainObjectCollision.Position;
+			// attachedObject.Rotation = _anchor.Rotation;
+
+			attachedObject.Position = objectPositionLocal;
+			attachedObject.GlobalRotation = objectRotationLocal;
 
 			// Adding a copy of the collisions of the object to the player
 			for (int i = 0; i < objectCollisions.Count; i++) {
-				
-				CollisionShape2D currentCollision = (CollisionShape2D) objectCollisions[i].Duplicate();
+
+				CollisionShape2D currentCollision = (CollisionShape2D)objectCollisions[i].Duplicate();
 
 				currentCollision.SetMeta("IgnoreCollision", true);
 				currentCollision.Name = $"{attachedObject.Name}{currentCollision.Name}";
-				
+
 				heldObjectInitRotations.Add(currentCollision.Rotation);
 				heldObjectCollisions.Add(currentCollision);
 
@@ -667,7 +680,7 @@ public partial class Magnet : Area2D
 
 			// Return object to it's original movement state
 			// Adding slight offset from magnet object so it doesn't get put slightly inside magnet and then pushed out
-			attachedObject.GlobalPosition = objectPosition + (GlobalPosition.DirectionTo(objectPosition) * 10); 
+			attachedObject.GlobalPosition = objectPosition + (GlobalPosition.DirectionTo(objectPosition) * 10);
 			attachedObject.GlobalRotation = objectRotation;
 
 			MagneticCharacterComponent magCharComp = attachedObjectMagComp.GetMagneticCharacterComponent();
@@ -686,7 +699,7 @@ public partial class Magnet : Area2D
 
 		// Reset anchor position
 		_anchor.Position = anchorPositionDefault;
-		
+
 		objectParent = null;
 		RetriggerBeamDetection();
 
@@ -696,7 +709,7 @@ public partial class Magnet : Area2D
 		foreach (var objectKey in attractedObjects.Keys) {
 			OnBodyExitedBeam(objectKey);
 		}
-		attractedObjects = new Dictionary<PhysicsBody2D, MagneticComponent>{};
+		attractedObjects = new Dictionary<PhysicsBody2D, MagneticComponent> { };
 	}
 
 	// Moves the magnet beam really far away for it to then be moved back in Process()
@@ -719,7 +732,7 @@ public partial class Magnet : Area2D
 	}
 
 	public bool HasObject() {
-		return  isObjectAttached;
+		return isObjectAttached;
 	}
 
 	public Array<CollisionShape2D> GetHeldObjectCollisions() {
@@ -729,21 +742,22 @@ public partial class Magnet : Area2D
 	public RigidBody2D GetItem() {
 		if (isItem && isObjectAttached) {
 			return (RigidBody2D)attachedObject;
-		} 
+		}
 		return null;
 	}
 
 	public PhysicsBody2D GetAttachedObject() {
 		if (isObjectAttached) {
 			return attachedObject;
-		} 
+		}
 		return null;
 	}
 
 	public void ToggleActivation(bool weak, bool strong) {
 		if (activated) {
 			SetActivation(false, false);
-		} else {
+		}
+		else {
 			SetActivation(weak, strong);
 		}
 	}
@@ -763,7 +777,7 @@ public partial class Magnet : Area2D
 		_magnetBeam.SetBlockSignals(!activated);
 
 		_tileBeamCast.Enabled = activated;
-		
+
 		if (!activated && attractedObjects.Count > 0) {
 			DetachAll();
 		}
@@ -782,22 +796,23 @@ public partial class Magnet : Area2D
 	}
 
 	public void ForceObject(Vector2 collisionPoint, double delta) {
-		
+
 		// Vector that is positive or negative depending on what pull mode the magnet is in
 		Vector2 pushForce = pullMode ? collisionPoint - GlobalPosition : GlobalPosition - collisionPoint;
-	
+
 		// Vector that is larger the closer the Object is to the magnet
 		float magnetStrength = Math.Clamp(beamLength - collisionPoint.DistanceTo(GlobalPosition), 1, beamLength);
-		
+
 		// Handle force if parent is CharacterBody2D
 		if (parentCharacter != null) {
 			float multiplier = strongMagnet ? 1.4f : 1;
 			parentCharacter.Velocity += pushForce * multiplier * magnetStrength / 3f * (float)delta;
 
-		// Handle force parent is RigidBody2D
-		} else if (parentRigid != null) {
+			// Handle force parent is RigidBody2D
+		}
+		else if (parentRigid != null) {
 			float multiplier = strongMagnet ? 40 : 16;
-			
+
 			parentRigid.ApplyForce(pushForce * magnetStrength * multiplier * (float)delta, collisionPoint - GlobalPosition);
 		}
 	}
@@ -817,45 +832,45 @@ public partial class Magnet : Area2D
 	/// <para> If the size of the shape can only be represented by a float, return a Vector2 
 	/// with X being the value and Y being 0.</para>
 	/// </summary>
-	public Vector2 GetShapeSize(CollisionShape2D collisionShape) {
-		// Rectangle
-		if (collisionShape.Shape is RectangleShape2D rectangleShape) {
-			Vector2 size = rectangleShape.Size;
-			// GD.Print($"Rectangle Size: {size}");
-			return size;
-		}
-		// Circle
-		else if (collisionShape.Shape is CircleShape2D circleShape) {
-			Vector2 diameter = new Vector2(circleShape.Radius * 2, 0);
-			// GD.Print($"Circle Diameter: {diameter}");
-			return diameter;
-		}
-		// Capsule
-		else if (collisionShape.Shape is CapsuleShape2D capsuleShape) {
-			float height = capsuleShape.Height;
-			float width = capsuleShape.Radius * 2;
-			Vector2 size = new Vector2(height, width);
-			// GD.Print($"Capsule Size: Width = {width}, Height = {height}");
-			return size;
-		}
-		// Polygon
-		else if (collisionShape.Shape is ConvexPolygonShape2D polygonShape) {
-			Vector2[] points = polygonShape.Points;
-			if (points.Length > 0) {
-				// Calculate the size by finding the bounds of the polygon
-				Rect2 bounds = new Rect2(points[0], Vector2.Zero);
-				for (int i = 1; i < points.Length; i++) {
-					bounds = bounds.Merge(new Rect2(points[i], Vector2.Zero));
-				}
-				// GD.Print($"Polygon Size: {bounds.Size}");
-				return bounds.Size; 
-			}
-			return Vector2.Zero;
-		}
-		// Any other shape
-		if (true) {
-			GD.PushError(collisionShape, " ", collisionShape.GetPath(), " Shape type not supported for size retrieval");
-			return Vector2.Zero;
-		}
-	}
+	// public Vector2 GetShapeSize(CollisionShape2D collisionShape) {
+	// 	// Rectangle
+	// 	if (collisionShape.Shape is RectangleShape2D rectangleShape) {
+	// 		Vector2 size = rectangleShape.Size;
+	// 		// GD.Print($"Rectangle Size: {size}");
+	// 		return size;
+	// 	}
+	// 	// Circle
+	// 	else if (collisionShape.Shape is CircleShape2D circleShape) {
+	// 		Vector2 diameter = new Vector2(circleShape.Radius * 2, 0);
+	// 		// GD.Print($"Circle Diameter: {diameter}");
+	// 		return diameter;
+	// 	}
+	// 	// Capsule
+	// 	else if (collisionShape.Shape is CapsuleShape2D capsuleShape) {
+	// 		float height = capsuleShape.Height;
+	// 		float width = capsuleShape.Radius * 2;
+	// 		Vector2 size = new Vector2(height, width);
+	// 		// GD.Print($"Capsule Size: Width = {width}, Height = {height}");
+	// 		return size;
+	// 	}
+	// 	// Polygon
+	// 	else if (collisionShape.Shape is ConvexPolygonShape2D polygonShape) {
+	// 		Vector2[] points = polygonShape.Points;
+	// 		if (points.Length > 0) {
+	// 			// Calculate the size by finding the bounds of the polygon
+	// 			Rect2 bounds = new Rect2(points[0], Vector2.Zero);
+	// 			for (int i = 1; i < points.Length; i++) {
+	// 				bounds = bounds.Merge(new Rect2(points[i], Vector2.Zero));
+	// 			}
+	// 			// GD.Print($"Polygon Size: {bounds.Size}");
+	// 			return bounds.Size;
+	// 		}
+	// 		return Vector2.Zero;
+	// 	}
+	// 	// Any other shape
+	// 	if (true) {
+	// 		GD.PushError(collisionShape, " ", collisionShape.GetPath(), " Shape type not supported for size retrieval");
+	// 		return Vector2.Zero;
+	// 	}
+	// }
 }

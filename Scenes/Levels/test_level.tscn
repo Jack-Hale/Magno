@@ -418,13 +418,19 @@ position = Vector2(2832, -64.23)
 position = Vector2(3018, -64.23)
 
 [node name="Player" parent="." instance=ExtResource("2_5mf3d")]
-position = Vector2(-812, 643)
+position = Vector2(-2, 602)
 
 [node name="StickyBall" parent="." instance=ExtResource("6_k8g1k")]
-position = Vector2(-257, 579)
+position = Vector2(-323, 607)
+
+[node name="StickyBall2" parent="." instance=ExtResource("6_k8g1k")]
+position = Vector2(-238, 619)
+
+[node name="StickyBall3" parent="." instance=ExtResource("6_k8g1k")]
+position = Vector2(-126, 565)
 
 [node name="CircleMan" parent="." instance=ExtResource("6_x4x4f")]
-position = Vector2(115, 559)
+position = Vector2(-500, 540)
 
 [node name="SadMan" parent="." instance=ExtResource("7_x4x4f")]
 position = Vector2(2100, 423)
