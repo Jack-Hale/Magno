@@ -8,32 +8,38 @@ public partial class MagneticReparentComponent : Node {
 	/// <summary>
 	/// Given a magnetic object, convert a non magnetic character into a magnetic character and make the given object the magnet source.
 	/// </summary>
-	public async void RemagnifyCharater(Vector2 position, RigidBody2D magnetObject, CharacterBody2D character,
-		MagneticParentStruct parentStruct, MagneticComponentStruct componentStruct) {
-		if (!reparentingNodes.Contains(magnetObject) && !magnetObject.IsInGroup("ReconnectionCooldown")) {
-			reparentingNodes.Add(magnetObject);
+	public async void RemagnifyCharater(Vector2 position, RigidBody2D magnetObject, CharacterBody2D character, MagneticParentStruct parentStruct, MagneticComponentStruct componentStruct) {
+		if (!reparentingNodes.Contains(magnetObject)) {
 
-			if (character.GetParent() is MagneticCharacterParent) {
-				await ToSignal(character.GetTree(), SceneTree.SignalName.ProcessFrame); // Waits one frame
-				AddMagnetToCharacter(position, magnetObject, character);
+			MagneticComponent magneticComponent = null;
+			if (magnetObject.IsInGroup("Magnetic")) {
+				magneticComponent = magnetObject.GetNode<MagneticComponent>("MagneticComponent");
 			}
-			else {
-				if (magnetObject.GetParent() is Marker2D marker && marker.IsInGroup("MagnetAnchor")) {
-					Magnet magnet = (Magnet)marker.GetParent();
-					magnet.Detach();
+
+			if (!magneticComponent.GetInExitCooldown()) {
+				reparentingNodes.Add(magnetObject);
+				if (character.GetParent() is MagneticCharacterParent) {
+					await ToSignal(character.GetTree(), SceneTree.SignalName.ProcessFrame); // Waits one frame
+					AddMagnetToCharacter(position, magnetObject, character);
 				}
+				else {
+					if (magnetObject.GetParent() is Marker2D marker && marker.IsInGroup("MagnetAnchor")) {
+						Magnet magnet = (Magnet)marker.GetParent();
+						magnet.Detach();
+					}
 
-				MagneticCharacterParent magneticCharacterParent = new(character.Name, parentStruct);
-				MagneticCharacterComponent magneticCharacterComponent = new("MagneticCharacterComponent", componentStruct);
+					MagneticCharacterParent magneticCharacterParent = new(character.Name, parentStruct);
+					MagneticCharacterComponent magneticCharacterComponent = new("MagneticCharacterComponent", componentStruct);
 
-				await ToSignal(character.GetTree(), SceneTree.SignalName.ProcessFrame); // Waits one frame
+					await ToSignal(character.GetTree(), SceneTree.SignalName.ProcessFrame); // Waits one frame
 
-				RemagnifyStep1(character.GetTree(), character, magnetObject, position, magneticCharacterParent, magneticCharacterComponent);
+					RemagnifyStep1(character.GetTree(), character, magnetObject, position, magneticCharacterParent, magneticCharacterComponent, magneticComponent);
+				}
 			}
 		}
 	}
 
-	private async void RemagnifyStep1(SceneTree scene, CharacterBody2D character, RigidBody2D magnetObject, Vector2 position, MagneticCharacterParent magneticCharacterParent, MagneticCharacterComponent magneticCharacterComponent) {
+	private async void RemagnifyStep1(SceneTree scene, CharacterBody2D character, RigidBody2D magnetObject, Vector2 position, MagneticCharacterParent magneticCharacterParent, MagneticCharacterComponent magneticCharacterComponent, MagneticComponent magneticComponent) {
 		magnetObject.GetParent().RemoveChild(magnetObject);
 		character.AddChild(magnetObject);
 
@@ -41,15 +47,10 @@ public partial class MagneticReparentComponent : Node {
 
 		magnetObject.Position = position;
 
-		MagneticComponent magComp = null;
-		if (magnetObject.IsInGroup("Magnetic")) {
-			magComp = magnetObject.GetNode<MagneticComponent>("MagneticComponent");
-		}
-
-		if (magComp != null) {
+		if (magneticComponent != null) {
 			character.AddToGroup("MagneticCharacter");
 
-			RemagnifyStep2(scene, magnetObject, character, magneticCharacterParent, magneticCharacterComponent, magComp);
+			RemagnifyStep2(scene, magnetObject, character, magneticCharacterParent, magneticCharacterComponent, magneticComponent);
 		}
 		else {
 			GD.PrintErr($"Magnetic Object {magnetObject} {magnetObject.Name}, does not have a MagneticComponent.");
@@ -98,5 +99,6 @@ public partial class MagneticReparentComponent : Node {
 		}
 
 		magneticCharacterParent.AddNewMagnetNode(magnetObject);
+		reparentingNodes.Remove(magnetObject);
 	}
 }

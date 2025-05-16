@@ -20,5 +20,6 @@ shape = SubResource("CircleShape2D_1ud35")
 
 [node name="MagneticComponent" type="Node2D" parent="."]
 script = ExtResource("2_peavi")
+exitCondition = 3
 impartCollisionOnParent = true
 metadata/_custom_type_script = "uid://dga5am8fpoq83"

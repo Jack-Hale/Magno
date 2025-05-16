@@ -1,6 +1,10 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Collections.Generic;
+
+// using System.Collections.Generic;
+
 using System.Linq;
 
 public struct MagneticComponentStruct {
@@ -107,9 +111,9 @@ public partial class MagneticCharacterComponent : Node2D {
 	private float targetRotation;
 	private bool isRotatingPostSwap = false;
 
-	private Dictionary<Sprite2D, Sprite2D> magnetSprites = new();
-	private Dictionary<AnimationPlayer, AnimationPlayer> magnetPlayers = new();
-	private Dictionary<Node2D, Node2D> physicsItems = new();
+	private Godot.Collections.Dictionary<Sprite2D, Sprite2D> magnetSprites = new();
+	private Godot.Collections.Dictionary<AnimationPlayer, AnimationPlayer> magnetPlayers = new();
+	private Godot.Collections.Dictionary<Node2D, Node2D> physicsItems = new();
 
 	private Vector2 draw1 = Vector2.Zero;
 	private Vector2 draw2 = Vector2.Zero;
@@ -117,6 +121,8 @@ public partial class MagneticCharacterComponent : Node2D {
 	public bool CanSwapToCharacter = true;
 	private bool waitForSwap = false;
 	private bool hitDetected = false;
+	private bool detaching = false;
+	private Queue<Node2D> detachQueue = new();
 
 	public MagneticCharacterComponent() { }
 
@@ -205,13 +211,19 @@ public partial class MagneticCharacterComponent : Node2D {
 				isRotatingPostSwap = false;
 			}
 		}
+
+		if (detachQueue.Count > 0) {
+			if (!detaching) {
+				DetachMetalObject(detachQueue.Dequeue());
+			}
+		}
 	}
 
 	/// <summary>
 	/// Takes all physics based objects on character and creates a copy of just the physics node.
 	/// </summary>
 	/// <returns>Dictionary containing the copy of the physics node as the key and the original as the value.</returns>
-	public Dictionary<Node2D, Node2D> GeneratePhysicsItems() {
+	public Godot.Collections.Dictionary<Node2D, Node2D> GeneratePhysicsItems() {
 		Array<Node> children = character.GetChildren();
 
 		for (int i = 0; i < children.Count; i++) {
@@ -233,7 +245,7 @@ public partial class MagneticCharacterComponent : Node2D {
 		return physicsItems;
 	}
 
-	public Dictionary<Node2D, Node2D> GetPhysicsItems() {
+	public Godot.Collections.Dictionary<Node2D, Node2D> GetPhysicsItems() {
 		return physicsItems;
 	}
 	private void OnBodyEntered(Node body) {
@@ -316,49 +328,55 @@ public partial class MagneticCharacterComponent : Node2D {
 	/// <para>If object is the last magnetic object on character, remove all magneticism from character.</para>
 	/// </summary>
 	public void DetachMetalObject(Node2D objectRemove) {
+		if (!detaching) {
+			detaching = true;
 
-		// Finding the copy of the object on the character
-		Dictionary<Area2D, NodePath> duplicateObjects = magCharPar.GetDuplicateObjects();
-		Area2D copyRemove = null;
-		foreach (var item in duplicateObjects.Keys) {
-			if (duplicateObjects[item] == magCharPar.GetPathTo(objectRemove)) {
-				copyRemove = item;
-				break;
-			}
-		}
-
-		// Finding the copy on the bodyCopy.
-		if (copyRemove != null) {
-			Array<Node> childrenRemove = copyRemove.GetChildren();
-			for (int i = 0; i < childrenRemove.Count; i++) {
-				Node node = GetBodyCopyDupeNode(childrenRemove[i]);
-				if (node != null) {
-					bodyCopy.RemoveChild(node);
+			// Finding the copy of the object on the character
+			Godot.Collections.Dictionary<Area2D, NodePath> duplicateObjects = magCharPar.GetDuplicateObjects();
+			Area2D copyRemove = null;
+			foreach (var item in duplicateObjects.Keys) {
+				if (duplicateObjects[item] == magCharPar.GetPathTo(objectRemove)) {
+					copyRemove = item;
+					break;
 				}
 			}
-			character.RemoveChild(copyRemove);
-		}
 
-		// If object to remove has a physics item duplicated, remove it.
-		if (objectRemove.IsInGroup("ChildHasPhysics")) {
-			Array<Node> children = objectRemove.GetChildren();
-			for (int i = 0; i < children.Count; i++) {
-				if (children[i].IsInGroup("HasPhysics")) {
-					foreach (var item in physicsItems.Keys) {
-						if (children[i] == physicsItems[item]) {
-							character.RemoveChild(item);
-							physicsItems.Remove(item);
+			// Finding the copy on the bodyCopy.
+			if (copyRemove != null) {
+				Array<Node> childrenRemove = copyRemove.GetChildren();
+				for (int i = 0; i < childrenRemove.Count; i++) {
+					Node node = GetBodyCopyDupeNode(childrenRemove[i]);
+					if (node != null) {
+						bodyCopy.RemoveChild(node);
+					}
+				}
+				character.RemoveChild(copyRemove);
+			}
+
+			// If object to remove has a physics item duplicated, remove it.
+			if (objectRemove.IsInGroup("ChildHasPhysics")) {
+				Array<Node> children = objectRemove.GetChildren();
+				for (int i = 0; i < children.Count; i++) {
+					if (children[i].IsInGroup("HasPhysics")) {
+						foreach (var item in physicsItems.Keys) {
+							if (children[i] == physicsItems[item]) {
+								character.RemoveChild(item);
+								physicsItems.Remove(item);
+							}
 						}
 					}
 				}
 			}
-		}
 
-		foreach (CollisionShape2D collision in character.GetChildren().OfType<CollisionShape2D>()) {
-			if (collision.Name.ToString().Split('_')[0] == objectRemove.Name) {
-				character.RemoveChild(collision);
+			foreach (CollisionShape2D collision in character.GetChildren().OfType<CollisionShape2D>()) {
+				if (collision.Name.ToString().Split('_')[0] == objectRemove.Name) {
+					character.RemoveChild(collision);
+				}
 			}
+		} else {
+			detachQueue.Enqueue(objectRemove);
 		}
+		detaching = false;
 	}
 
 	/// <summary>
@@ -368,10 +386,10 @@ public partial class MagneticCharacterComponent : Node2D {
 	/// </summary>
 	public void TryRemoveMagnetism() {
 		// If the character still has magnet objects to detach, don't remove magnetic abilities yet
-		if (CharacterHasMagnet() && !isCharacter) {
+		if (!isCharacter) {
 			waitForSwap = true;
 		}
-		else {
+		else if (!CharacterHasMagnet()) {
 			StartRemoval();
 		}
 	}
@@ -494,11 +512,11 @@ public partial class MagneticCharacterComponent : Node2D {
 	public CharacterBody2D GetCharacter() {
 		return character;
 	}
-	public void SetCharacterSprites(Dictionary<Sprite2D, Sprite2D> magnetSprites) {
+	public void SetCharacterSprites(Godot.Collections.Dictionary<Sprite2D, Sprite2D> magnetSprites) {
 		this.magnetSprites = magnetSprites;
 	}
 
-	public void SetCharacterPlayers(Dictionary<AnimationPlayer, AnimationPlayer> magnetPlayers) {
+	public void SetCharacterPlayers(Godot.Collections.Dictionary<AnimationPlayer, AnimationPlayer> magnetPlayers) {
 		this.magnetPlayers = magnetPlayers;
 	}
 
@@ -571,7 +589,7 @@ public partial class MagneticCharacterComponent : Node2D {
 		hitDetected = false;
 	}
 
-	public Dictionary<Area2D, NodePath> GetDuplicateObjects() {
+	public Godot.Collections.Dictionary<Area2D, NodePath> GetDuplicateObjects() {
 		return magCharPar.GetDuplicateObjects();
 	}
 
