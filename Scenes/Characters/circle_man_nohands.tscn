@@ -1,0 +1,23 @@
+[gd_scene load_steps=5 format=3 uid="uid://b1dfauss0sscm"]
+
+[ext_resource type="Script" uid="uid://ciuiy6ymptjgi" path="res://Scenes/Characters/CircleManNohands.cs" id="1_msrks"]
+[ext_resource type="Script" uid="uid://dfgsiwyixd82h" path="res://Source/Components/PathFindingComponent.cs" id="3_msrks"]
+[ext_resource type="Texture2D" uid="uid://dogsi7pkpindx" path="res://Assets/Sprites/circleMan.png" id="4_drwp4"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_wavvd"]
+radius = 64.0
+
+[node name="CircleMan" type="CharacterBody2D"]
+collision_layer = 32
+collision_mask = 183
+script = ExtResource("1_msrks")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("4_drwp4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_wavvd")
+
+[node name="PathFindingComponent" type="Node2D" parent="."]
+script = ExtResource("3_msrks")
+metadata/_custom_type_script = "uid://dfgsiwyixd82h"

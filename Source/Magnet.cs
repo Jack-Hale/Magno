@@ -253,7 +253,6 @@ public partial class Magnet : Area2D
 
 					if (magComp.GetMagneticCharacterComponent() == null || magComp.GetIsRigidPhysics()) {
 						// Ensures walls block magnet beam
-						GD.Print($"_beamCheck1:{_beamCheck1.GetCollider()} _beamCheck2:{_beamCheck2.GetCollider()} _beamCheck3:{_beamCheck3.GetCollider()}");
 						if (_beamCheck1.GetCollider() == body || _beamCheck2.GetCollider() == body || _beamCheck3.GetCollider() == body) {
 
 							// Fire two raycasts along both edges of the magnet beam

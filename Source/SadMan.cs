@@ -46,7 +46,7 @@ public partial class SadMan : CharacterBody2D
 	private Sprite2D _Sad;	
 	private PathFindingComponent _pathFinding;
 	private RigidBody2D ball;
-	private MagneticCharacterParent magneticCharacterParent = new();
+	private MagneticReparentComponent magneticReparent = new();
 	private bool lookingForBall = false;
 	private Vector2 initialBallPosition;
 	private bool inPickup = false;
@@ -168,7 +168,7 @@ public partial class SadMan : CharacterBody2D
 		if (lookingForBall) {
 			MagneticParentStruct magneticParentStruct = new MagneticParentStruct(weakMultiplier, strongMultiplier, blastMultiplier, canJoin);
 			MagneticComponentStruct magneticComponentStruct = new MagneticComponentStruct(swapCondition, swapTimeLimit, isRigidPhysics, ragDollOnAnyForce, anyForceSwapCondition, anyForceSwapTimeLimit);
-			magneticCharacterParent.RemagnifyCharater(initialBallPosition, ball, this, magneticParentStruct, magneticComponentStruct);
+			magneticReparent.RemagnifyCharater(initialBallPosition, ball, this, magneticParentStruct, magneticComponentStruct);
 		}
 	}
 }

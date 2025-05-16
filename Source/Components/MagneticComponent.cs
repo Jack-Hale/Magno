@@ -23,7 +23,11 @@ public partial class MagneticComponent : Node2D {
 	private ExitCondition exitCondition;
 	[Export]
 	private float exitTimer = 2;
-
+	[Export]
+	private bool impartCollisionOnParent = false;
+	[Export]
+	private float reconnectCooldownDefault = 2;
+	private float reconnectCooldown = 0;
 	private RigidBody2D rigidObject;
 	private CharacterBody2D characterObject;
 	private Magnet magnetParent;
@@ -35,19 +39,14 @@ public partial class MagneticComponent : Node2D {
 	private bool inTimeLimitExit = false;
 	private bool isRigidPhysics;
 	private float exitTimerDefault;
-
-
 	private Node rigidObjectParent;
-
 	private RigidBody2D objectCollisionL = new RigidBody2D();
 	private RigidBody2D objectCollisionM = new RigidBody2D();
 	private uint collisionL = 0;
 	private uint collisionM = 0;
-
 	private Tuple<bool, Vector2> magnetData = new Tuple<bool, Vector2>(false, Vector2.Inf);
 	private Tuple<Vector2, Vector2> forceData = new Tuple<Vector2, Vector2>(Vector2.Zero, Vector2.Zero);
 	private Tuple<bool, bool> strengthData = new Tuple<bool, bool>(false, false);
-
 	private bool secondaryObject = false;
 	private Sprite2D rigidSprite;
 	private Sprite2D rigidSpriteDupe;
@@ -55,6 +54,7 @@ public partial class MagneticComponent : Node2D {
 	private Vector2 rigidSpriteResetPosition;
 	private bool collectedDupeSprite = false;
 	private AnimationPlayer rigidPlayer;
+	private CollisionShape2D rigidCollision;
 	private bool disableMagneticism = false;
 	private bool waitForHit = false;
 	private bool magnetCharacter = false;
@@ -126,6 +126,10 @@ public partial class MagneticComponent : Node2D {
 						rigidPlayer = player;
 					}
 
+					if (children[i] is CollisionShape2D collision) {
+						rigidCollision = collision;
+					}
+
 					if (children[i].IsInGroup("HasPhysics")) {
 						isPhysicsItem = true;
 						physicsItem = (Node2D) children[i];
@@ -181,6 +185,14 @@ public partial class MagneticComponent : Node2D {
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(double delta) {
+
+		if (reconnectCooldown > 0) {
+			reconnectCooldown -= (float) delta;
+		}
+
+		if (rigidObject.IsInGroup("ReconnectionCooldown")) {
+			rigidObject.RemoveFromGroup("ReconnectionCooldown");
+		}
 
 		// Waiting for duplicate sprite to exist to extract
 		if (!collectedDupeSprite && magnetCharacter) {
@@ -401,6 +413,8 @@ public partial class MagneticComponent : Node2D {
 			collectedDupeSprite = false;
 			magnetCharacter = false;
 
+			rigidObject.AddToGroup("ReconnectionCooldown");
+
 			magCharComp.TryRemoveMagnetism();
 			magCharComp = null;
 		}
@@ -570,6 +584,10 @@ public partial class MagneticComponent : Node2D {
 		return rigidPlayer;
 	}
 
+	public CollisionShape2D GetRigidCollision() {
+		return rigidCollision;
+	}
+
 	public bool GetRagDollOnAnyForce() {
 		if (magCharComp != null) {
 			return magCharComp.GetRagDollOnAnyForce();
@@ -598,6 +616,9 @@ public partial class MagneticComponent : Node2D {
 	}
 	public float GetExitTimer() {
 		return exitTimer;
+	}
+	public bool GetImpartCollisionOnParent() {
+		return impartCollisionOnParent;
 	}
 
 	public void SetWeakMultiplier(float weakMultiplier) {

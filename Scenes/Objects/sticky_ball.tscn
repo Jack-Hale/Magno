@@ -1,5 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://dd5j8s74rqrhj"]
+[gd_scene load_steps=5 format=3 uid="uid://dd5j8s74rqrhj"]
 
+[ext_resource type="Script" uid="uid://b3h61w8vpxr4h" path="res://Source/StickyBall.cs" id="1_dbmuh"]
 [ext_resource type="Texture2D" uid="uid://cb5a4kjoi5vcd" path="res://Assets/Sprites/StickyBall.png" id="1_w5cct"]
 [ext_resource type="Script" uid="uid://dga5am8fpoq83" path="res://Source/Components/MagneticComponent.cs" id="2_peavi"]
 
@@ -9,6 +10,7 @@ radius = 32.0
 [node name="StickyBall" type="RigidBody2D"]
 collision_layer = 4
 collision_mask = 183
+script = ExtResource("1_dbmuh")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("1_w5cct")
@@ -18,4 +20,5 @@ shape = SubResource("CircleShape2D_1ud35")
 
 [node name="MagneticComponent" type="Node2D" parent="."]
 script = ExtResource("2_peavi")
+impartCollisionOnParent = true
 metadata/_custom_type_script = "uid://dga5am8fpoq83"

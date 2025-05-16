@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Linq;
 
 public struct MagneticComponentStruct {
 	private SwapCondition swapCondition;
@@ -10,15 +11,15 @@ public struct MagneticComponentStruct {
 	private SwapCondition anyForceSwapCondition;
 	private float anyForceSwapTimeLimit;
 
-    public MagneticComponentStruct(SwapCondition swapCondition, float swapTimeLimit, bool isRigidPhysics, bool ragDollOnAnyForce, 
+	public MagneticComponentStruct(SwapCondition swapCondition, float swapTimeLimit, bool isRigidPhysics, bool ragDollOnAnyForce,
 		SwapCondition anyForceSwapCondition, float anyForceSwapTimeLimit) {
-        this.swapCondition = swapCondition;
+		this.swapCondition = swapCondition;
 		this.swapTimeLimit = swapTimeLimit;
 		this.isRigidPhysics = isRigidPhysics;
 		this.ragDollOnAnyForce = ragDollOnAnyForce;
 		this.anyForceSwapCondition = anyForceSwapCondition;
 		this.anyForceSwapTimeLimit = anyForceSwapTimeLimit;
-    }
+	}
 
 	public SwapCondition GetSwapCondition() {
 		return swapCondition;
@@ -66,7 +67,7 @@ public enum SwapCondition {
 }
 
 public partial class MagneticCharacterComponent : Node2D {
-	
+
 	/// <summary>
 	/// The condition that allows the character to swap back into a CharacterBody2D from body copy.
 	/// </summary>
@@ -117,7 +118,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	private bool waitForSwap = false;
 	private bool hitDetected = false;
 
-	public MagneticCharacterComponent() {}
+	public MagneticCharacterComponent() { }
 
 	public MagneticCharacterComponent(string name, MagneticComponentStruct magneticComponentStruct) {
 		Name = name;
@@ -128,14 +129,15 @@ public partial class MagneticCharacterComponent : Node2D {
 		anyForceSwapCondition = magneticComponentStruct.GetAnyForceSwapCondition();
 		anyForceSwapTimeLimit = magneticComponentStruct.GetAnyForceSwapTimeLimit();
 	}
-	
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
 		parent = (Node2D)GetParent();
 
 		if (parent is MagneticCharacterParent mgp) {
 			magCharPar = mgp;
-		} else {
+		}
+		else {
 			GD.PrintErr($"MagneticCharacteComponent {this}, does not have a parent of type MagneticCharacterParent {GetParent()}");
 			GD.PushError($"MagneticCharacteComponent {this}, does not have a parent of type MagneticCharacterParent {GetParent()}");
 		}
@@ -154,12 +156,12 @@ public partial class MagneticCharacterComponent : Node2D {
 		}
 	}
 	public override void _Draw() {
-        // DrawLine(ToLocal(draw2 + new Vector2(2,0)), ToLocal(draw2 - new Vector2(2,0)), Colors.Red, 4.0f);
-        // DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
+		// DrawLine(ToLocal(draw2 + new Vector2(2,0)), ToLocal(draw2 - new Vector2(2,0)), Colors.Red, 4.0f);
+		// DrawLine(ToLocal(draw1), ToLocal(draw2), Colors.Green, 4.0f);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)	{
+	public override void _Process(double delta) {
 
 		if (swapCondition == SwapCondition.SwapWhenHitSurface || anyForceSwapCondition == SwapCondition.SwapWhenHitSurface) {
 			bodyCopy.ContactMonitor = ragdoll;
@@ -169,35 +171,36 @@ public partial class MagneticCharacterComponent : Node2D {
 		if (ragdoll) {
 
 			if (ragdollTimer > 0) {
-				ragdollTimer -= (float) delta;
+				ragdollTimer -= (float)delta;
 
-			} else if (ragdollTimer == int.MinValue) {
+			}
+			else if (ragdollTimer == int.MinValue) {
 				// GD.Print("ragdolling");
 
-			} else {
+			}
+			else {
 				// Manually swaps to character once the timer has ended so it doesnt need to be triggered again
 				if (CanSwapToCharacter) {
 					ragdoll = false;
 					SwapToCharacter();
 				}
 			}
-		} 
+		}
 
 		QueueRedraw();
 	}
 
-	public override void _PhysicsProcess(double delta)	{
+	public override void _PhysicsProcess(double delta) {
 		// Rotates the character back to 0 gradually once switched to character from rigid
 		if (isRotatingPostSwap) {
-			rotationTime += (float) delta;
+			rotationTime += (float)delta;
 
 			float t = Mathf.Clamp(rotationTime / rotationDuration, 0, 1);
 
 			character.Rotation = Mathf.LerpAngle(startRotation, targetRotation, t);
 
 			// Stop rotation when finished
-			if (t >= 1)
-			{
+			if (t >= 1) {
 				character.Rotation = 0;
 				isRotatingPostSwap = false;
 			}
@@ -212,16 +215,16 @@ public partial class MagneticCharacterComponent : Node2D {
 		Array<Node> children = character.GetChildren();
 
 		for (int i = 0; i < children.Count; i++) {
-			if (children[i].IsInGroup("ChildHasPhysics")) {				
+			if (children[i].IsInGroup("ChildHasPhysics")) {
 				Array<Node> childrenMag = children[i].GetChildren();
 				for (int j = 0; j < childrenMag.Count; j++) {
 					if (childrenMag[j].IsInGroup("HasPhysics")) {
-						Node2D node = (Node2D) childrenMag[j].Duplicate();
-						node.Position = ((Node2D) children[i]).Position;
+						Node2D node = (Node2D)childrenMag[j].Duplicate();
+						node.Position = ((Node2D)children[i]).Position;
 						node.Name = $"{childrenMag[j].Name}_Duplicate";
 						node.AddToGroup($"path:{character.GetPathTo(childrenMag[j])}");
 
-						physicsItems.Add(node, (Node2D) childrenMag[j]);
+						physicsItems.Add(node, (Node2D)childrenMag[j]);
 						character.AddChild(node);
 					}
 				}
@@ -229,7 +232,7 @@ public partial class MagneticCharacterComponent : Node2D {
 		}
 		return physicsItems;
 	}
-	
+
 	public Dictionary<Node2D, Node2D> GetPhysicsItems() {
 		return physicsItems;
 	}
@@ -244,8 +247,8 @@ public partial class MagneticCharacterComponent : Node2D {
 	public void SwapToRigid() {
 		if (isCharacter && isRigidPhysics) {
 			isCharacter = false;
-			
-			foreach(Node2D item in physicsItems.Keys) {
+
+			foreach (Node2D item in physicsItems.Keys) {
 				item.ProcessMode = ProcessModeEnum.Disabled;
 			}
 
@@ -257,9 +260,9 @@ public partial class MagneticCharacterComponent : Node2D {
 			// bodyCopy.Rotation = character.Rotation;
 
 			ReplaceCollisions(character, true);
-        	bodyCopy.Sleeping = false;
+			bodyCopy.Sleeping = false;
 			bodyCopy.Visible = true;
-        	character.Visible = false;
+			character.Visible = false;
 			ReplaceCollisions(bodyCopy, false);
 		}
 	}
@@ -267,7 +270,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	// Swaps back to the character from the bodycopy
 	public void SwapToCharacter() {
 		if (!isCharacter && !ragdoll && isRigidPhysics) {
-			foreach(Node2D item in physicsItems.Keys) {
+			foreach (Node2D item in physicsItems.Keys) {
 				item.ProcessMode = ProcessModeEnum.Inherit;
 			}
 			character.Velocity = bodyCopy.LinearVelocity;
@@ -276,9 +279,9 @@ public partial class MagneticCharacterComponent : Node2D {
 			character.Velocity = bodyCopy.LinearVelocity;
 
 			ReplaceCollisions(character, false);
-        	bodyCopy.Sleeping = true;
+			bodyCopy.Sleeping = true;
 			bodyCopy.Visible = false;
-        	character.Visible = true;
+			character.Visible = true;
 			ReplaceCollisions(bodyCopy, true);
 
 			bodyCopy.ProcessMode = ProcessModeEnum.Disabled;
@@ -293,13 +296,14 @@ public partial class MagneticCharacterComponent : Node2D {
 			if (lastAngularVelocity > 0) {
 				// Counterclockwise
 				targetRotation = (startRotation > 0) ? 0f : Mathf.Tau;
-			} else {
+			}
+			else {
 				// Clockwise
-				targetRotation = (startRotation < 0) ? 0f : -Mathf.Tau; 
+				targetRotation = (startRotation < 0) ? 0f : -Mathf.Tau;
 			}
 
 			rotationDuration = 0.1f;
-			
+
 			// Ensures that if magneticism is being removed, it waits until swapped to character.
 			if (waitForSwap) {
 				StartRemoval();
@@ -312,7 +316,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	/// <para>If object is the last magnetic object on character, remove all magneticism from character.</para>
 	/// </summary>
 	public void DetachMetalObject(Node2D objectRemove) {
-		
+
 		// Finding the copy of the object on the character
 		Dictionary<Area2D, NodePath> duplicateObjects = magCharPar.GetDuplicateObjects();
 		Area2D copyRemove = null;
@@ -348,7 +352,12 @@ public partial class MagneticCharacterComponent : Node2D {
 					}
 				}
 			}
+		}
 
+		foreach (CollisionShape2D collision in character.GetChildren().OfType<CollisionShape2D>()) {
+			if (collision.Name.ToString().Split('_')[0] == objectRemove.Name) {
+				character.RemoveChild(collision);
+			}
 		}
 	}
 
@@ -361,7 +370,8 @@ public partial class MagneticCharacterComponent : Node2D {
 		// If the character still has magnet objects to detach, don't remove magnetic abilities yet
 		if (CharacterHasMagnet() && !isCharacter) {
 			waitForSwap = true;
-		} else {
+		}
+		else {
 			StartRemoval();
 		}
 	}
@@ -413,7 +423,7 @@ public partial class MagneticCharacterComponent : Node2D {
 	/// </summary>
 	public bool CharacterHasMagnet() {
 		Array<Node> children = character.GetChildren();
-		
+
 		for (int i = 0; i < children.Count; i++) {
 			if (children[i].IsInGroup("Magnetic")) {
 				return true;
@@ -467,8 +477,15 @@ public partial class MagneticCharacterComponent : Node2D {
 	}
 
 	public void SetBodyCopy(RigidBody2D body) {
+		foreach (var item in magCharPar.GetChildren()) {
+			if (item.IsInGroup("BodyCopy")) {
+				bodyCopy.Disconnect("body_entered", new Callable(this, MethodName.OnBodyEntered));
+				magCharPar.RemoveChild(item);
+			}
+		}
+
 		bodyCopy = body;
-		parent.AddChild(bodyCopy);
+		magCharPar.AddChild(bodyCopy);
 		bodyCopy.Connect("body_entered", new Callable(this, MethodName.OnBodyEntered));
 
 		bodyCopyMagComp = bodyCopy.GetNode<MagneticComponent>("MagneticComponent");
@@ -498,7 +515,8 @@ public partial class MagneticCharacterComponent : Node2D {
 		if (noCollisions) {
 			body.CollisionLayer = 0;
 			body.CollisionMask = 0;
-		} else {
+		}
+		else {
 			body.CollisionLayer = collisionL;
 			body.CollisionMask = collisionM;
 		}
