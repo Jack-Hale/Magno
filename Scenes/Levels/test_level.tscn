@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=4 uid="uid://l55oyjoo6cul"]
+[gd_scene load_steps=8 format=4 uid="uid://l55oyjoo6cul"]
 
 [ext_resource type="TileSet" uid="uid://cjmowxlilidit" path="res://Assets/TileSets/test_level.tres" id="1_0rdck"]
 [ext_resource type="Texture2D" uid="uid://bucros67cnrfw" path="res://Assets/BackgroundSprites/LabBackground.png" id="1_x4x4f"]
 [ext_resource type="PackedScene" uid="uid://dfdg8yipq3ya0" path="res://Scenes/Characters/player.tscn" id="2_5mf3d"]
 [ext_resource type="PackedScene" uid="uid://dd5j8s74rqrhj" path="res://Scenes/Objects/sticky_ball.tscn" id="6_k8g1k"]
 [ext_resource type="PackedScene" uid="uid://b1dfauss0sscm" path="res://Scenes/Characters/circle_man_nohands.tscn" id="6_x4x4f"]
+[ext_resource type="PackedScene" uid="uid://3rk5mpt6d7p3" path="res://Scenes/Characters/large_slime.tscn" id="7_x4x4f"]
 [ext_resource type="PackedScene" uid="uid://drkhjxgguqgtd" path="res://Scenes/Objects/Lamp.tscn" id="8_l7ek2"]
 
 [node name="TestLevel" type="Node2D"]
@@ -425,3 +426,6 @@ position = Vector2(65, 618)
 
 [node name="CircleMan" parent="." instance=ExtResource("6_x4x4f")]
 position = Vector2(-227, 606)
+
+[node name="LargeSlime" parent="." instance=ExtResource("7_x4x4f")]
+position = Vector2(3418, 424)
