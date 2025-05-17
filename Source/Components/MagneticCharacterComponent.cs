@@ -280,8 +280,8 @@ public partial class MagneticCharacterComponent : Node2D {
 	}
 
 	// Swaps back to the character from the bodycopy
-	public void SwapToCharacter() {
-		if (!isCharacter && !ragdoll && isRigidPhysics) {
+	public bool SwapToCharacter() {
+		if (!isCharacter && !ragdoll && !bodyCopy.IsInGroup("AttachedToMagnet")) {
 			foreach (Node2D item in physicsItems.Keys) {
 				item.ProcessMode = ProcessModeEnum.Inherit;
 			}
@@ -320,6 +320,10 @@ public partial class MagneticCharacterComponent : Node2D {
 			if (waitForSwap) {
 				StartRemoval();
 			}
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 
@@ -341,15 +345,27 @@ public partial class MagneticCharacterComponent : Node2D {
 				}
 			}
 
-			// Finding the copy on the bodyCopy.
-			if (copyRemove != null) {
-				Array<Node> childrenRemove = copyRemove.GetChildren();
-				for (int i = 0; i < childrenRemove.Count; i++) {
-					Node node = GetBodyCopyDupeNode(childrenRemove[i]);
-					if (node != null) {
-						bodyCopy.RemoveChild(node);
+			// Removing any duplicates from body copy.
+			foreach (var item in bodyCopy.GetChildren()) {
+				string[] name = item.Name.ToString().Split('-');
+				if (name.Length == 3) {
+					if (name[1] == objectRemove.Name) {
+						bodyCopy.RemoveChild(item);
 					}
 				}
+			}
+
+			// Removing any duplicates from character.
+			foreach (var item in character.GetChildren()) {
+				string[] name = item.Name.ToString().Split('-');
+				if (name.Length == 3) {
+					if (name[1] == objectRemove.Name) {
+						character.RemoveChild(item);
+					}
+				}
+			}
+
+			if (copyRemove != null) {
 				character.RemoveChild(copyRemove);
 			}
 
@@ -367,13 +383,8 @@ public partial class MagneticCharacterComponent : Node2D {
 					}
 				}
 			}
-
-			foreach (CollisionShape2D collision in character.GetChildren().OfType<CollisionShape2D>()) {
-				if (collision.Name.ToString().Split('_')[0] == objectRemove.Name) {
-					character.RemoveChild(collision);
-				}
-			}
-		} else {
+		}
+		else {
 			detachQueue.Enqueue(objectRemove);
 		}
 		detaching = false;
@@ -405,35 +416,14 @@ public partial class MagneticCharacterComponent : Node2D {
 		character.RemoveFromGroup("MagneticCharacter");
 		character.RemoveFromGroup("Magnetic");
 		Vector2 position = character.GlobalPosition;
+		Vector2 velocity = character.Velocity;
 
 		parent.RemoveChild(character);
 		parent.GetParent().AddChild(character);
 		character.GlobalPosition = position;
+		character.Velocity = velocity;
 		detach = true;
 		QueueFree();
-	}
-
-	/// <summary>
-	/// Given a node, find the node duplicated onto bodyCopy.
-	/// </summary>
-	/// <returns>Duplicated node</returns>
-	// public Node GetBodyCopyDupeNode(Node node) {
-	// 	Array<Node> children = bodyCopy.GetChildren();
-	// 	for (int i = 0; i < children.Count; i++) {
-	// 		if (children[i].IsInGroup(character.GetPathTo(node).ToString())) {
-	// 			return children[i];
-	// 		}
-	// 	}
-	// 	return null;
-	// }
-	public Node GetBodyCopyDupeNode(Node node) {
-		Array<Node> children = bodyCopy.GetChildren();
-		for (int i = 0; i < children.Count; i++) {
-			if (children[i].Name == node.Name) {
-				return children[i];
-			}
-		}
-		return null;
 	}
 
 	/// <summary>

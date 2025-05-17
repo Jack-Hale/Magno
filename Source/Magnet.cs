@@ -428,7 +428,7 @@ public partial class Magnet : Area2D {
 
 	private void OnAreaEnteredBeam(Area2D area) {
 		if (area.IsInGroup("DuplicateMagnetChild")) {
-			string[] namePath = area.Name.ToString().Split('-')[2].Split('_');
+			string[] namePath = area.Name.ToString().Split('-')[0].Split('_');
 			string path = "";
 			for (int i = 0; i < namePath.Length; i++) {
 				path += namePath[i];
@@ -553,9 +553,8 @@ public partial class Magnet : Area2D {
 			DetachAll();
 			isObjectAttached = true;
 			attachedObject = body;
+			attachedObject.AddToGroup("AttachedToMagnet");
 
-			// GD.Print(attachedObject.GlobalPosition.DistanceTo(_anchor.GlobalPosition));
-			// GD.Print(_anchor.ToLocal(attachedObject.GlobalPosition));
 			float objectRotationLocal = attachedObject.GlobalRotation;
 			Vector2 objectPositionLocal = _anchor.ToLocal(attachedObject.GlobalPosition);
 
@@ -682,6 +681,8 @@ public partial class Magnet : Area2D {
 			// Adding slight offset from magnet object so it doesn't get put slightly inside magnet and then pushed out
 			attachedObject.GlobalPosition = objectPosition + (GlobalPosition.DirectionTo(objectPosition) * 10);
 			attachedObject.GlobalRotation = objectRotation;
+
+			attachedObject.RemoveFromGroup("AttachedToMagnet");
 
 			MagneticCharacterComponent magCharComp = attachedObjectMagComp.GetMagneticCharacterComponent();
 			if (magCharComp != null) {

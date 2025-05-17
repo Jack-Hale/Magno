@@ -269,7 +269,6 @@ public partial class MagneticComponent : Node2D {
 					break;
 			}
 
-			// GD.Print(exitTriggered, inTimeLimitExit);
 			if (exitTriggered || inTimeLimitExit) {
 
 				switch (exitCondition) {
@@ -398,6 +397,8 @@ public partial class MagneticComponent : Node2D {
 
 			rigidObject.Visible = true;
 			rigidObject.Sleeping = false;
+
+			rigidObject.LinearVelocity = characterObject.Velocity;
 
 			Sprite2D characterSprite = null;
 			Array<Node> characterChildren = characterObject.GetChildren();

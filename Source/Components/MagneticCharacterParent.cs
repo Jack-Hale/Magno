@@ -81,8 +81,6 @@ public partial class MagneticCharacterParent : Node2D {
 		component.SetBodyCopy(InitialiseBodyCopy());
 
 		InitialiseCharacterChildren();
-
-		// GD.Print(GetTreeStringPretty());
 	}
 
 	/// <summary>
@@ -226,7 +224,9 @@ public partial class MagneticCharacterParent : Node2D {
 					character.AddChild(item);
 
 					// Object that has been duplicated has it's index stored at end of duplicated object's name.
-					character.MoveChild(item, item.Name.ToString().Split('-').Last().ToInt());
+					// character.MoveChild(item, item.Name.ToString().Split('-').Last().ToInt());
+
+					character.MoveChild(item, 0);
 				}
 			}
 		}
@@ -277,7 +277,7 @@ public partial class MagneticCharacterParent : Node2D {
 		if (!child.IsInGroup("MagneticComponent")) {
 			childMagComp = child.GetNodeOrNull<MagneticComponent>("MagneticComponent");
 
-			duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(child)}-0-{child.GetIndex()}";
+			duplicateObject.Name = $"{character.GetPathTo(child)}-NoMag-Duplicate-{child.GetIndex()}";
 
 			if (childMagComp != null) {
 				collisionTransfer = true;
@@ -288,7 +288,7 @@ public partial class MagneticCharacterParent : Node2D {
 			}
 
 			if (childMagComp != null && collisionTransfer) {
-				duplicateObject.Name = $"Duplicate-{child.Name}-{character.GetPathTo(childMagComp)}-1";
+				duplicateObject.Name = $"{character.GetPathTo(childMagComp)}-Mag-Duplicate-{child.GetIndex()}";
 				duplicateObject.CollisionLayer = 1u << 8;
 				duplicateObject.AddToGroup("DuplicateMagnetChild");
 			}
@@ -298,7 +298,7 @@ public partial class MagneticCharacterParent : Node2D {
 				if (child is not PathFindingComponent) {
 					if (!child.IsInGroup("HasPhysics")) {
 						Node2D duplicateNode = (Node2D)child.Duplicate();
-						duplicateNode.Name = $"{child.Name}_Duplicate";
+						duplicateNode.Name = $"{child.Name}-{child.GetParent().Name}-Duplicate";
 						duplicateNode.AddToGroup(character.GetPathTo(child).ToString());
 						bodyCopy.AddChild(duplicateNode);
 
@@ -316,8 +316,8 @@ public partial class MagneticCharacterParent : Node2D {
 						if (originalNode != null) {
 							Node2D duplicateNode = (Node2D)originalNode.Duplicate();
 
-							duplicateNode.Position = ((Node2D)child).Position;
-							duplicateNode.Name = $"{originalNode.Name}_Duplicate";
+							duplicateNode.Position = child.Position;
+							duplicateNode.Name = $"{originalNode.Name}-Duplicate";
 							duplicateNode.AddToGroup(character.GetPathTo(originalNode).ToString());
 							bodyCopy.AddChild(duplicateNode);
 						}
@@ -351,11 +351,13 @@ public partial class MagneticCharacterParent : Node2D {
 							duplicateObject.AddChild(duplicateObjectShape);
 						}
 						if (impartCollisionOnParent) {
+							CollisionShape2D bodyCopyShape = (CollisionShape2D)collShape.Duplicate();
 							CollisionShape2D characterCopyShape = (CollisionShape2D)collShape.Duplicate();
-							characterCopyShape.Name = $"{child.Name}_CollisionShape_Duplicate";
-							characterCopyShape.Position = child.Position + collShape.Position;
+							bodyCopyShape.Name = $"{collShape.Name}-{child.Name}-Duplicate";
+							characterCopyShape.Name = $"{collShape.Name}-{child.Name}-CollisionTransfer";
+							bodyCopyShape.Position = child.Position + collShape.Position;
+							bodyCopy.AddChild(bodyCopyShape.Duplicate());
 							character.AddChild(characterCopyShape);
-							bodyCopy.AddChild(characterCopyShape.Duplicate());
 						}
 					}
 
@@ -365,7 +367,7 @@ public partial class MagneticCharacterParent : Node2D {
 						Sprite2D bodyCopySprite = (Sprite2D)originalSprite.Duplicate();
 						Sprite2D characterSprite = (Sprite2D)originalSprite.Duplicate();
 						// duplicateSprite.Position = bodyCopy.ToLocal(originalSprite.GlobalPosition);
-						bodyCopySprite.Name = $"{originalSprite.Name}_{child.Name}_Duplicate";
+						bodyCopySprite.Name = $"{originalSprite.Name}-{child.Name}-Duplicate";
 						bodyCopySprite.AddToGroup(character.GetPathTo(children[i]).ToString());
 
 						bodyCopySprite.Scale = originalSprite.Scale;
@@ -394,7 +396,7 @@ public partial class MagneticCharacterParent : Node2D {
 				// Doing a deep duplication of the animation player
 				if (animationSprite != null && animationPlayer != null) {
 					AnimationPlayer bodyCopyPlayer = DuplicateAnimationPlayer(animationPlayer, bodyCopyAnimSprite, animationSprite, bodyCopy.Name.ToString());
-					bodyCopyPlayer.Name = $"{animationPlayer.Name}_{animationPlayer.GetParent().Name}_Duplicate";
+					bodyCopyPlayer.Name = $"{animationPlayer.Name}:{animationPlayer.GetParent().Name}:Duplicate";
 					bodyCopyPlayer.AddToGroup(character.GetPathTo(animationPlayer).ToString());
 					bodyCopy.AddChild(bodyCopyPlayer);
 

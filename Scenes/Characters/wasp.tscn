@@ -222,7 +222,7 @@ shape = SubResource("CapsuleShape2D_ahunh")
 script = ExtResource("6_0cir8")
 weakMultiplier = 10.0
 strongMultiplier = 12.0
-exitCondition = 1
+exitCondition = 2
 exitTimer = 1.5
 metadata/_custom_type_script = "uid://dga5am8fpoq83"
 
@@ -258,5 +258,5 @@ metadata/_custom_type_script = "uid://bs7evxlj3ifeb"
 
 [node name="MagneticComponent" type="Node2D" parent="Wasp/Wings"]
 script = ExtResource("6_0cir8")
-exitCondition = 3
+exitCondition = 2
 metadata/_custom_type_script = "uid://dga5am8fpoq83"

@@ -95,7 +95,7 @@ public partial class MagneticReparentComponent : Node {
 		}
 
 		if (magComp != null) {
-			magComp.InitialiseForCharacterOwner(character, magneticCharacterParent);
+			magComp.InitialiseForCharacterOwner(character, magneticCharacterParent.GetParent());
 		}
 
 		magneticCharacterParent.AddNewMagnetNode(magnetObject);
