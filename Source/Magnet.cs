@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
+using System.Linq;
 
 public partial class Magnet : Area2D {
 	[Export]
@@ -39,7 +40,7 @@ public partial class Magnet : Area2D {
 	private PhysicsBody2D attachedObject;
 	private MagneticComponent attachedObjectMagComp;
 	private Dictionary<PhysicsBody2D, MagneticComponent> attractedObjects = new();
-	private Dictionary<Area2D, MagneticComponent> affectedDuplicates = new();
+	private Dictionary<Area2D, PhysicsBody2D> affectedDuplicates = new();
 	private Sprite2D _beamSpriteWeak;
 	private Sprite2D _beamSpriteStrong;
 
@@ -414,37 +415,94 @@ public partial class Magnet : Area2D {
 
 		if (!activated) {
 			foreach (var item in affectedDuplicates.Keys) {
-				affectedDuplicates[item].StopExitCase();
+				MagneticComponent magneticComponent = GetMagneticComponentFromArea(item);
+				if (magneticComponent != null) magneticComponent.StopExitCase();
 				affectedDuplicates.Remove(item);
 			}
 		}
 
 		foreach (var item in affectedDuplicates.Keys) {
-			affectedDuplicates[item].TriggerExitCase();
+			MagneticComponent magneticComponent = GetMagneticComponentFromArea(item);
+			if (magneticComponent != null) magneticComponent.TriggerExitCase();
 		}
 
 		QueueRedraw();
 	}
 
+	/// <summary>
+	/// Given an area, if the area has the correct naming parameters, the MagneticComponent will be found associated with that area.
+	/// </summary>
+	/// <returns>The found MagneticComponent or null is none are found.</returns>
+	private MagneticComponent GetMagneticComponentFromArea(Area2D area) {
+		Node2D searchNode;
+		if (!area.IsInGroup("AreaCopy")) searchNode = (Node2D)area.GetParent();
+		else {
+			var parent = area.GetParent().GetParent();
+			searchNode = (Node2D)parent.GetNodeOrNull($"{parent.Name}");
+		}
+		string[] namePath = area.Name.ToString().Split('-')[0].Split('_');
+		string path = "";
+
+		for (int i = 0; i < namePath.Length; i++) {
+			path += namePath[i];
+			if (i != namePath.Length - 1) {
+				path += "/";
+			}
+		}
+		if (searchNode != null) {
+			return searchNode.GetNodeOrNull<MagneticComponent>(path);
+		}
+		return null;
+	}
+
 	private void OnAreaEnteredBeam(Area2D area) {
 		if (area.IsInGroup("DuplicateMagnetChild")) {
-			string[] namePath = area.Name.ToString().Split('-')[0].Split('_');
-			string path = "";
-			for (int i = 0; i < namePath.Length; i++) {
-				path += namePath[i];
-				if (i != namePath.Length - 1) {
-					path += "/";
-				}
-			}
-			MagneticComponent magComp = area.GetParent().GetNode<MagneticComponent>(path);
+			MagneticComponent magComp = GetMagneticComponentFromArea(area);
 
-			affectedDuplicates.Add(area, magComp);
+			if (magComp != null) {
+				CharacterBody2D areaParent = magComp.GetMagneticCharacterComponent().GetCharacter();
+				AddToAttracted(areaParent, area);
+			}
 		}
 	}
 
 	private void OnAreaExitedBeam(Area2D area) {
 		if (affectedDuplicates.ContainsKey(area)) {
-			affectedDuplicates[area].StopExitCase();
+			RemoveArea(area);
+		}
+	}
+
+	/// <summary>
+	/// Removes an area from the affected areas and stops any associated exit cases from continuing.
+	/// </summary>
+	private void RemoveArea(Area2D area) {
+		MagneticComponent magComp = GetMagneticComponentFromArea(area);
+		if (magComp != null) {
+			magComp.StopExitCase();
+
+			// Checking that no other areas on the same object are within the beam before removing.
+			PhysicsBody2D character = affectedDuplicates[area];
+			RigidBody2D bodyCopy = magComp.GetMagneticCharacterComponent().GetBodyCopy();
+
+			bool foundBodyCopy = false;
+			bool foundCharacter = false;
+
+			foreach (var item in affectedDuplicates.Keys) {
+				if (affectedDuplicates[item] == bodyCopy) {
+					foundBodyCopy = true;
+				}
+
+				if (affectedDuplicates[item] == character) {
+					foundCharacter = true;
+				}
+			}
+			if (!foundBodyCopy) {
+				OnBodyExitedBeam(bodyCopy);
+			}
+
+			if (!foundCharacter) {
+				OnBodyExitedBeam(character);
+			}
 			affectedDuplicates.Remove(area);
 		}
 	}
@@ -458,34 +516,8 @@ public partial class Magnet : Area2D {
 
 				// Magnetic rigidbodies and characterbodies are treated differently
 				if (body.IsInGroup("MagneticCharacter")) {
-					MagneticCharacterComponent magCharComp = null;
-
-					foreach (var child in body.GetParent().GetChildren()) {
-						if (child is MagneticCharacterComponent) {
-							magCharComp = (MagneticCharacterComponent)child;
-							break;
-						}
-					}
-
-					// Uses the magcharcomp to get the bodycopy of the character before switching to rigid
-					if (magCharComp != null) {
-
-						RigidBody2D bodyCopy = magCharComp.GetBodyCopy();
-						if (bodyCopy != null) {
-							body.AddToGroup("Affected");
-
-							MagneticComponent newObject = bodyCopy.GetNodeOrNull<MagneticComponent>("MagneticComponent");
-
-							if (!attractedObjects.ContainsKey(bodyCopy)) {
-
-								if (magCharComp.GetIsRigidPhysics()) {
-									magCharComp.SwapToRigid();
-									magCharComp.CanSwapToCharacter = false;
-								}
-
-								attractedObjects.Add(bodyCopy, newObject);
-							}
-						}
+					if (!body.IsInGroup("MagneticAreaHolder")) {
+						AddToAttracted(body, null);
 					}
 				}
 				else {
@@ -495,6 +527,45 @@ public partial class Magnet : Area2D {
 					if (!attractedObjects.ContainsKey((PhysicsBody2D)body)) {
 						attractedObjects.Add((PhysicsBody2D)body, newObject);
 					}
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Adds an area within a character and the character to the dictionarys that are affected by a magnetic force.
+	/// </summary>
+	private void AddToAttracted(Node body, Area2D area) {
+		MagneticCharacterComponent magCharComp = null;
+
+		foreach (var child in body.GetParent().GetChildren()) {
+			if (child is MagneticCharacterComponent) {
+				magCharComp = (MagneticCharacterComponent)child;
+				break;
+			}
+		}
+
+		// Uses the magcharcomp to get the bodycopy of the character before switching to rigid
+		if (magCharComp != null) {
+
+			RigidBody2D bodyCopy = magCharComp.GetBodyCopy();
+			if (bodyCopy != null) {
+				body.AddToGroup("Affected");
+
+				MagneticComponent magneticComponent = bodyCopy.GetNodeOrNull<MagneticComponent>("MagneticComponent");
+
+				if (!attractedObjects.ContainsKey(bodyCopy)) {
+
+					if (magCharComp.GetIsRigidPhysics()) {
+						magCharComp.SwapToRigid();
+						magCharComp.CanSwapToCharacter = false;
+					}
+
+					if (area != null) {
+						affectedDuplicates.Add(bodyCopy.GetNode<Area2D>(area.Name.ToString()), bodyCopy);
+					}
+
+					attractedObjects.Add(bodyCopy, magneticComponent);
 				}
 			}
 		}
@@ -525,6 +596,15 @@ public partial class Magnet : Area2D {
 						magCharComp.GetCharacter().RemoveFromGroup("Affected");
 						magCharComp.SwapToCharacter();
 						magCharComp.CanSwapToCharacter = true;
+					}
+
+					// When the charater exits the magnet beam, so does any areas within the character.
+					if (affectedDuplicates.Values.Contains(body)) {
+						foreach (var item in affectedDuplicates.Keys) {
+							if (affectedDuplicates[item] == body) {
+								affectedDuplicates.Remove(item);
+							}
+						}
 					}
 
 					attractedObjects.Remove(itemToRemove);

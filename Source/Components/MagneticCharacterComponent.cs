@@ -258,6 +258,8 @@ public partial class MagneticCharacterComponent : Node2D {
 	// Swaps the CharacterBody2D with the Rigidbody2D bodyCopy
 	public void SwapToRigid() {
 		if (isCharacter && isRigidPhysics) {
+			// GD.Print("Swap to Rigid");
+
 			isCharacter = false;
 
 			foreach (Node2D item in physicsItems.Keys) {
@@ -282,6 +284,8 @@ public partial class MagneticCharacterComponent : Node2D {
 	// Swaps back to the character from the bodycopy
 	public bool SwapToCharacter() {
 		if (!isCharacter && !ragdoll && !bodyCopy.IsInGroup("AttachedToMagnet")) {
+
+			// GD.Print("Swap to Character");
 			foreach (Node2D item in physicsItems.Keys) {
 				item.ProcessMode = ProcessModeEnum.Inherit;
 			}

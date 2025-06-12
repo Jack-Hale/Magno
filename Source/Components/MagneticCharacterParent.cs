@@ -78,9 +78,13 @@ public partial class MagneticCharacterParent : Node2D {
 		}
 		character = component.GetCharacter();
 
-		component.SetBodyCopy(InitialiseBodyCopy());
+		RigidBody2D bodyCopy = InitialiseBodyCopy();
 
-		InitialiseCharacterChildren();
+		component.SetBodyCopy(bodyCopy);
+
+		InitialiseCharacterChildren(bodyCopy);
+
+		GD.Print(GetTreeStringPretty());
 	}
 
 	/// <summary>
@@ -217,15 +221,19 @@ public partial class MagneticCharacterParent : Node2D {
 	/// Initialises the character to have all the sprites and animation players from metal objects
 	/// added to the character.
 	/// </summary>
-	public void InitialiseCharacterChildren() {
+	public void InitialiseCharacterChildren(RigidBody2D bodyCopy) {
 		if (duplicateObjects.Count > 0) {
 			foreach (var item in duplicateObjects.Keys) {
 				if (item.GetParent() != character) {
 					character.AddChild(item);
+					Node2D areaCopy = (Node2D) item.Duplicate();
+					areaCopy.AddToGroup("AreaCopy");
+					bodyCopy.AddChild(areaCopy);
 
+					if (!character.IsInGroup("MagneticAreaHolder")) character.AddToGroup("MagneticAreaHolder");
+					
 					// Object that has been duplicated has it's index stored at end of duplicated object's name.
 					// character.MoveChild(item, item.Name.ToString().Split('-').Last().ToInt());
-
 					character.MoveChild(item, 0);
 				}
 			}
@@ -257,9 +265,10 @@ public partial class MagneticCharacterParent : Node2D {
 	}
 
 	public void AddNewMagnetNode(Node2D newNode) {
-		component.SetBodyCopy(CreateDuplicate(newNode, component.GetBodyCopy()));
+		RigidBody2D bodyCopy = CreateDuplicate(newNode, component.GetBodyCopy());
+		component.SetBodyCopy(bodyCopy);
 
-		InitialiseCharacterChildren();
+		InitialiseCharacterChildren(bodyCopy);
 	}
 
 	/// <summary>
@@ -277,7 +286,7 @@ public partial class MagneticCharacterParent : Node2D {
 		if (!child.IsInGroup("MagneticComponent")) {
 			childMagComp = child.GetNodeOrNull<MagneticComponent>("MagneticComponent");
 
-			duplicateObject.Name = $"{character.GetPathTo(child)}-NoMag-Duplicate-{child.GetIndex()}";
+			duplicateObject.Name = $"{character.GetPathTo(child)}-NoMag-Area2D-Duplicate-{child.GetIndex()}";
 
 			if (childMagComp != null) {
 				collisionTransfer = true;
@@ -288,7 +297,7 @@ public partial class MagneticCharacterParent : Node2D {
 			}
 
 			if (childMagComp != null && collisionTransfer) {
-				duplicateObject.Name = $"{character.GetPathTo(childMagComp)}-Mag-Duplicate-{child.GetIndex()}";
+				duplicateObject.Name = $"{character.GetPathTo(childMagComp)}-Mag-Area2D-Duplicate-{child.GetIndex()}";
 				duplicateObject.CollisionLayer = 1u << 8;
 				duplicateObject.AddToGroup("DuplicateMagnetChild");
 			}
@@ -356,6 +365,7 @@ public partial class MagneticCharacterParent : Node2D {
 							bodyCopyShape.Name = $"{collShape.Name}-{child.Name}-Duplicate";
 							characterCopyShape.Name = $"{collShape.Name}-{child.Name}-CollisionTransfer";
 							bodyCopyShape.Position = child.Position + collShape.Position;
+							characterCopyShape.Position = bodyCopyShape.Position;
 							bodyCopy.AddChild(bodyCopyShape.Duplicate());
 							character.AddChild(characterCopyShape);
 						}
